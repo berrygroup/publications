@@ -1,0 +1,35 @@
+#!/bin/bash
+
+### quantify in parallel
+
+#PBS -N batch_run_quantification
+#PBS -l select=1:ncpus=1:mem=64gb
+#PBS -l walltime=6:00:00
+#PBS -o /srv/scratch/z3532965/src/blana/Scott/202402_BleachChase_mCherry-POLR2A/PBS/log/
+#PBS -e /srv/scratch/z3532965/src/blana/Scott/202402_BleachChase_mCherry-POLR2A/PBS/log/
+#PBS -M scott.berry@unsw.edu.au
+#PBS -m ae
+
+### The following parameter is modulated at runtime to specify the
+### batch number on each node. Batches should run from zero to N_BATCHES-1
+### to process all files
+
+#PBS -J 0-180
+
+###---------------------------------------------------------------------------
+
+source /home/z3532965/.bashrc
+conda activate berrylab-py310
+
+cd $PBS_O_WORKDIR
+
+dataset="20240214_161030_815"
+
+python /srv/scratch/z3532965/src/blana/Scott/202402_BleachChase_mCherry-POLR2A/run_quantification.py \
+  --id ${PBS_ARRAY_INDEX} \
+  --cellpose_model_file /srv/scratch/z3532965/src/blana/Scott/202402_BleachChase_mCherry-POLR2A/CELLPOSE/20X_mCherry-POLR2A_20240209 \
+  --features_dir /srv/scratch/berrylab/z3532965/systems_Ti2/202402_BleachChase_mCherry-POLR2A/${dataset}/QUANTIFICATION \
+  --input_dir /srv/scratch/berrylab/z3532965/systems_Ti2/202402_BleachChase_mCherry-POLR2A/${dataset}/OME-TIFF-MIP \
+  --output_dir /srv/scratch/berrylab/z3532965/systems_Ti2/202402_BleachChase_mCherry-POLR2A/${dataset}/SEGMENTATION
+
+conda deactivate

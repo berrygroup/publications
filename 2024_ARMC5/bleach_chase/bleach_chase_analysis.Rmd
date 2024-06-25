@@ -1,0 +1,1359 @@
+---
+title: "POLR2A stability analysis using bleach-chase in mCherry-POLR2A cells"
+author: "Scott Berry"
+date: "2024-06-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggpubr)
+library(lme4)
+library(patchwork)
+library(emmeans)
+
+rm(list=ls())
+options(scipen=999)
+
+wt_col <- "#184cee"
+armc5_col <- "#9d24ec"
+
+```
+
+# Aim
+
+Measure POLR2A protein half-life and how this changes upon depletion of ARMC5.
+
+# Theory
+
+To measure protein half-life in living cells without chemical perturbation, we use the 'bleach-chase' approach, introduced by [Eden et al.](https://www.science.org/doi/10.1126/science.1199784).
+
+The idea is to bleach a subset of protein molecules and see the rate at which these bleached molecules disappear. These bleached molecules are not directly measured but are inferred from measurements of bleached and unbleached proteins. We define the following protein *concentrations*.
+
+- Total protein: $P$
+- Bleached protein: $B$
+- Unbleached protein: $U$
+
+$$
+P = B + U
+$$
+During bleach, bleached protein concentration is increased in a pulse, and is then removed with rate $k_\text{removal}$.
+
+$$
+\frac{d}{dt}B(t) = -k_\text{removal} B(t)
+$$
+which has solution,
+$$
+B(t) = B(0)e^{-k_\text{removal}t}
+$$
+Because $B$ cannot be directly measured, we substitute $P = B + U$.
+$$
+\begin{align}
+P(t)-U(t) &= \left(P(0)-U(0)\right)e^{-k_\text{removal}t} \\
+\ln\left(P(t)-U(t)\right) &= \ln\left(P(0)-U(0)\right) -k_\text{removal}t
+\end{align}
+$$
+So plotting $\ln\left(P(t)-U(t)\right)$ as a function of $t$ will be linear with slope $-k_\text{removal}$, and intercept $\ln\left(P(0)-U(0)\right)$. We cannot actually measure the total protein concentration, $P$, in the bleached cells, so we use another group of cells in the same well that have not been bleached as a proxy for $P$ in the bleached cells. The experimental advantage of this approach is that any fluctuations in laser intensity, or other experimental fluctuations will affect the bleached and unbleached cells in the same way. So the difference ($P-U$) will be a more robustly measured variable.
+
+In these experiments, we measure average protein concentration in growing cells using time-lapse imaging. Protein *concentration* is increased with some average rate $k_s$ and reduced with rate $k_\text{deg.} + k_\text{dil.}$ . The total removal rate $k_\text{removal}$ that we measure is therefore equal to the sum of those rates, and the steady-state protein concentration is given by $k_s/k_\text{removal}$.
+
+$$
+k_\text{removal} = k_\text{deg.} + k_\text{dil.}
+$$
+
+Protein half-life is then given by,
+$$
+T_{1/2} = \ln(2)/k_\text{deg.} = \ln(2)/(k_\text{removal} - k_\text{dil.})
+$$
+
+## Dilution rate
+
+We extract the growth rate $k_\text{dil.}$ by fitting the number of cells over time to an exponential growth model, this is valid if the distribution of cell volumes is constant over time, which can be validated by plotting nuclear area distributions over time (as nuclear area is proportional to cell volume).
+
+$$
+N(t)=N(0)e^{k_\text{dil.}t}
+$$
+which we fit to data over the 9h time-course using linear regression (after log transformation),
+$$
+\ln(N(t)) = \ln(N(0)) + k_\text{dil.}t
+$$
+
+The cell cycle duration, $T_\text{cc}$ is related to $k_\text{dil.}$ by $T_\text{cc}=\ln(2)/k_\text{dil.}$.
+
+# Experimental setup
+
+Cells: mCherry-POLR2A clone #2 (HCT116 OsTIR(F74G)), grown for 3 days before imaging.
+
+Media: McCoy's 5A (no phenol red - Cytiva SH30270.01) + 10% FCS + P/S
+
+Plate: 96-well plastic (Greiner 655090) uncoated
+
+Stains: none
+
+Imaging performed on Nikon Ti2 with CSU-W1 spinning disk using 20x air objective, automated via JOBS. Z-stacks contain 12 images at a spacing of 2µm.
+
+Per well, two ROIs, each containing 3 x 3 imaging sites. First is an experimental sample that is bleached to ~50% of its initial mCherry intensity before imaging recovery (using mercury lamp - not laser). The entire field-of-view is bleached. Second is a control that is not bleached. 
+
+In some replicates two experiments are performed sequentially (different wells), each with ~9h post-bleach acquisition. In each replicate, two conditions are being compared (ARMC5 siRNA and a negative control Scrambled siRNA). Some replicates were very dense, so may represent different growth kinetics. May have to exclude this data due to these biological differences.
+
+## Cell segmentation and quantification
+
+Images of mCherry-POLR2A are maximum-intensity projected. Illumination biases were corrected using [pixel-wise z-scoring](https://doi.org/10.1016/j.ymeth.2015.05.016) and cells are then segmented at each time point using a custom Cellpose model (Based on Cellpose 2.0's nuclei model). This is applied across all data and quantification performed within the ``blimp`` package using ``regionprops`` from ``scikit image``. See [``blimp`` on github](https://github.com/berrygroup/blimp) for more details. Actual analysis script and job submission script can be found on [``blana``](https://github.com/berrygroup/blana/tree/main/Scott/202402_BleachChase_mCherry-POLR2A).
+
+## Data analysis
+
+### Preparation
+
+Define the data locations for all experimental replicates and label the samples. Experimental layout was the same for all dates.
+
+```{r define_data_locations}
+data_dir = "/srv/scratch/berrylab/z3532965/systems_Ti2/202402_BleachChase_mCherry-POLR2A" 
+acquisition_dirs <- map_chr(c("20240208_085709_941","20240211_185909_905","20240214_161030_815","20240219_161952_674"),~file.path(data_dir,.))
+
+n_wells <- 2
+
+# replicate 1
+bleach_pre_samples <- 0:(n_wells-1)
+control_pre_samples <- n_wells:(2*n_wells-1)
+bleach_bleach_samples <- (2*n_wells):(3*n_wells-1)
+bleach_post_samples <- (3*n_wells):(4*n_wells-1)
+control_post_samples <- (4*n_wells):(5*n_wells-1)
+
+# replicate 2
+bleach_pre_samples <- c(bleach_pre_samples,5*n_wells + bleach_pre_samples,10*n_wells + bleach_pre_samples)
+control_pre_samples <- c(control_pre_samples,5*n_wells + control_pre_samples,10*n_wells + control_pre_samples)
+bleach_bleach_samples <- c(bleach_bleach_samples,5*n_wells + bleach_bleach_samples,10*n_wells + bleach_bleach_samples)
+bleach_post_samples <- c(bleach_post_samples,5*n_wells + bleach_post_samples,10*n_wells + bleach_post_samples)
+control_post_samples <- c(control_post_samples,5*n_wells + control_post_samples,10*n_wells + control_post_samples)
+
+condition_metadata <- bind_rows(
+  tibble(bleach_or_control="bleach", pre_post="pre-bleach", sample_int = bleach_pre_samples),
+  tibble(bleach_or_control="control", pre_post="pre-bleach", sample_int = control_pre_samples),
+  tibble(bleach_or_control="bleach", pre_post="bleach", sample_int = bleach_bleach_samples),
+  tibble(bleach_or_control="bleach", pre_post="post-bleach", sample_int = bleach_post_samples),
+  tibble(bleach_or_control="control", pre_post="post-bleach", sample_int = control_post_samples)) %>%
+  mutate(sample=paste0(sprintf("%04d",sample_int))) %>%
+  mutate(replicate=case_when(sample_int<5*n_wells ~ 1L,sample_int<10*n_wells ~ 2L,sample_int<15*n_wells ~ 3L))
+
+well_info <- tibble(
+  well_name=c("WellD05","WellD06","WellE05","WellE06"),
+  siRNA=c("Scrambled","ARMC5","ARMC5","Scrambled")
+)
+
+```
+
+Read the quantifications of the data from the files.
+
+```{r read_data, echo=FALSE}
+
+f <- tibble(acquisition_dir = acquisition_dirs) %>%
+  mutate(quant_dir = map_chr(acquisition_dirs,~file.path(.,"QUANTIFICATION"))) %>%
+  mutate(quant_file = map(quant_dir,~list.files(.))) %>%
+  unnest(quant_file) %>%
+  separate(quant_file,into = c("part1","part2"),sep="_Seq",remove=F) %>%  
+  separate(part1,into = c("well_name","ch1"),sep="_Channel") %>%
+  separate(part2,into = c("sample","id"),sep="[,_.]", extra = "drop") %>%
+  mutate(dat = map(file.path(quant_dir,quant_file),
+                   ~read_csv(.,
+                             col_types = list(
+                               label = col_integer(),
+                               Nuclei_is_border = col_logical(),
+                               .default = col_double()
+                             ), show_col_types = FALSE))) %>%
+  left_join(condition_metadata,by=join_by(sample)) %>%
+  unnest(dat) %>%
+  mutate(field_id = as.integer(as.character(id))) %>%
+  mutate(timepoint_id = as.integer(as.character(TimepointID)) - 1)
+
+```
+
+Read the imaging metadata from the data directories. This includes the timestamps of when each image was taken.
+
+```{r read_metadata, echo=FALSE}
+
+m <- tibble(acquisition_dir = acquisition_dirs) %>%
+  mutate(date = map(acquisition_dir,~strsplit(basename(.),"_")[[1]][1])) %>%
+  unnest(date) %>%
+  mutate(image_dir = map_chr(acquisition_dirs,~file.path(.,"OME-TIFF-MIP"))) %>%
+  mutate(metadata_file = map(image_dir,~list.files(.))) %>%
+  unnest(metadata_file) %>%
+  filter(grepl("metadata.csv$",metadata_file)) %>%
+  mutate(dat = map(file.path(image_dir,metadata_file),~read_csv(.,show_col_types = FALSE))) %>%
+  separate(metadata_file,into = c("part1","part2"),sep="_Seq",remove=F) %>%  
+  separate(part1,into = c("well_name","ch1"),sep="_Channel") %>%
+  separate(part2,into = c("sample"),sep="[,_.]", extra = "drop") %>%
+  unnest(dat) %>%
+  mutate(field_id = as.integer(as.character(field_id))) %>%
+  left_join(well_info,by = join_by(well_name)) 
+
+```
+
+Remove Channel_Red data because this is the bleach pulse and was not recorded due to a lightpath complication when using the mercury lamp.
+
+```{r remove empty_data} 
+
+f <- filter(f,ch1=="TRITC")
+m <- filter(m,ch1=="TRITC")
+
+```
+
+
+Combine data and metadata, and remove cells touching the image border.
+
+```{r combine_data_metadata}
+
+# remove border cells and subtract background
+obs <- left_join(f,m,by = join_by(acquisition_dir, well_name, ch1, sample, field_id, timepoint_id)) %>%
+  mutate(Background_intensity_mean_TRITC_mean = 158.2) %>%
+  filter(!Nuclei_is_border) %>%
+  mutate(Nuclei_intensity_mean_TRITC_minus_background = Nuclei_intensity_mean_TRITC - Background_intensity_mean_TRITC_mean)
+
+# check labelling looks correct w.r.t. acquisition order
+obs %>% distinct(date,well_name,sample,ch1,field_id,bleach_or_control,pre_post,replicate) %>% 
+  group_by(well_name) %>% 
+  count(date,bleach_or_control,pre_post,sample,ch1,replicate) %>% 
+  arrange(date,sample) 
+
+```
+
+### Quality control
+
+For two reasons, it is important that cells are not too crowded for this assay:
+
+1. **Constant cell morphology**. We estimate protein concentration from maximum-intensity projections. This is valid provided nuclear morphology is constant relative to the z-resolution of the microscope. Because sparse cells grow flatter than dense cells, we must check that morphology does not change between conditions and is constant between replicates.
+2. **Growth rates must be constant during the post-bleach acquisition.** Cell growth is a major factor in protein removal, with growth rate being equal to the protein removal rate due to dilution ($k_\text{removal}$).
+
+For these reasons, we first want to verify that the nuclear area distributions are constant over time (so we are looking at a steady-state cell growth situation), and comparable between different dates. However, we must first cleanup the data before doing this by removing some very small nuclei, that are segmentation artefacts (or micronuclei).
+
+```{r preliminary_qc,fig.height=8,fig.width=8}
+
+obs %>%
+  ggplot(aes(x=Nuclei_area,col=well_name)) +
+  geom_density() +
+  geom_vline(xintercept = 200,col="red",lty=2) +
+  geom_vline(xintercept = 4000,col="red",lty=2) +
+  facet_wrap(siRNA~date)
+
+n_obs_total <- nrow(obs)
+
+obs <- filter(obs,Nuclei_area > 200 & Nuclei_area < 4000)
+
+n_obs_after_filtering <- nrow(obs)
+
+cat("Nuclei removed = ", n_obs_total - n_obs_after_filtering, "(", 100*(n_obs_total - n_obs_after_filtering)/n_obs_total,"% )\n")
+
+for (current_date in unique(obs$date)) {
+  obs %>%
+    filter(date==current_date) %>%
+    ggplot(aes(col=as.factor(timepoint_id),x=Nuclei_intensity_mean_TRITC_minus_background)) +
+    geom_density() +
+    facet_wrap(pre_post~bleach_or_control*well_name,labeller = label_both) +
+    theme(legend.position = "none") +
+    ggtitle(current_date)
+}
+
+```
+
+Check nuclear area distributions. Can see some differences already indicating likely crowding effects.
+
+```{r check_nuclei_area_distributions}
+
+# compare mid-time-course nuclear area distributions between different dates
+obs %>%
+  filter(pre_post=="post-bleach") %>%
+  filter(timepoint_id==18) %>%
+  ggplot(aes(x=date,y=Nuclei_area,fill=siRNA,group=interaction(date,siRNA))) +
+  geom_violin() +
+  geom_boxplot(width=0.2,fill="white",position = position_dodge(.9),outlier.shape = NA) +
+  facet_wrap(~replicate) +
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
+
+# plot cell number versus nuclear area for each field-of-view
+cell_count_area_FOV <- obs %>%
+  filter(pre_post=="post-bleach") %>%
+  group_by(date,well_name,replicate,field_id,timepoint_id,siRNA) %>%
+  summarise(n_cells = n(),
+            median_Nuclei_area = median(Nuclei_area),.groups = "drop")
+
+cell_count_area_FOV %>%
+  ggplot(aes(x=n_cells,y=median_Nuclei_area,col=as.factor(replicate))) +
+  geom_point(data=select(cell_count_area_FOV,-replicate,-date),aes(x=n_cells,y=median_Nuclei_area),col="grey") +
+  geom_point() +
+  facet_wrap(~date)
+
+```
+
+We can see that above 3000 cells/well, there is a strong trend that increasing cell number comes at the expense of reduction in cell area (i.e. cells are no longer free to expand). This is often prevalent in replicate 2, which was typically imaged 82-92h after transfection. We therefore label replicate 2 from 2024/02/08 and 2024/02/19 as too dense, and also replicate 1 from 2024/02/11. Unfortunately, these samples are not at steady-state growth and are therefore likely unreliable for estimation of long-term protein concentration recovery trends.
+
+```{r overcrowded_labelling}
+
+obs <- obs %>%
+  mutate(overcrowded = case_when(
+    date=="20240211" ~ TRUE,
+    replicate==2 & date!="20240214" ~ TRUE,
+    .default = FALSE))
+
+obs %>%
+  distinct(date,replicate,overcrowded)
+
+```
+
+We now also check that nuclei area distributions are constant throughout these timecourses. In all cases, median nuclear areas do not change by more than 10% over the timecourse.
+
+```{r nuclei_area_distributions_trends}
+
+timepoint_factor_levels <- map_chr(seq(0,40),as.character)
+selected_dates <- distinct(obs,date,replicate,overcrowded) %>%
+  filter(!overcrowded)
+
+for (d in 1:nrow(selected_dates)) {
+  obs_subset <- obs %>%
+    inner_join(selected_dates[d,],by = join_by(date, replicate, overcrowded)) %>%
+    filter(pre_post=="post-bleach") %>%
+    mutate(timepoint_id=as.character(timepoint_id),
+           timepoint_id=factor(timepoint_id,levels=timepoint_factor_levels))
+  
+  obs_subset_agg <- obs_subset %>%
+    group_by(timepoint_id,siRNA) %>%
+    summarise(Nuclei_area=median(Nuclei_area),.groups="drop") 
+  
+  p_nuclear_area <- ggplot(obs_subset,aes(x=timepoint_id,y=Nuclei_area)) + 
+    geom_violin(col="grey40",fill="grey80",width=0.7) + 
+    geom_hline(data=filter(obs_subset_agg,timepoint_id=="0"),aes(yintercept=Nuclei_area)) +
+    geom_hline(data=filter(obs_subset_agg,timepoint_id=="0") %>% mutate(Nuclei_area_cutoff=Nuclei_area*0.9),aes(yintercept=Nuclei_area_cutoff),lty=2) +
+    geom_hline(data=filter(obs_subset_agg,timepoint_id=="0") %>% mutate(Nuclei_area_cutoff=Nuclei_area*1.1),aes(yintercept=Nuclei_area_cutoff),lty=2) +
+    geom_line(data=obs_subset_agg,aes(group=1),col="red") + 
+    facet_grid(~siRNA,labeller = label_both) +
+    theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5)) +
+    coord_cartesian(ylim=c(500,2000)) +
+    ggtitle(paste(selected_dates[d,'date'],selected_dates[d,'replicate'],sep=" #"))
+  
+  print(p_nuclear_area)
+}
+
+```
+
+```{r count_cells}
+
+obs %>%
+  filter(!overcrowded & timepoint_id==0 & !Nuclei_is_border) %>%
+  group_by(timepoint_id,siRNA,date,replicate,well_name,bleach_or_control) %>%
+  count()
+
+```
+
+Now check that all intensities are above background and that there are no extreme intensity outliers. Data seems to be reasonably normal, except for the long tail.
+
+```{r intensity_outliers,fig.height=6,fig.width=6}
+
+# check for intensity outliers
+obs %>% 
+  filter(!overcrowded) %>%
+  ggplot(aes(y=Nuclei_intensity_mean_TRITC_minus_background,x=pre_post,col=bleach_or_control)) +
+  geom_violin(position = position_dodge(0.8)) +
+  geom_boxplot(position = position_dodge(0.8),width=0.2,outlier.shape=4) +
+  facet_grid(date~siRNA)
+```
+
+```{r normality,fig.height=3,fig.width=3}
+# check for normality
+obs %>%
+  filter(!overcrowded) %>%
+  filter(date=="20240208" & pre_post=="post-bleach" & timepoint_id<4 & bleach_or_control=="control" & siRNA=="Scrambled" & replicate==1L) %>%
+  pull(Nuclei_intensity_mean_TRITC_minus_background) %>%
+  ggdensity()
+
+obs %>%
+  filter(!overcrowded) %>%
+  filter(date=="20240208" & pre_post=="post-bleach" & timepoint_id<4 & bleach_or_control=="control" & siRNA=="Scrambled" & replicate==1L) %>%
+  pull(Nuclei_intensity_mean_TRITC_minus_background) %>%
+  ggqqplot()
+
+
+```
+
+### Aggregate data
+
+Average all cells in each timepoint using mean and median (distributions are long-tailed), and plot raw data.
+
+```{r aggregate_vs_time,fig.width=4,fig.height=4}
+
+agg <- obs %>%
+  mutate(acquisition_time_abs_numeric = as.numeric(acquisition_time_abs)) %>%
+  group_by(siRNA,timepoint_id,bleach_or_control,pre_post,well_name,date,replicate,overcrowded) %>%
+  summarise(mean_Nuclei_intensity_mean_TRITC_minus_background=mean(Nuclei_intensity_mean_TRITC_minus_background),
+            median_Nuclei_intensity_mean_TRITC_minus_background=median(Nuclei_intensity_mean_TRITC_minus_background),
+            sd_Nuclei_intensity_mean_TRITC_minus_background=sd(Nuclei_intensity_mean_TRITC_minus_background),
+            q1_Nuclei_intensity_mean_TRITC_minus_background=quantile(Nuclei_intensity_mean_TRITC_minus_background,0.25),
+            q3_Nuclei_intensity_mean_TRITC_minus_background=quantile(Nuclei_intensity_mean_TRITC_minus_background,0.75),
+            acquisition_time_rel=mean(acquisition_time_rel),
+            acquisition_time_abs_numeric=mean(acquisition_time_abs_numeric),
+            .groups = "drop") %>%
+  mutate(acquisition_time_abs = as.POSIXct(acquisition_time_abs_numeric,tz="UTC"))
+
+# mean is slightly elevated compared to median due to long tail of distribution
+agg %>%
+  filter(!overcrowded) %>%
+  ggplot(aes(x=mean_Nuclei_intensity_mean_TRITC_minus_background,y=median_Nuclei_intensity_mean_TRITC_minus_background)) + 
+  geom_point() +
+  geom_abline()
+
+```
+
+```{r aggregate_vs_time_plots,fig.width=8,fig.height=5}
+
+for (d in 1:nrow(selected_dates)) {
+  # mean
+  p1 <- agg %>%
+    inner_join(selected_dates[d,],by = join_by(date, replicate, overcrowded)) %>%
+    ggplot(aes(x=acquisition_time_rel/3600,y=mean_Nuclei_intensity_mean_TRITC_minus_background,col=bleach_or_control)) + 
+    facet_wrap(~siRNA,ncol=2) +
+    geom_point() +
+    geom_line() +
+    geom_ribbon(aes(ymin=mean_Nuclei_intensity_mean_TRITC_minus_background - sd_Nuclei_intensity_mean_TRITC_minus_background,
+                    ymax=mean_Nuclei_intensity_mean_TRITC_minus_background + sd_Nuclei_intensity_mean_TRITC_minus_background,
+                    fill=bleach_or_control),alpha=0.2,col=NA) +
+    ylim(c(0,NA)) +
+    ylab("Mean mCherry-POLR2A intensity (+/- s.d.)") +
+    xlab("Time (h)") +
+    ggtitle(paste(selected_dates[d,'date'],selected_dates[d,'replicate'],sep=" #"))
+  
+  # median
+  p2 <- agg %>%
+    inner_join(selected_dates[d,],by = join_by(date, replicate, overcrowded)) %>%
+    ggplot(aes(x=acquisition_time_rel/3600,y=median_Nuclei_intensity_mean_TRITC_minus_background,col=bleach_or_control)) + 
+    facet_wrap(~siRNA,ncol=2) +
+    geom_point() +
+    geom_line() +
+    geom_ribbon(aes(ymin=q1_Nuclei_intensity_mean_TRITC_minus_background,
+                    ymax=q3_Nuclei_intensity_mean_TRITC_minus_background,
+                    fill=bleach_or_control),alpha=0.2,col=NA) +
+    ylim(c(0,NA)) +
+    ylab("Median mCherry-POLR2A intensity (with IQR)") +
+    xlab("Time (h)") +
+    ggtitle(paste(selected_dates[d,'date'],selected_dates[d,'replicate'],sep=" #"))
+  
+  print(p1)
+  print(p2)
+}
+
+```
+
+#### Photobleaching (acquisition)
+
+For reporting purposes we would like to calculate the estimated photobleaching during post-bleach acqusition. We do this by comparing the first frame and last frames of each 9h timecourse.
+
+```{r estimate_photobleaching_acquisition,fig.width=2.5,fig.height=3}
+
+photobleach_measurements_acq <- obs %>%
+  group_by(siRNA,timepoint_id,field_id,bleach_or_control,pre_post,well_name,date,replicate,overcrowded) %>%
+  summarise(mean_Nuclei_intensity_mean_TRITC_minus_background=mean(Nuclei_intensity_mean_TRITC_minus_background),.groups="drop") %>%
+  filter(!overcrowded) %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
+  filter(pre_post=="post-bleach" & bleach_or_control=="control" & replicate==1) %>%
+  mutate(start_end = case_when(timepoint_id==0 ~ "start",
+                               timepoint_id==37 ~ "end",
+                               .default=NA_character_)) %>% 
+  filter(!is.na(start_end)) %>%
+  select(siRNA,start_end,date,field_id,mean_Nuclei_intensity_mean_TRITC_minus_background) %>%
+  pivot_wider(names_from = start_end,values_from = mean_Nuclei_intensity_mean_TRITC_minus_background) %>%
+  mutate(relative_intensity = end/start) 
+
+t_test <- t.test(photobleach_measurements_acq$relative_intensity)
+
+photobleach_measurements_acq_summ <- photobleach_measurements_acq %>%
+  group_by(siRNA) %>%
+  summarise(mean = mean(relative_intensity),
+            conf_int = list(t.test(relative_intensity, conf.level = 0.95)$conf.int)) %>%
+  unnest_wider(conf_int,names_sep = "_")
+
+photobleach_measurements_acq %>%
+  ggplot(aes(x=siRNA,y=relative_intensity)) + 
+  geom_jitter(alpha=0.1,width=0.2) +
+  geom_point(data=photobleach_measurements_acq_summ,
+             aes(x=siRNA,y=mean),pch='square') +
+  geom_errorbar(data=photobleach_measurements_acq_summ,
+                aes(x=siRNA,y=mean,ymin=conf_int_1,ymax=conf_int_2),
+                width=0.2) +
+  scale_y_continuous(name="Relative intensity change over 9h post-bleach acquisition",limits=c(0,1.5)) +
+  theme_bw(base_size = 8)
+
+```
+
+Acquisition photo-bleaching is statistically significant ($P =$ `t_test$p.value`) but equates to only `r signif((1-mean(t_test$estimate))*100,1)` $\pm$ `r signif((t_test$estimate-t_test$conf.int[1])*100,1)`% of the signal, so this is a minor effect.
+
+#### Photobleaching (bleach)
+
+We also calculate the degree of photobleaching during the bleach pulse for each field-of-view by comparing the last pre-bleach frame with the first post-bleach frame
+
+```{r estimate_photobleaching_bleach,fig.width=2.5,fig.height=3}
+
+photobleach_measurements_bleach <-  obs %>%
+  group_by(siRNA,timepoint_id,field_id,bleach_or_control,pre_post,well_name,date,replicate,overcrowded) %>%
+  summarise(mean_Nuclei_intensity_mean_TRITC_minus_background=mean(Nuclei_intensity_mean_TRITC_minus_background),.groups="drop") %>%
+  filter(!overcrowded) %>%
+  filter(bleach_or_control=="bleach") %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
+  mutate(before_after = case_when(timepoint_id==5 & pre_post=="pre-bleach" ~ "before",
+                               timepoint_id==0 & pre_post=="post-bleach"~ "after",
+                               .default=NA_character_)) %>% 
+  filter(!is.na(before_after)) %>%
+  select(siRNA,before_after,date,field_id,replicate,mean_Nuclei_intensity_mean_TRITC_minus_background) %>%
+  pivot_wider(names_from = before_after,values_from = mean_Nuclei_intensity_mean_TRITC_minus_background) %>%
+  mutate(relative_intensity = after/before) 
+
+photobleach_measurements_bleach_summ <- photobleach_measurements_bleach %>%
+  group_by(siRNA) %>%
+  summarise(mean = mean(relative_intensity),
+            conf_int = list(t.test(relative_intensity, conf.level = 0.95)$conf.int)) %>%
+  unnest_wider(conf_int,names_sep = "_")
+
+photobleach_measurements_bleach %>%
+  ggplot(aes(x=siRNA,y=relative_intensity)) + 
+  geom_jitter(alpha=0.1,width=0.2) +
+  geom_point(data=photobleach_measurements_bleach_summ,
+             aes(x=siRNA,y=mean),pch='square') +
+  geom_errorbar(data=photobleach_measurements_bleach_summ,
+                aes(x=siRNA,y=mean,ymin=conf_int_1,ymax=conf_int_2),
+                width=0.2) +
+  scale_y_continuous(name="Relative intensity after photobleach",limits=c(0,1)) +
+  theme_bw(base_size = 8)
+
+photobleach_measurements_bleach_summ_all <- photobleach_measurements_bleach %>%
+  summarise(mean = mean(relative_intensity),
+            conf_int = list(t.test(relative_intensity, conf.level = 0.95)$conf.int)) %>%
+  unnest_wider(conf_int,names_sep = "_")
+
+```
+
+Post-bleach  `r 100*signif(photobleach_measurements_bleach_summ_all$mean,2)` $\pm$ `r 100*signif(photobleach_measurements_bleach_summ_all$mean - photobleach_measurements_bleach_summ_all$conf_int_1,1)` % of the signal, so a reasonable amount of bleaching was achieved (note that limitation on segmenting cells from signal after bleach).
+
+#### Correct 'bleach' versus 'control' offsets for plotting
+
+Cells imaged in the bleach and control wells have different intensities before bleaching (because of limited sampling). We calculate a normalisation factor from the pre-bleach levels to account for this difference. This factor is not included for fitting because we are not interested in the absolute $P-U$ but rather its rate of change. However, the normalisation factor can be useful for example plots.
+
+```{r get_normalisers}
+
+# get normalisers from pre-bleach frames
+normalisers <- agg %>%
+  filter(pre_post=="pre-bleach") %>%
+  group_by(date,siRNA,replicate,bleach_or_control) %>%
+  summarise(pre_bleach_level = mean(mean_Nuclei_intensity_mean_TRITC_minus_background,na.rm=T),.groups="drop") %>%
+  pivot_wider(names_from = bleach_or_control, values_from = pre_bleach_level) %>%
+  mutate(normalisation_factor_control = bleach/control) %>%
+  select(-bleach,-control)
+
+normalisers
+
+# check normalisers
+for (d in unique(agg$date)) {
+  p <- agg %>%
+    filter(pre_post=="pre-bleach" & date==d) %>%
+    left_join(normalisers,by = join_by(siRNA, date, replicate)) %>%
+    rename(raw=mean_Nuclei_intensity_mean_TRITC_minus_background) %>%
+    mutate(
+      normalised = if_else(
+        bleach_or_control=="control",
+        raw*normalisation_factor_control,
+        raw)) %>%
+    pivot_longer(c(normalised,raw)) %>%
+    ggplot(aes(x=interaction(date,well_name),y=value,col=bleach_or_control)) + facet_wrap(~name) +
+    geom_boxplot() +
+    theme(axis.text.x = element_text(angle=90,hjust=0.5,vjust=1),
+          axis.title.x = element_blank())
+  print(p)
+}
+
+```
+
+#### Extract frame-rate
+
+Timepoints are evenly spaced in post-bleach. The frame rate is 10 min plus the time taken to acquire the frame.
+
+```{r prepare_fitting}
+
+# get time-interval between frames for each acquisition
+successive_time_points_20240208 <- filter(agg,date== "20240208" & siRNA=="Scrambled" & pre_post=="post-bleach" & bleach_or_control=="control" & replicate==1) %>%
+  arrange(timepoint_id) %>%
+  select(timepoint_id,acquisition_time_rel)
+
+successive_time_points_20240211 <- filter(agg,date== "20240211" & siRNA=="Scrambled" & pre_post=="post-bleach" & bleach_or_control=="control" & replicate==1) %>%
+  arrange(timepoint_id) %>%
+  select(timepoint_id,acquisition_time_rel)
+
+successive_time_points_20240214 <- filter(agg,date== "20240214" & siRNA=="Scrambled" & pre_post=="post-bleach" & bleach_or_control=="control" & replicate==1) %>%
+  arrange(timepoint_id) %>%
+  select(timepoint_id,acquisition_time_rel)
+
+successive_time_points_20240219 <- filter(agg,date== "20240219" & siRNA=="Scrambled" & pre_post=="post-bleach" & bleach_or_control=="control" & replicate==1) %>%
+  arrange(timepoint_id) %>%
+  select(timepoint_id,acquisition_time_rel)
+
+frame_interval_s_20240208 <- mean(diff(successive_time_points_20240208$acquisition_time_rel))
+frame_interval_s_20240211 <- mean(diff(successive_time_points_20240211$acquisition_time_rel))
+frame_interval_s_20240214 <- mean(diff(successive_time_points_20240214$acquisition_time_rel))
+frame_interval_s_20240219 <- mean(diff(successive_time_points_20240219$acquisition_time_rel))
+
+frame_interval_s <- tibble(
+  date=c("20240208","20240211","20240214","20240219"),
+  frame_interval_s=c(frame_interval_s_20240208,frame_interval_s_20240211,frame_interval_s_20240214,frame_interval_s_20240219))
+
+```
+
+- 20240208 Frame rate =`r round(frame_interval_s_20240208/60,2)` min.
+- 20240211 Frame rate =`r round(frame_interval_s_20240211/60,2)` min.
+- 20240214 Frame rate =`r round(frame_interval_s_20240214/60,2)` min.
+- 20240219 Frame rate =`r round(frame_interval_s_20240219/60,2)` min.
+
+We now make a plot of the normalised raw data.
+
+```{r plot_raw_data_normalised,fig.height=5,fig.width=5}
+to_plot <- agg %>%
+  filter(pre_post=="post-bleach" & !overcrowded) %>%
+  left_join(frame_interval_s,by=join_by(date)) %>%
+  mutate(timepoint_h = frame_interval_s * timepoint_id / 3600) %>%
+  left_join(normalisers,by = join_by(siRNA, date, replicate)) %>%
+  mutate(
+    normalised_mean_Nuclei_intensity_mean_TRITC_minus_background = if_else(
+      bleach_or_control=="control",
+      mean_Nuclei_intensity_mean_TRITC_minus_background*normalisation_factor_control,
+      mean_Nuclei_intensity_mean_TRITC_minus_background),
+    normalised_upper_Nuclei_intensity_mean_TRITC_minus_background = if_else(
+      bleach_or_control=="control",
+      normalisation_factor_control*(mean_Nuclei_intensity_mean_TRITC_minus_background + sd_Nuclei_intensity_mean_TRITC_minus_background),
+      mean_Nuclei_intensity_mean_TRITC_minus_background + sd_Nuclei_intensity_mean_TRITC_minus_background),
+    normalised_lower_Nuclei_intensity_mean_TRITC_minus_background = if_else(
+      bleach_or_control=="control",
+      normalisation_factor_control*(mean_Nuclei_intensity_mean_TRITC_minus_background - sd_Nuclei_intensity_mean_TRITC_minus_background),
+      mean_Nuclei_intensity_mean_TRITC_minus_background - sd_Nuclei_intensity_mean_TRITC_minus_background)) %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
+  mutate(bleach_or_control_display=if_else(bleach_or_control=="bleach","bleached","unbleached"))
+
+ggplot(to_plot,aes(
+  y=normalised_mean_Nuclei_intensity_mean_TRITC_minus_background,
+  x=timepoint_h,
+  col=bleach_or_control,
+  group=interaction(replicate,bleach_or_control_display))) + 
+  geom_ribbon(aes(ymin=normalised_lower_Nuclei_intensity_mean_TRITC_minus_background,
+                  ymax=normalised_upper_Nuclei_intensity_mean_TRITC_minus_background,
+                  fill=bleach_or_control_display),alpha=0.2,col=NA) +
+  geom_line() + 
+  facet_grid(interaction(date,replicate)~siRNA) +
+  scale_y_continuous(name="Mean mCherry-POLR2A intensity (+/- s.d.)",limits = c(0,NA)) +
+  scale_x_continuous(name="Time (h)",limits = c(0,NA),breaks=c(0,2,4,6,8)) +
+  theme_bw(base_size = 8) +
+  theme(legend.title = element_blank())
+
+```
+
+Data looks highly reproducible. We can plot all replicates over the top of one another.
+
+```{r overplot_raw_data_normalised,fig.height=2,fig.width=5}
+
+ggplot(to_plot,aes(
+  y=normalised_mean_Nuclei_intensity_mean_TRITC_minus_background,
+  x=timepoint_h,
+  col=bleach_or_control_display,
+  group=interaction(date,replicate,bleach_or_control_display))) + 
+  geom_line() + 
+  facet_wrap(~siRNA) +
+  scale_y_continuous(name="Mean mCherry-POLR2A \nintensity (A.U.)",limits = c(0,NA)) +
+  scale_x_continuous(name="Time (h)",limits = c(0,NA),breaks=c(0,2,4,6,8)) +
+  theme_bw(base_size = 8) +
+  theme(legend.title = element_blank())
+#ggsave("PLOTS/ARMC5_bleach_and_control_intensities.pdf",width = 3.5,height=1.5)
+
+```
+
+```{r overplot_raw_data_normalised_prebleach,fig.height=3,fig.width=2}
+
+# normalise pre-bleach to 1
+pre_bleach_level <- agg %>%
+  filter(pre_post=="pre-bleach" & timepoint_id==5) %>%
+  group_by(date,siRNA,replicate,bleach_or_control) %>%
+  summarise(pre_bleach_level = mean(mean_Nuclei_intensity_mean_TRITC_minus_background,na.rm=T),.groups="drop")
+
+to_plot_relative <- agg %>%
+  filter(pre_post=="post-bleach" & !overcrowded) %>%
+  left_join(frame_interval_s,by=join_by(date)) %>%
+  mutate(timepoint_h = frame_interval_s * timepoint_id / 3600) %>%
+  left_join(pre_bleach_level,by = join_by(siRNA, bleach_or_control, date, replicate)) %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
+  mutate(bleach_or_control_display=if_else(bleach_or_control=="bleach","Bleached","Unbleached"))
+
+avg_frame_interval <- mean(frame_interval_s$frame_interval_s)
+
+to_plot_relative_avg <- to_plot_relative %>%
+  mutate(tmp=mean_Nuclei_intensity_mean_TRITC_minus_background/pre_bleach_level) %>%
+  group_by(siRNA,bleach_or_control_display,timepoint_id) %>%
+  summarise(avg = mean(tmp),.groups='drop') %>%
+  mutate(timepoint_h = avg_frame_interval * timepoint_id / 3600)
+
+ggplot(to_plot_relative,
+       aes(y=mean_Nuclei_intensity_mean_TRITC_minus_background/pre_bleach_level,
+           x=timepoint_h,
+           col=siRNA)) + 
+  geom_line(aes(group=interaction(date,replicate,siRNA)),alpha=0.3,linewidth=0.3) + 
+  geom_line(data=to_plot_relative_avg,aes(y=avg,x=timepoint_h,col=siRNA),inherit.aes = F) + 
+  facet_wrap(~bleach_or_control_display,ncol=1) +
+  scale_y_continuous(name="Mean mCherry-RPB1 \nintensity (A.U.)",limits = c(0.5,NA),breaks=c(0.5,0.6,0.7,0.8,0.9)) +
+  scale_x_continuous(name="Time (h)",limits = c(0,NA),breaks=c(0,2,4,6,8)) +
+  theme_bw(base_size = 8) +
+  theme(legend.title = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = "none") +
+  scale_color_manual(values=c(wt_col,armc5_col))
+#ggsave("PLOTS/ARMC5_bleach_and_control_intensities_averaged.pdf",width = 1.3,height=2.0)
+
+```
+
+We now proceed with calculating the difference $P-U$ as an estimate of removal of $B$ over time.
+
+```{r compute_difference}
+agg_wider <- agg %>%
+  filter(pre_post=="post-bleach") %>%
+  select(bleach_or_control,siRNA,timepoint_id,mean_Nuclei_intensity_mean_TRITC_minus_background,date,well_name,replicate,overcrowded) %>%
+  pivot_wider(id_cols = c(siRNA,timepoint_id,date,well_name,replicate,overcrowded),
+              values_from = mean_Nuclei_intensity_mean_TRITC_minus_background,
+              names_from = bleach_or_control) %>%
+  left_join(normalisers,by = join_by(siRNA, date, replicate)) %>%
+  mutate(difference = control - bleach,
+         difference_normalised = control*normalisation_factor_control - bleach) %>%
+  left_join(frame_interval_s,by=join_by(date)) %>%
+  mutate(timepoint_h = frame_interval_s * timepoint_id / 3600) %>%
+  mutate(siRNA = factor(siRNA, levels=c("Scrambled","ARMC5"))) %>%
+  mutate(replicate_factor = factor(as.character(replicate),levels=c("1","2")))
+
+agg_wider %>%
+  filter(!overcrowded) %>%
+  ggplot(aes(x=timepoint_h,y=difference,col=siRNA)) + 
+  facet_wrap(~interaction(date,replicate)) + 
+  geom_line() + 
+  scale_y_continuous(limits = c(0,NA)) +
+  ylab("Mean intensity difference \n(unbleached - bleached) (linear scale)") +
+  xlab("Time (h)")
+
+agg_wider %>%
+  filter(!overcrowded) %>%
+  ggplot(aes(x=timepoint_h,y=difference,col=siRNA)) + 
+  facet_wrap(~interaction(date,replicate)) + 
+  geom_line() + 
+  scale_y_log10() +
+  ylab("Mean intensity difference \n(unbleached - bleached) (log scale)") +
+  xlab("Time (h)")
+
+```
+
+Difference in slopes is already evident within each replicate.
+
+### Fit models
+
+We are primarily interested in the slope of these log-transformed difference plots over time. To extract this slope parameter and test the significance of an siRNA-effect on the slope, we fit linear mixed effects models as $\ln\left(P(t)-U(t)\right) = \beta - \alpha t$. 
+
+For both $\alpha$ and $\beta$, we model 'date' and 'well name' as (nested) random effects and 'siRNA' as a fixed effect. To first check for significance of siRNA effect on slope, we fit a model without variable slopes between the two siRNA treatments conditions. We then add an siRNA-dependent slope and use a likelihood ratio test to compare the two models. To compare models we fit using maximum-likelihood estimators (`REML=F`).
+
+```{r fit_mixed_effects}
+
+# prepare the data for lmer by converting categoricals to factor variables, and log transforming the difference (P-U)
+to_fit <- agg_wider %>%
+  filter(!overcrowded) %>%
+  select(difference,date,siRNA,well_name,timepoint_h,replicate) %>%
+  mutate(log_difference = log(difference),
+         date = factor(date),
+         well_name = factor(well_name),
+         siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
+  select(-difference)
+
+# fit the model with random effects on alpha and beta but with siRNA affecting intercept only
+fixed_slope_model <- lmer(log_difference ~ timepoint_h + siRNA + (1 + timepoint_h | date) + (1 + timepoint_h | date:well_name), REML=F, data=to_fit)
+to_fit$fixed_slope_model_predictions <- predict(fixed_slope_model)
+
+# fit the model with random effects on alpha and beta but with siRNA affecting slope and intercept
+siRNA_slope_model <- lmer(log_difference ~ timepoint_h * siRNA + (1 + timepoint_h | date) + (1 + timepoint_h | date:well_name), REML=F, data=to_fit)
+to_fit$siRNA_slope_model_predictions <- predict(siRNA_slope_model)
+
+```
+
+Since we seem have issues with singularity here, we try to simplify the specification of random effects. We instead assume that date has no consistent effect independent of the "well". Based on plots above this seems reasonable. We therefore make a compound factor variable "date_well" which treats all wells as random effects, independent of which date they were acquired.
+
+```{r refit_mixed_effects}
+
+# prepare the data for lmer by converting categoricals to factor variables, and log transforming the difference (P-U)
+to_fit <- agg_wider %>%
+  filter(!overcrowded) %>%
+  select(difference,date,siRNA,well_name,timepoint_h,replicate) %>%
+  mutate(log_difference = log(difference),
+         date = factor(date),
+         well_name = factor(well_name),
+         date_well = factor(paste(date,well_name,sep="_")),
+         siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
+  select(-difference)
+
+# fit the model with random effects on alpha and beta but with siRNA affecting intercept only
+fixed_slope_model <- lmer(log_difference ~ timepoint_h + siRNA  + (1 + timepoint_h | date_well), REML=F, data=to_fit)
+to_fit$fixed_slope_model_predictions <- predict(fixed_slope_model)
+
+# fit the model with random effects on alpha and beta but with siRNA affecting slope and intercept
+siRNA_slope_model <- lmer(log_difference ~ timepoint_h * siRNA  + (1 + timepoint_h | date_well), REML=F, data=to_fit)
+to_fit$siRNA_slope_model_predictions <- predict(siRNA_slope_model)
+
+```
+
+
+```{r plot_fits,fig.height=3,fig.width=5}
+
+ggplot(to_fit,aes(x=timepoint_h,y=log_difference,col=siRNA)) +
+  geom_line(aes(group=interaction(date,replicate,siRNA)),alpha=0.4) +
+  geom_line(aes(y=fixed_slope_model_predictions,group=interaction(date,replicate,siRNA)),linewidth=0.8,lty=2) +
+  ggtitle("Slopes do not depend explicitly on siRNA \n('well' as random effect on slope/intercept)")
+
+ggplot(to_fit,aes(x=timepoint_h,y=log_difference,col=siRNA)) +
+  geom_line(aes(group=interaction(date,replicate,siRNA)),alpha=0.4) +
+  geom_line(aes(y=siRNA_slope_model_predictions,group=interaction(date,replicate,siRNA)),linewidth=0.8,lty=2) +
+  ggtitle("Slopes depend on siRNA (fixed effect) \n('well' as random effect on slope/intercept)")
+
+```
+
+Now compare models using a likelihood ratio test
+
+```{r LRT}
+
+anova(fixed_slope_model,siRNA_slope_model,test="Chisq")
+
+```
+
+```{r plot_fits_final,fig.height=2,fig.width=3.5}
+ggplot(to_fit,aes(x=timepoint_h,y=log_difference,col=siRNA)) +
+  geom_line(aes(group=interaction(date,replicate,siRNA)),alpha=0.4) +
+  geom_line(aes(y=siRNA_slope_model_predictions,group=interaction(date,replicate,siRNA)),linewidth=0.5,lty=2) +
+  scale_x_continuous("Time (h)",breaks=c(0,2,4,6,8)) +
+  scale_y_continuous("ln(P-U)") +
+  theme_bw(base_size = 8)
+
+#ggsave("PLOTS/difference_plot_with_model_fitted.pdf",width=3.5,height=2)
+```
+
+
+Clearly siRNA has a significant effect on the relationship between $\ln(P-U)$ and $t$.
+
+```{r make_difference_plot_for_pub,fig.height=2,fig.width=3.5}
+
+ggplot(to_fit,aes(x=timepoint_h,y=log_difference,col=siRNA)) +
+  geom_line(aes(group=interaction(date,replicate,siRNA)),alpha=1,linewidth=0.3) +
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  #geom_line(aes(y=siRNA_slope_model_predictions,group=interaction(date,replicate,siRNA)),linewidth=0.5,lty=2) +
+  scale_x_continuous("Time (h)",breaks=c(0,2,4,6,8)) +
+  scale_y_continuous(bquote(ln(P-P[v]))) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid = element_blank(),
+        legend.position = "none")
+
+#ggsave("PLOTS/difference_plots_pub.pdf",width=1.8,height=2)
+
+```
+
+As a sanity check, we perform a simpler analysis by fitting a slope to each experiment and doing a T-test to look for a difference in the mean slope estimate.
+
+```{r fitting_traditional,fig.height=3,fig.width=2}
+
+simple_fits <- to_fit %>% 
+  group_by(siRNA,date_well) %>%
+  nest() %>%
+  mutate(model = map(data,~lm(data=.,log_difference ~ timepoint_h))) %>%
+  mutate(coef = map(model,~coef(.)),
+         slope = map(coef,~.[[2]])) %>%
+  unnest(slope) %>%
+  mutate(slope=-slope)
+  
+simple_summ <- simple_fits %>%
+  group_by(siRNA) %>%
+  summarise(mean = mean(slope),
+            conf_int = list(t.test(slope, conf.level = 0.95)$conf.int)) %>%
+  unnest_wider(conf_int,names_sep = "_")
+
+simple_fits %>% 
+  ggplot(aes(x=siRNA,y=slope)) + 
+  geom_jitter(alpha=0.3,width=0.1) +
+  geom_point(data=simple_summ,aes(x=siRNA,y=mean),pch='square') + 
+  geom_errorbar(data=simple_summ,aes(x=siRNA,ymin=conf_int_1,ymax=conf_int_2),inherit.aes = F,width=0.2) +
+  scale_y_continuous(name="removal rate",limits = c(0,NA))
+
+t_test_slopes_differ <- t.test(slope ~ siRNA,data=simple_fits)
+t_test_slopes_differ
+```
+
+In this case, we obtain a p-value of `r t_test_slopes_differ$p.value`.
+
+### Removal rate $k_\text{removal}$
+
+We return to the mixed effects model specified earlier to extract coefficients and confidence intervals. We first refit the model using REML, and then extract coefficients using `emmeans`.
+
+```{r extract_model_results,fig.height=3,fig.width=2}
+
+# refit the model using REML
+selected_model <- lmer(log_difference ~ timepoint_h*siRNA + (1+timepoint_h|date_well),REML=T,data=to_fit)
+
+emm_out <- emtrends(selected_model, trt.vs.ctrl ~ siRNA, var = "timepoint_h", lmer.df = "satterthwaite", lmerTest.limit = 6000)
+summary(emm_out)
+
+# extract coefficients and confidence intervals
+# (note that we need to multiply the slopes by -1 to get k_removal)
+model_fits <- tibble(summary(emm_out)$emtrends) %>%
+  mutate(timepoint_h.trend=-timepoint_h.trend,
+         upper.CL_new=-lower.CL,
+         lower.CL_new=-upper.CL,
+         upper.CL=upper.CL_new,
+         lower.CL=lower.CL_new) %>%
+  select(-c(upper.CL_new,lower.CL_new)) %>%
+  mutate(recovery_half_life_estimate=log(2)/timepoint_h.trend,
+         recovery_half_life_lower.CL=log(2)/upper.CL,
+         recovery_half_life_upper.CL=log(2)/lower.CL) %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")))
+model_fits
+
+model_fits %>%
+  ggplot(aes(x=siRNA,y=timepoint_h.trend)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin=lower.CL,ymax=upper.CL),width=0.2) +
+  scale_y_continuous(name="mCherry-POLR2A removal rate\n (not corrected for cell growth)",limits = c(0,NA)) +
+  theme_bw(8) +
+  theme(axis.title.x = element_blank())
+
+model_fits %>%
+  ggplot(aes(x=siRNA,y=recovery_half_life_estimate)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin=recovery_half_life_lower.CL,ymax=recovery_half_life_upper.CL),width=0.2) +
+  scale_y_continuous(name="mCherry-POLR2A recovery half-life \n (not corrected for cell growth)",limits = c(0,NA)) +
+  theme_bw(8) +
+  theme(axis.title.x = element_blank())
+  
+```
+
+### Dilution rate $k_\text{dil.}$
+
+We now determine the rate of protein loss due to dilution $k_\text{dil.}$ by fitting the increase in cell number using an exponential growth model
+
+$$
+N(t)=N(0)e^{k_\text{dil.}t}
+$$
+
+```{r prepare_cell_count_data}
+
+cell_count <- obs %>%
+  filter(pre_post=="post-bleach" & !overcrowded) %>%
+  count(date,well_name,field_id,timepoint_id,replicate,siRNA,bleach_or_control) %>%
+  left_join(frame_interval_s,by = join_by(date)) %>%
+  mutate(timepoint_h = frame_interval_s * as.numeric(as.character(timepoint_id)) / 3600)
+
+cell_count %>%
+  ggplot(aes(x=timepoint_h,y=n,col=siRNA,group=interaction(date,well_name,field_id,siRNA,bleach_or_control))) + 
+  geom_line() +
+  scale_y_log10() +
+  facet_grid(date~bleach_or_control,labeller = label_both)
+
+```
+
+We fit a linear model to this log transformed data, allowing each intercept and slope to have the compound variable "date + well_name + field-of-view" as a random effect and siRNA as a fixed effect. This neglects the nested structure of field-of-view in well and date, but fitting the more complex random effects structure results in singularity.
+
+```{r fit_cell_growth_siRNA}
+
+to_fit_cell_count <- cell_count %>%
+  mutate(date_well_field_bleach = factor(paste(date,well_name,field_id,bleach_or_control,sep="_")),
+         date = factor(date),
+         well_name = factor(well_name),
+         field_id_bleach = factor(paste(field_id,bleach_or_control,sep="_")), # code different field ids for the two sites in the same well
+         bleach_or_control = factor(bleach_or_control,levels=c("control","bleach")),
+         siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")),
+         log_n=log(n))
+
+cell_count_model <- lmer(log_n ~ timepoint_h + siRNA + (1+timepoint_h|date_well_field_bleach), REML=F, data=to_fit_cell_count)
+cell_count_model_siRNA <- lmer(log_n ~ timepoint_h*siRNA + (1+timepoint_h|date_well_field_bleach), REML=F, data=to_fit_cell_count)
+
+anova(cell_count_model,cell_count_model_siRNA)
+```
+
+No significant effect of siRNA on growth rate
+
+```{r fit_cell_growth_bleach}
+cell_count_model <- lmer(log_n ~ timepoint_h + bleach_or_control + (1+timepoint_h|date_well_field_bleach), REML=F, data=to_fit_cell_count)
+cell_count_model_bleach <- lmer(log_n ~ timepoint_h*bleach_or_control + (1+timepoint_h|date_well_field_bleach), REML=F, data=to_fit_cell_count)
+
+anova(cell_count_model,cell_count_model_bleach)
+
+```
+
+Small, significant effect of bleach on growth rate.
+
+We now combine siRNA and bleach into a full model (but neglecting the siRNA:bleach interaction).
+
+```{r fit_cell_growth}
+cell_count_model_full <- lmer(log_n ~ timepoint_h*bleach_or_control + timepoint_h*siRNA + (1+timepoint_h|date_well_field_bleach), REML=T, data=to_fit_cell_count)
+
+to_fit_cell_count$cell_count_model_predictions <- predict(cell_count_model_bleach)
+
+for (d in unique(to_fit_cell_count$date)) {
+  p <- to_fit_cell_count %>%
+    filter(date==d) %>%
+    ggplot(aes(x=timepoint_h,y=n,col=well_name)) + 
+    geom_line(aes(group=date_well_field_bleach),alpha=0.6) +
+    facet_grid(bleach_or_control~interaction(siRNA,replicate),labeller = label_both) +
+    geom_line(aes(y=exp(cell_count_model_predictions),group=date_well_field_bleach),size=0.5,lty=2)
+  print(p)
+}
+
+```
+
+Dilution rate $k_\text{dil} = \ln(2)/T_{cc}$, get this from the full fitted model using ``emmeans``.
+
+```{r calculate_cell_cycle_duration,fig.height=3,fig.width=2}
+
+# confirm no effect of siRNA on cell cycle in full model (averaged over bleach/control levels)
+emm_out_siRNA <- emtrends(cell_count_model_full, trt.vs.ctrl ~ siRNA, var = "timepoint_h", lmer.df = "satterthwaite", lmerTest.limit = 6000)
+summary(emm_out_siRNA)
+
+# confirm small significant effect of bleach on cell cycle in full model (averaged over siRNA levels)
+emm_out_bleach <- emtrends(cell_count_model_full, trt.vs.ctrl ~ bleach_or_control, var = "timepoint_h", lmer.df = "satterthwaite", lmerTest.limit = 6000)
+summary(emm_out_bleach)
+
+cell_count_model_fits <- tibble(summary(emm_out_bleach)$emtrends) %>%
+  mutate(dilution_rate=timepoint_h.trend,
+         dilution_rate_upper.CL=upper.CL,
+         dilution_rate_lower.CL=lower.CL,
+         cell_cycle_duration=log(2)/dilution_rate,
+         cell_cycle_duration_upper.CL=log(2)/dilution_rate_lower.CL,
+         cell_cycle_duration_lower.CL=log(2)/dilution_rate_upper.CL) %>%
+  mutate(bleach_or_control=factor(bleach_or_control,levels=c("control","bleach")))
+
+cell_count_model_fits %>%
+  ggplot(aes(x=bleach_or_control,y=cell_cycle_duration)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin=cell_cycle_duration_lower.CL,ymax=cell_cycle_duration_upper.CL),width=0.2) +
+  scale_y_continuous(name="Cell-cycle duration (h)\n",limits = c(0,NA)) +
+  theme_bw(8) +
+  theme(axis.title.x = element_blank())
+
+cell_count_model_fits
+```
+Cell cycle estimates (~16-17h) agree well with those obtained previously: https://doi.org/10.1080/15384101.2019.1591125
+
+Again, as a sanity check, we perform a simpler analysis fitting a cell-growth curve to each field-of-view.
+
+```{r fitting_cell_growth_traditional,fig.height=3,fig.width=2}
+
+simple_fits <- to_fit_cell_count %>% 
+  group_by(siRNA,date,well_name,field_id,bleach_or_control) %>%
+  nest() %>%
+  mutate(model = map(data,~lm(data=.,log_n ~ timepoint_h))) %>%
+  mutate(coef = map(model,~coef(.)),
+         slope = map(coef,~.[[2]])) %>%
+  unnest(slope)
+  
+simple_summ <- simple_fits %>%
+  group_by(bleach_or_control) %>%
+  summarise(mean = mean(slope),
+            conf_int = list(t.test(slope, conf.level = 0.95)$conf.int),.groups = "drop") %>%
+  unnest_wider(conf_int,names_sep = "_")
+
+simple_fits %>% 
+  ggplot(aes(x=bleach_or_control,y=slope)) + 
+  geom_jitter(alpha=0.1,width=0.1) +
+  geom_point(data=simple_summ,aes(x=bleach_or_control,y=mean),pch='square') + 
+  geom_errorbar(data=simple_summ,aes(x=bleach_or_control,ymin=conf_int_1,ymax=conf_int_2),inherit.aes = F,width=0.2) +
+  scale_y_continuous(name="dilution rate",limits = c(0,NA)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
+        axis.title.x = element_blank())
+
+t_test_slopes_differ_bleach <- t.test(slope ~ bleach_or_control,data=simple_fits)
+t_test_slopes_differ_bleach
+```
+
+The total removal rate measured by bleach-chase is $k_\text{removal} = k_\text{degradation} + k_\text{dilution}$. To get the degradation rates, we therefore subtract the dilution rate from the overall removal rate measured. Since "bleach" and "control" differ slightly in the growth rates measured, we use the dilution rate from the "bleached" samples (since this is where the recovery kinetics are primarily calculated from).
+
+#### Errors
+
+The dilution rate $k_\text{dil.}$ and the removal rate $k_\text{deg.}$ are determined directly from linear regression, so errors (95% confidence intervals for the mean) are estimated from regression as $k_\text{dil.} \pm \delta k_\text{dil.}$ and $k_\text{removal} \pm \delta k_\text{removal}$, respectively. We then propagate errors to estimate the error in $k_\text{deg.}$ as
+$$
+\delta k_\text{deg.} = \sqrt{{\delta k_\text{removal}}^2 + {\delta k_\text{dil.}}^2}
+$$
+
+And from this, convert to an (asymmetric) estimated protein half-life range from $\ln(2)/(k_\text{deg.} + \delta k_\text{deg.})$ to $\ln(2)/(k_\text{deg.} - \delta k_\text{deg.})$.
+
+
+```{r correct_for_dilution,fig.height=3.5,fig.width=4}
+
+combined_model_fits <- cell_count_model_fits %>% 
+  filter(bleach_or_control=="bleach") %>%
+  select(-bleach_or_control) %>%
+  expand_grid(siRNA=c("Scrambled","ARMC5")) %>%
+  left_join(model_fits,by=join_by('siRNA'),suffix = c("_dilution","_removal")) %>%
+  select(-matches("half_life|cell_cycle")) %>%
+  mutate(timepoint_h.trend_degradation = timepoint_h.trend_removal - timepoint_h.trend_dilution,
+         timepoint_h.trend_removal_error = upper.CL_removal - timepoint_h.trend_removal,
+         timepoint_h.trend_dilution_error = upper.CL_dilution - timepoint_h.trend_dilution,
+         timepoint_h.trend_degradation_error = sqrt(timepoint_h.trend_removal_error^2 + timepoint_h.trend_dilution_error^2)) %>%
+  mutate(corrected_half_life=log(2)/timepoint_h.trend_degradation,
+         corrected_half_life_lower.CL=log(2)/(timepoint_h.trend_degradation+timepoint_h.trend_degradation_error),
+         corrected_half_life_upper.CL=log(2)/(timepoint_h.trend_degradation-timepoint_h.trend_degradation_error))
+
+p_removal <- combined_model_fits %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
+  ggplot(aes(x=siRNA,y=timepoint_h.trend_removal)) + 
+  geom_col(aes(fill=siRNA),alpha=0.4) + 
+  geom_errorbar(aes(ymin=lower.CL_removal,ymax=upper.CL_removal,col=siRNA),width=0.2) +
+  geom_point(aes(col=siRNA),size=0.7) + 
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col)) +
+  scale_y_continuous(name="mCherry-RPB1\nremoval rate (1/h)",limits = c(0.0,0.2),expand=c(0,0)) +
+  theme_bw(8) +
+  theme(axis.title.x = element_blank())
+
+p_dilution <- combined_model_fits %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
+  filter(siRNA=="Scrambled") %>%
+  ggplot(aes(x="Both",y=timepoint_h.trend_dilution)) + 
+  geom_col(fill=grey(0.5)) + 
+  geom_errorbar(aes(ymin=lower.CL_dilution,ymax=upper.CL_dilution),width=0.2) +
+  geom_point(size=0.7) + 
+  scale_y_continuous(name="Dilution rate due\nto cell growth (1/h)",limits = c(0.0,0.2),expand=c(0,0)) +
+  theme_bw(8) +
+  theme(axis.title.x = element_blank())
+
+p_degradation <- combined_model_fits %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
+  ggplot(aes(x=siRNA,y=timepoint_h.trend_degradation)) + 
+  geom_col(aes(fill=siRNA),alpha=0.4) + 
+  geom_errorbar(aes(ymin=timepoint_h.trend_degradation - timepoint_h.trend_degradation_error,
+                    ymax=timepoint_h.trend_degradation + timepoint_h.trend_degradation_error,
+                    col=siRNA),width=0.2) +
+  geom_point(aes(col=siRNA),size=0.7) + 
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col)) +
+  scale_y_continuous(name="mCherry-RPB1\ndegradation rate (1/h)",limits = c(0.0,0.2),expand=c(0,0)) +
+  theme_bw(8) +
+  theme(axis.title.x = element_blank())
+
+p_removal + p_dilution + p_degradation + plot_layout(widths = c(2,1,2)) & theme(panel.grid = element_blank(),legend.position = "none",axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+
+#ggsave("PLOTS/ARMC5_rates_calculated.pdf",width = 3.5,height=2)
+
+```
+
+```{r half_life_corrected,fig.height=3,fig.width=2}
+
+combined_model_fits %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
+  ggplot(aes(x=siRNA,y=corrected_half_life)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin=corrected_half_life_lower.CL,ymax=corrected_half_life_upper.CL),width=0.2) +
+  scale_y_continuous(name="mCherry-POLR2A half-life \n (corrected for cell growth)",limits = c(0,NA)) +
+  theme_bw(8) +
+  theme(axis.title.x = element_blank())
+
+combined_model_fits %>%
+  select(siRNA,corrected_half_life,corrected_half_life_lower.CL,corrected_half_life_upper.CL)
+
+#ggsave("PLOTS/ARMC5_half_life_corrected_for_growth.pdf",width = 2,height=2.5)
+
+combined_model_fits %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")),
+         siRNA=fct_recode(siRNA,`Scrambled\nsiRNA` = "Scrambled",`ARMC5\nsiRNA` = "ARMC5")) %>%
+  ggplot(aes(x=siRNA,y=corrected_half_life)) + 
+  geom_col(aes(fill=siRNA),col=NA,alpha=0.4) + 
+  geom_point(aes(col=siRNA),size=0.75) + 
+  geom_errorbar(aes(col=siRNA,ymin=corrected_half_life_lower.CL,ymax=corrected_half_life_upper.CL),width=0.2) +
+  scale_y_continuous(name="mCherry-RPB1\nhalf-life (h)",limits = c(0,14),expand=c(0,0)) +
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col)) +
+  theme_bw(8) +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
+        panel.grid = element_blank(),
+        legend.position = "none")
+
+#ggsave("PLOTS/ARMC5_half_life.pdf",width=1.0,height=1.5)
+
+```
+
+```{r estimate_change_in_decay_rate}
+
+combined_model_fits %>%
+  select(siRNA,decay_rate=timepoint_h.trend_degradation,decay_rate_error=timepoint_h.trend_degradation_error) %>% 
+  pivot_wider(names_from = siRNA,values_from = c(decay_rate,decay_rate_error)) %>%
+  mutate(fraction_remaining = decay_rate_ARMC5/decay_rate_Scrambled,
+         fraction_remaining_error = decay_rate_error_ARMC5 + decay_rate_error_Scrambled) %>%
+  select(fraction_remaining,fraction_remaining_error)
+
+```
+
+## Change in growth rate
+
+For reporting purposes, we calculate reduction in growth rate between bleached and unbleached samples, as a relative percentage
+$$
+r = 100 \times \left(1 - \frac{k_\text{dil. (bleach)}}{k_\text{dil. (control)}}\right) \%
+$$
+with error
+$$
+\frac{\delta r}{r} = \sqrt{{\left(\frac{\delta k_\text{dil. (bleach)}}{k_\text{dil. (bleach)}}\right)}^2 + {\left(\frac{\delta k_\text{dil. (control)}}{k_\text{dil. (control)}}\right)}^2}
+$$
+
+
+```{r growth_rate_change_bleach}
+
+cell_count_model_fits_wider <- cell_count_model_fits %>%
+  mutate(timepoint_h.trend_relative_error = (timepoint_h.trend - lower.CL)/timepoint_h.trend) %>%
+  select(c(timepoint_h.trend,timepoint_h.trend_relative_error,bleach_or_control)) %>%
+  pivot_longer(c(timepoint_h.trend,timepoint_h.trend_relative_error)) %>%
+  pivot_wider(names_from = bleach_or_control)
+
+r <- cell_count_model_fits_wider %>%
+  filter(name=="timepoint_h.trend") %>%
+  mutate(r = 100*(1-bleach/control)) %>%
+  pull(r)
+
+r_relative_error = cell_count_model_fits_wider %>%
+  filter(name=="timepoint_h.trend_relative_error") %>%
+  mutate(delta_r = sqrt(bleach^2+control^2)) %>%
+  pull(delta_r)
+
+r_absolute_error <- r*r_relative_error
+
+```
+Mean growth rate reduction attributed to bleaching is `r signif(r,2)` $\pm$ `r signif(r_absolute_error,1)`%
+
+## Can change in degradation rate explain change in protein levels?
+
+Where synthesis rate is $k_\text{synthesis}$ and removal rate is $k_\text{removal} = k_\text{deg.} + k_\text{dil.}$, steady-state protein concentration $P = k_\text{synthesis} / k_\text{removal}$.
+
+Let $k_{\text{removal}(\text{ARMC5 siRNA})} = c k_{\text{removal}(\text{Scrambled siRNA})}$, for some constant $c \in (0,1]$, reflecting the observation that the measured removal rate of $P$ decreases in ARMC5 knockdown conditions.
+
+$$
+\begin{align}
+P_\text{ARMC5 siRNA} & = \frac{k_s}{k_{\text{removal}(\text{ARMC5 siRNA})}} \\ 
+&= \frac{k_s}{c k_{\text{removal}(\text{Scrambled siRNA})}} \\
+&= \frac{1}{c}P_\text{Scrambled siRNA}
+\end{align}
+$$
+The change in removal rate $c$ can be calculated from the ratio of removal rates measured by bleach-chase. In the absence of any change to synthesis rate, the expected relative change in protein concentration is then $1/c$. 
+
+```{r change_k_d}
+removal_rate_ARMC5 <- filter(model_fits,siRNA=="ARMC5") %>% pull(timepoint_h.trend)
+removal_rate_scrambled <- filter(model_fits,siRNA=="Scrambled") %>% pull(timepoint_h.trend)
+c <- removal_rate_ARMC5/removal_rate_scrambled
+expected_change <- 1/c
+
+error_propagation <- model_fits %>%
+  mutate(timepoint_h.trend_error = upper.CL - timepoint_h.trend,
+    relative_estimate_error_squared = (timepoint_h.trend_error/timepoint_h.trend)^2) %>%
+  summarise(summed_relative_estimate_error_squared = sum(relative_estimate_error_squared)) %>%
+  mutate(relative_propagated_error = sqrt(summed_relative_estimate_error_squared))
+
+expected_change_error <- expected_change*error_propagation$relative_propagated_error
+
+```
+
+Change in degradation rate of `r c` would be predicted to give a change in protein concentration of $1/c$ = `r expected_change` (95% confidence interval: `r round(expected_change - expected_change_error,2)`-`r round(expected_change + expected_change_error,2)`)
+
+Now calculate the mCherry-POLR2A fold-change seen in these experiments.
+
+```{r fold_change,fig.height=3,fig.width=3}
+
+intensity_expectations <- tibble(
+  expected_change=expected_change,
+  expected_change_upper=expected_change+expected_change_error,
+  expected_change_lower=expected_change-expected_change_error) 
+
+p_expected <- intensity_expectations %>%
+  ggplot(aes(x="ARMC5\n(expected)",y=expected_change)) +
+  geom_col(fill=grey(0.4)) +
+  geom_point() + 
+  geom_errorbar(aes(ymin=expected_change_lower,ymax=expected_change_upper),width=0.2) +
+  scale_y_continuous(name="Expected relative mean\nmCherry-POLR2A concentration",limits = c(0,1.8)) +
+  theme_bw(8)
+
+intensity_measurements <- agg %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5","ARMC5 (expected)"))) %>%
+  filter(pre_post=="pre-bleach") %>%
+  filter(timepoint_id==3) %>%
+  group_by(siRNA,well_name,date,replicate) %>%
+  summarise(well_mean = mean(mean_Nuclei_intensity_mean_TRITC_minus_background)) %>%
+  ungroup()
+
+scrambled_mean <- intensity_measurements %>%
+  filter(siRNA=="Scrambled") %>%
+  summarise(normaliser = mean(well_mean))
+
+intensity_measurements_agg <- intensity_measurements %>%
+  group_by(siRNA) %>%
+  summarise(mean_well_mean_normalised = mean(well_mean / scrambled_mean$normaliser),
+            t_test = list(t.test(well_mean / scrambled_mean$normaliser)),
+            conf_int = map(t_test,~.[['conf.int']])) %>%
+  unnest_wider(conf_int,names_sep="_")
+
+p_measured <- intensity_measurements %>%
+  mutate(well_mean_normalised = well_mean / scrambled_mean$normaliser) %>%
+  ggplot(aes(x=siRNA)) + 
+  geom_col(data=intensity_measurements_agg,aes(y=mean_well_mean_normalised),fill=grey(0.7)) +
+  geom_jitter(aes(y=well_mean_normalised),width=0.3,alpha=0.2) +
+  geom_errorbar(data=intensity_measurements_agg,aes(ymin=conf_int_1,ymax=conf_int_2),width=0.2) +
+  scale_y_continuous(name="Measured relative mean\nmCherry-POLR2A concentration",limits = c(0,1.8)) +
+  theme_bw(8) 
+
+p_measured + p_expected + plot_layout(widths=c(2,1)) & theme(axis.title.x = element_blank()) 
+
+#ggsave("PLOTS/ARMC5_mean_intensity_fold_change_with_expected.pdf",width = 2.5,height=2.5)
+
+```
+
+```{r plot_measured_expected_pub,fig.height=1.75,fig.width=1.7}
+
+
+p_expected <- intensity_expectations %>%
+  ggplot(aes(x="ARMC5\nsiRNA",y=expected_change)) +
+  geom_col(fill=armc5_col,alpha=0.4) +
+  geom_point(col=armc5_col,size=0.75) + 
+  geom_errorbar(aes(ymin=expected_change_lower,ymax=expected_change_upper),col=armc5_col,width=0.2) +
+  scale_y_continuous(name="Mean nuclear\nmCherry-RPB1 intensity",limits = c(0,1.8), expand = c(0,0)) +
+  theme_bw(8) +
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
+        axis.text.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = "none")
+
+p_expected
+
+intensity_measurements_agg <- intensity_measurements_agg %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")),
+         siRNA=fct_recode(siRNA,`Scrambled\nsiRNA` = "Scrambled",`ARMC5\nsiRNA` = "ARMC5"))
+
+p_measured <- intensity_measurements %>%
+  mutate(well_mean_normalised = well_mean / scrambled_mean$normaliser) %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")),
+         siRNA=fct_recode(siRNA,`Scrambled\nsiRNA` = "Scrambled",`ARMC5\nsiRNA` = "ARMC5")) %>%
+  ggplot(aes(x=siRNA)) + 
+  geom_point(data=intensity_measurements_agg,aes(y=mean_well_mean_normalised,col=siRNA),size=0.75) +
+  geom_col(data=intensity_measurements_agg,aes(y=mean_well_mean_normalised,fill=siRNA),alpha=0.4) +
+  geom_jitter(aes(y=well_mean_normalised,col=siRNA),pch=4,alpha=0.4,position = position_jitter(width = 0.2)) +
+  geom_errorbar(data=intensity_measurements_agg,aes(ymin=conf_int_1,ymax=conf_int_2,col=siRNA),width=0.2) +
+  scale_y_continuous(name="Mean nuclear mCherry\n-RPB1 intensity",limits = c(0,1.8), expand = c(0,0)) +
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col)) +
+  theme_bw(8) + 
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
+        axis.title.x = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = "none")
+
+p_measured + p_expected + plot_layout(widths=c(1.8,0.95)) & theme(axis.title.x = element_blank()) 
+#ggsave("PLOTS/ARMC5_mean_intensity_fold_change_with_expected_pub.pdf",width = 1.6,height=1.7)
+
+```
+
+```{r session_info}
+
+sessionInfo()
+
+```
