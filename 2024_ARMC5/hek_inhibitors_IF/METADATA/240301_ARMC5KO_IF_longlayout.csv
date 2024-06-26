@@ -1,0 +1,121 @@
+﻿Well name,Cell,Drug,Drug time,Primary,Secondary
+C03,HEK293 parental,LDC4297 10 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+D03,HEK293 ARMC5 KO 1A3,LDC4297 10 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+E03,HEK293 ARMC5 KO 2B6,LDC4297 10 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+F03,HEK293 parental,LDC4297 10 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+G03,HEK293 ARMC5 KO 1A3,LDC4297 10 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+H03,HEK293 ARMC5 KO 2B6,LDC4297 10 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+I03,HEK293 parental,AZD4573 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+J03,HEK293 ARMC5 KO 1A3,AZD4573 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+K03,HEK293 ARMC5 KO 2B6,AZD4573 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+L03,HEK293 parental,AZD4573 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+M03,HEK293 ARMC5 KO 1A3,AZD4573 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+N03,HEK293 ARMC5 KO 2B6,AZD4573 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+C04,HEK293 parental,LDC4297 10 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+D04,HEK293 ARMC5 KO 1A3,LDC4297 10 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+E04,HEK293 ARMC5 KO 2B6,LDC4297 10 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+F04,HEK293 parental,LDC4297 10 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+G04,HEK293 ARMC5 KO 1A3,LDC4297 10 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+H04,HEK293 ARMC5 KO 2B6,LDC4297 10 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+I04,HEK293 parental,AZD4573 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+J04,HEK293 ARMC5 KO 1A3,AZD4573 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+K04,HEK293 ARMC5 KO 2B6,AZD4573 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+L04,HEK293 parental,AZD4573 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+M04,HEK293 ARMC5 KO 1A3,AZD4573 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+N04,HEK293 ARMC5 KO 2B6,AZD4573 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+C05,HEK293 parental,LDC4297 10 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+D05,HEK293 ARMC5 KO 1A3,LDC4297 10 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+E05,HEK293 ARMC5 KO 2B6,LDC4297 10 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+F05,HEK293 parental,LDC4297 10 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+G05,HEK293 ARMC5 KO 1A3,LDC4297 10 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+H05,HEK293 ARMC5 KO 2B6,LDC4297 10 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+I05,HEK293 parental,AZD4573 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+J05,HEK293 ARMC5 KO 1A3,AZD4573 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+K05,HEK293 ARMC5 KO 2B6,AZD4573 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+L05,HEK293 parental,AZD4573 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+M05,HEK293 ARMC5 KO 1A3,AZD4573 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+N05,HEK293 ARMC5 KO 2B6,AZD4573 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+C06,HEK293 parental,THZ1 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+D06,HEK293 ARMC5 KO 1A3,THZ1 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+E06,HEK293 ARMC5 KO 2B6,THZ1 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+F06,HEK293 parental,THZ1 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+G06,HEK293 ARMC5 KO 1A3,THZ1 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+H06,HEK293 ARMC5 KO 2B6,THZ1 1 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+I06,HEK293 parental,DRB 100 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+J06,HEK293 ARMC5 KO 1A3,DRB 100 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+K06,HEK293 ARMC5 KO 2B6,DRB 100 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+L06,HEK293 parental,DRB 100 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+M06,HEK293 ARMC5 KO 1A3,DRB 100 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+N06,HEK293 ARMC5 KO 2B6,DRB 100 µM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+C07,HEK293 parental,THZ1 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+D07,HEK293 ARMC5 KO 1A3,THZ1 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+E07,HEK293 ARMC5 KO 2B6,THZ1 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+F07,HEK293 parental,THZ1 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+G07,HEK293 ARMC5 KO 1A3,THZ1 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+H07,HEK293 ARMC5 KO 2B6,THZ1 1 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+I07,HEK293 parental,DRB 100 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+J07,HEK293 ARMC5 KO 1A3,DRB 100 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+K07,HEK293 ARMC5 KO 2B6,DRB 100 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+L07,HEK293 parental,DRB 100 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+M07,HEK293 ARMC5 KO 1A3,DRB 100 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+N07,HEK293 ARMC5 KO 2B6,DRB 100 µM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+C08,HEK293 parental,THZ1 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+D08,HEK293 ARMC5 KO 1A3,THZ1 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+E08,HEK293 ARMC5 KO 2B6,THZ1 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+F08,HEK293 parental,THZ1 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+G08,HEK293 ARMC5 KO 1A3,THZ1 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+H08,HEK293 ARMC5 KO 2B6,THZ1 1 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+I08,HEK293 parental,DRB 100 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+J08,HEK293 ARMC5 KO 1A3,DRB 100 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+K08,HEK293 ARMC5 KO 2B6,DRB 100 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+L08,HEK293 parental,DRB 100 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+M08,HEK293 ARMC5 KO 1A3,DRB 100 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+N08,HEK293 ARMC5 KO 2B6,DRB 100 µM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+C09,HEK293 parental,Triptolide 300 nM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+D09,HEK293 ARMC5 KO 1A3,Triptolide 300 nM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+E09,HEK293 ARMC5 KO 2B6,Triptolide 300 nM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+F09,HEK293 parental,Triptolide 300 nM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+G09,HEK293 ARMC5 KO 1A3,Triptolide 300 nM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+H09,HEK293 ARMC5 KO 2B6,Triptolide 300 nM,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+I09,HEK293 parental,Vehicle,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+J09,HEK293 ARMC5 KO 1A3,Vehicle,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+K09,HEK293 ARMC5 KO 2B6,Vehicle,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+L09,HEK293 parental,Vehicle,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+M09,HEK293 ARMC5 KO 1A3,Vehicle,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+N09,HEK293 ARMC5 KO 2B6,Vehicle,240 min,Total Pol II F12,Goat anti-mouse Alexa488
+C10,HEK293 parental,Triptolide 300 nM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+D10,HEK293 ARMC5 KO 1A3,Triptolide 300 nM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+E10,HEK293 ARMC5 KO 2B6,Triptolide 300 nM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+F10,HEK293 parental,Triptolide 300 nM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+G10,HEK293 ARMC5 KO 1A3,Triptolide 300 nM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+H10,HEK293 ARMC5 KO 2B6,Triptolide 300 nM,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+I10,HEK293 parental,Vehicle,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+J10,HEK293 ARMC5 KO 1A3,Vehicle,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+K10,HEK293 ARMC5 KO 2B6,Vehicle,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+L10,HEK293 parental,Vehicle,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+M10,HEK293 ARMC5 KO 1A3,Vehicle,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+N10,HEK293 ARMC5 KO 2B6,Vehicle,240 min,pSer5 Pol II 3E8,Goat anti-rat Alexa488
+C11,HEK293 parental,Triptolide 300 nM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+D11,HEK293 ARMC5 KO 1A3,Triptolide 300 nM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+E11,HEK293 ARMC5 KO 2B6,Triptolide 300 nM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+F11,HEK293 parental,Triptolide 300 nM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+G11,HEK293 ARMC5 KO 1A3,Triptolide 300 nM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+H11,HEK293 ARMC5 KO 2B6,Triptolide 300 nM,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+I11,HEK293 parental,Vehicle,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+J11,HEK293 ARMC5 KO 1A3,Vehicle,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+K11,HEK293 ARMC5 KO 2B6,Vehicle,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+L11,HEK293 parental,Vehicle,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+M11,HEK293 ARMC5 KO 1A3,Vehicle,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+N11,HEK293 ARMC5 KO 2B6,Vehicle,240 min,pSer2 Pol II 3E10,Goat anti-rat Alexa488
+C12,HEK293 parental,None,None,None,None
+D12,HEK293 ARMC5 KO 1A3,None,None,None,None
+E12,HEK293 ARMC5 KO 2B6,None,None,None,None
+F12,HEK293 parental,None,None,None,None
+G12,HEK293 ARMC5 KO 1A3,None,None,None,None
+H12,HEK293 ARMC5 KO 2B6,None,None,None,None
+I12,HEK293 parental,None,None,None,Goat anti-mouse Alexa488
+J12,HEK293 ARMC5 KO 1A3,None,None,None,Goat anti-mouse Alexa488
+K12,HEK293 ARMC5 KO 2B6,None,None,None,Goat anti-mouse Alexa488
+L12,HEK293 parental,None,None,None,Goat anti-rat Alexa488
+M12,HEK293 ARMC5 KO 1A3,None,None,None,Goat anti-rat Alexa488
+N12,HEK293 ARMC5 KO 2B6,,None,None,Goat anti-rat Alexa488
