@@ -662,7 +662,7 @@ ggplot(to_plot,aes(
   scale_x_continuous(name="Time (h)",limits = c(0,NA),breaks=c(0,2,4,6,8)) +
   theme_bw(base_size = 8) +
   theme(legend.title = element_blank())
-#ggsave("PLOTS/ARMC5_bleach_and_control_intensities.pdf",width = 3.5,height=1.5)
+ggsave("PLOTS/ARMC5_bleach_and_control_intensities.pdf",width = 3.5,height=1.5)
 
 ```
 
@@ -704,7 +704,7 @@ ggplot(to_plot_relative,
         panel.grid = element_blank(),
         legend.position = "none") +
   scale_color_manual(values=c(wt_col,armc5_col))
-#ggsave("PLOTS/ARMC5_bleach_and_control_intensities_averaged.pdf",width = 1.3,height=2.0)
+ggsave("PLOTS/ARMC5_bleach_and_control_intensities_averaged.pdf",width = 1.3,height=2.0)
 
 ```
 
@@ -831,7 +831,7 @@ ggplot(to_fit,aes(x=timepoint_h,y=log_difference,col=siRNA)) +
   scale_y_continuous("ln(P-U)") +
   theme_bw(base_size = 8)
 
-#ggsave("PLOTS/difference_plot_with_model_fitted.pdf",width=3.5,height=2)
+ggsave("PLOTS/difference_plot_with_model_fitted.pdf",width=3.5,height=2)
 ```
 
 
@@ -849,7 +849,7 @@ ggplot(to_fit,aes(x=timepoint_h,y=log_difference,col=siRNA)) +
   theme(panel.grid = element_blank(),
         legend.position = "none")
 
-#ggsave("PLOTS/difference_plots_pub.pdf",width=1.8,height=2)
+ggsave("PLOTS/difference_plots_pub.pdf",width=1.8,height=2)
 
 ```
 
@@ -1136,7 +1136,7 @@ p_degradation <- combined_model_fits %>%
 
 p_removal + p_dilution + p_degradation + plot_layout(widths = c(2,1,2)) & theme(panel.grid = element_blank(),legend.position = "none",axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
 
-#ggsave("PLOTS/ARMC5_rates_calculated.pdf",width = 3.5,height=2)
+ggsave("PLOTS/ARMC5_rates_calculated.pdf",width = 3.5,height=2)
 
 ```
 
@@ -1154,7 +1154,7 @@ combined_model_fits %>%
 combined_model_fits %>%
   select(siRNA,corrected_half_life,corrected_half_life_lower.CL,corrected_half_life_upper.CL)
 
-#ggsave("PLOTS/ARMC5_half_life_corrected_for_growth.pdf",width = 2,height=2.5)
+ggsave("PLOTS/ARMC5_half_life_corrected_for_growth.pdf",width = 2,height=2.5)
 
 combined_model_fits %>%
   mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")),
@@ -1172,7 +1172,7 @@ combined_model_fits %>%
         panel.grid = element_blank(),
         legend.position = "none")
 
-#ggsave("PLOTS/ARMC5_half_life.pdf",width=1.0,height=1.5)
+ggsave("PLOTS/ARMC5_half_life.pdf",width=1.0,height=1.5)
 
 ```
 
@@ -1302,7 +1302,7 @@ p_measured <- intensity_measurements %>%
 
 p_measured + p_expected + plot_layout(widths=c(2,1)) & theme(axis.title.x = element_blank()) 
 
-#ggsave("PLOTS/ARMC5_mean_intensity_fold_change_with_expected.pdf",width = 2.5,height=2.5)
+ggsave("PLOTS/ARMC5_mean_intensity_fold_change_with_expected.pdf",width = 2.5,height=2.5)
 
 ```
 
@@ -1348,7 +1348,7 @@ p_measured <- intensity_measurements %>%
         legend.position = "none")
 
 p_measured + p_expected + plot_layout(widths=c(1.8,0.95)) & theme(axis.title.x = element_blank()) 
-#ggsave("PLOTS/ARMC5_mean_intensity_fold_change_with_expected_pub.pdf",width = 1.6,height=1.7)
+ggsave("PLOTS/ARMC5_mean_intensity_fold_change_with_expected_pub.pdf",width = 1.6,height=1.7)
 
 ```
 
