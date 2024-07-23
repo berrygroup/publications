@@ -1,0 +1,519 @@
+---
+title: "Pol II IF with ARMC5 siRNA and transcriptional inhibitors"
+author: "Scott Berry"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup_r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list=ls())
+library(tidyverse)
+library(patchwork)
+
+wt_col <- "#184cee"
+armc5_col <- "#9d24ec"
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+```
+
+# Experiment
+
+# Data handling
+
+Original data (Perkin-Elmer operetta `.tiff` files) are stored on UNSW's data archive under Berry Lab project D0419427. Data were maximum-intensity projected and converted to OME-TIFF using the `blimp` tools.
+
+# Analysis
+
+## Image analysis 
+
+Image analysis performed using the following series of python scripts (found on github for [2023-10-06](https://github.com/berrygroup/publications/tree/main/2024_ARMC5/hct116_inhibitors_IF/))
+
+- `illumination_correction_IF.ipynb`
+- `save_example_images_IF.ipynb` (used to generate example images and training data for the cellpose model)
+- `run_quantification_IF.py` (parallelised using e.g. `PBS/batch_quantify_230821.pbs`)
+
+## Data analysis
+
+Quantitative data analysis performed in this document.
+
+### Load data
+
+Load data from `scratch/berrylab` on UNSW's Katana HPC.
+
+```{r load_data}
+
+ana_dir <- "/srv/scratch/z3532965/src/publications/2024_ARMC5/hct116_inhibitors_IF"
+data_dir <- "/srv/scratch/berrylab/z3532965/operetta_cls/ARMC5_TransInhib"
+acquisition_dirs <- purrr::map_chr(
+  c("230821_ARMC5_TransInhib/230821_ARMC5_TransInhib_TotalRNAPol__2023-08-25T14_29_20-Measurement 1",
+    "231110_ARMC5_TransInhib/231110_ARMC5_TransInhib__2023-11-14T18_12_24-Measurement 1",
+    "240322_ARMC5_TransInhib/240322_ARMC5_TransInhib__2024-03-26T13_50_23-Measurement 1"),~file.path(data_dir,.))
+intensity_image_dirs <- map_chr(acquisition_dirs,~file.path(.,"OME-TIFF"))
+intensity_image_mip_dirs <- map_chr(acquisition_dirs,~file.path(.,"OME-TIFF-MIP"))
+label_image_dirs <- map_chr(acquisition_dirs,~file.path(.,"SEGMENTATION"))
+quantification_dirs <- map_chr(acquisition_dirs,~file.path(.,"QUANTIFICATION"))
+
+dir_name <- quantification_dirs[1]
+
+read_quantification <- function(dir_name) {
+  csv_files <- Sys.glob(file.path(dir_name,"*.csv"))
+  dt_list <- lapply(csv_files, data.table::fread)
+  df <- tibble(path = csv_files,
+               feature_values = dt_list) %>%
+    mutate(dir_name = dir_name,
+           file_name = basename(path),
+           feature_values = purrr::map(feature_values,tibble))
+  return(df)
+}
+
+# features
+f <- lapply(quantification_dirs,read_quantification) %>%
+  bind_rows() %>%
+  mutate(acquisition_dir = dirname(dirname(path)),
+         imaging_date = basename(acquisition_dir) %>% str_extract("\\d{6}(?=_)"))
+
+
+```
+
+
+Load metadata and join with quantified image data.
+
+```{r load metadata}
+
+pad_well_names <- function(names) {
+  gsub("(\\D)(\\d)$", "\\10\\2", names)
+}
+
+# layouts
+plate_layouts <- tibble(layout_filename=c("230821_ARMC5_TransInhib.csv","231110_ARMC_TransInhib.csv","240322_ARMC5_TransInhib.csv"),
+                        plating_date=c("230818","231107","240319"),
+                        imaging_date=c("230821","231110","240322"),
+                        metadata=purrr::map(layout_filename,~read_csv(file.path(ana_dir,"METADATA",.),show_col_types = FALSE, name_repair = ~sub(" ", "_", .)))) %>%
+  unnest(metadata) %>%
+  mutate(well_name=pad_well_names(WELL)) %>%
+  select(-WELL) %>%
+  rename_with(~gsub(" ", "_",str_to_lower(.))) %>%
+  rename(siRNA=sirna)
+
+# read image metadata and join to plate metadata
+m <- tibble(acquisition_dir = acquisition_dirs) %>%
+  mutate(image_dir = purrr::map_chr(acquisition_dirs,~file.path(.,"OME-TIFF-MIP"))) %>%
+  mutate(metadata_file = purrr::map(image_dir,~list.files(.))) %>%
+  unnest(metadata_file) %>%
+  filter(grepl("metadata.csv$",metadata_file)) %>%
+  mutate(dat = purrr::map(file.path(image_dir,metadata_file),~read_csv(.,show_col_types = FALSE))) %>%
+  unnest(dat)
+
+# attach image and plate metadata 
+dat <- right_join(mutate(m,file_id = str_extract(URL, ".+?(?=\\.)")),
+                  mutate(f,file_id = str_extract(file_name, ".+?(?=\\.)")),
+                  by = join_by(acquisition_dir, file_id)) %>%
+  rename(well_name=WellName) %>%
+  left_join(filter(plate_layouts,!is.na(imaging_date)),by=join_by(imaging_date,well_name)) %>%
+  select(-TimepointID) %>%
+  unnest(feature_values)
+
+```
+
+Check that the data are complete.
+
+```{r check_complete}
+
+# check completeness (count wells)
+dat %>% 
+  distinct(acquisition_dir,well_name) %>%
+  group_by(acquisition_dir) %>%
+  count()
+
+# check completeness (count sites per well)
+dat %>% 
+  distinct(acquisition_dir,well_name,FieldID) %>%
+  group_by(acquisition_dir,well_name) %>%
+  count() %>%
+  filter(!(n %in% c(18,23,25)))
+
+```
+
+Some basic QC regarding number of cells per well, etc.
+
+```{r cell_counts, fig.width=8,fig.height=12}
+
+dat %>% 
+  distinct(plating_date,imaging_date,well_name,siRNA,primary,secondary) %>%
+  group_by(plating_date,imaging_date,siRNA,primary,secondary) %>%
+  count() %>%
+  ungroup() %>%
+  ggplot(aes(x=siRNA,y=n)) + geom_col(position = "dodge") + facet_grid(interaction(primary,secondary)~plating_date) +
+  coord_flip() +
+  ggtitle("Number of wells of each condition")
+
+dat %>% 
+  group_by(plating_date,imaging_date,siRNA,primary,secondary,drug) %>%
+  count() %>%
+  ungroup() %>%
+  ggplot(aes(x=siRNA,y=n,fill=drug)) + geom_col(position = "dodge") + facet_grid(interaction(primary,secondary)~plating_date) +
+  coord_flip() +
+  ggtitle("Total number of cells in each condition")
+
+```
+
+### Subtract background
+
+Calculate background by maximum intensity projecting, illumination-correcting, and getting the mean intensity in a region containing no cells. See `calculate_background.ipynb` in the corresponding github repository.
+
+
+```{r subtract_background}
+
+# updated 23/6/24 
+
+# 230821
+bg1 <- tibble(
+  imaging_date = "230821",
+  bg_568 = mean(c(139.9,140.4,139.4)),
+  bg_DAPI = mean(c(137.5,138.3,135.3)))
+
+# 231110
+bg2 <- tibble(
+  imaging_date = "231110",
+  bg_568 = mean(c(144.7,149.4,145.3)),
+  bg_DAPI = mean(c(166.6,151.36,163.1)))
+
+# 240322
+bg3 <- tibble(
+  imaging_date = "240322",
+  bg_568 = mean(c(142.4,142.5,143.6)),
+  bg_DAPI = mean(c(144.6,141.8,141.0)))
+
+bg <- bind_rows(bg1,bg2,bg3)
+
+dat_minus_bg <- left_join(dat,bg,by="imaging_date") %>%
+  mutate(`Nuclei_intensity_mean_DAPI` = `Nuclei_intensity_mean_DAPI` - bg_DAPI,
+         `Nuclei_intensity_mean_Alexa 568` = `Nuclei_intensity_mean_Alexa 568` - bg_568,
+         
+         `Nuclei_intensity_median_DAPI` = `Nuclei_intensity_median_DAPI` - bg_DAPI,
+         `Nuclei_intensity_median_Alexa 568` = `Nuclei_intensity_median_Alexa 568` - bg_568)
+
+```
+
+### Sum intensities
+
+Compute sum intensities by multiplying the background-subtracted means by the corresponding area
+
+```{r sum_intensities}
+
+dat_minus_bg <- mutate(dat_minus_bg,
+                       `Nuclei_intensity_sum_DAPI` = `Nuclei_intensity_mean_DAPI` * Nuclei_area,
+                       `Nuclei_intensity_sum_Alexa 568` = `Nuclei_intensity_mean_Alexa 568` * Nuclei_area)
+
+```
+
+### Data cleanup
+
+Remove border cells 
+
+```{r remove_variables}
+
+dat_non_border <- filter(dat_minus_bg,!Nuclei_is_border)
+
+```
+
+# Check illumination correction
+
+After correction of illumination biases across the field of view, there should be no bias for mean intensities across the field-of-view.
+
+```{r test_illum_corr}
+
+dat_non_border_sample_longer <- dat_non_border %>%
+  filter(imaging_date=="240322") %>%
+  filter(well_name=="F06") %>%
+  select(Nuclei_centroid_0,Nuclei_centroid_1,Nuclei_intensity_mean_DAPI,`Nuclei_intensity_mean_Alexa 568`) %>%
+  pivot_longer(-c(Nuclei_centroid_0,Nuclei_centroid_1)) 
+
+rescaling_limits <- dat_non_border_sample_longer %>%
+  group_by(name) %>%
+  summarise(upper_limit = quantile(value,0.99))
+
+dat_non_border_sample_longer <- left_join(dat_non_border_sample_longer,rescaling_limits,by="name")
+
+channels <- unique(dat_non_border_sample_longer$name)
+
+p <- list(length=length(channels))
+for (i in 1:length(channels)) {
+  p[[i]] <- dat_non_border_sample_longer %>%
+    filter(name==channels[i]) %>%
+    ggplot(aes(x=Nuclei_centroid_0,y=Nuclei_centroid_1,col=value/upper_limit)) +
+    geom_point(size=0.5) +
+    scale_color_viridis_c(limits=c(0,1)) +
+    facet_wrap(~name) +
+    coord_fixed() +
+    theme(legend.position = "none")
+}
+
+wrap_plots(p) & ggtitle("Illumination biases")
+
+```
+
+## Check DAPI distributions
+
+```{r check_DAPI}
+
+dat_non_border %>%
+  ggplot(aes(x=Nuclei_intensity_sum_DAPI,col=as.factor(well_name))) +
+  geom_density() +
+  facet_wrap(imaging_date~siRNA,scales = "free") +
+  theme(legend.position = "none") +
+  scale_x_continuous(limits = c(0,8e6))
+
+```
+## Nuclear Area
+
+```{r nuclear_area_qc}
+
+dat_non_border %>%
+  ggplot(aes(x=Nuclei_area,col=as.factor(well_name))) +
+  geom_density() +
+  facet_wrap(imaging_date~siRNA,scales = "free") +
+  theme(legend.position = "none") +
+  scale_x_continuous(limits = c(0,2e4))
+  geom_vline(xintercept = 1000) +
+  geom_vline(xintercept = 20000)
+
+dat_non_border <- filter(dat_non_border,Nuclei_area>750 & Nuclei_area<20000)
+
+```
+
+```{r plot_time_courses}
+
+dat_non_border <- dat_non_border %>% 
+  mutate(siRNA=case_when(siRNA=="Scramble" ~ "Scrambled",
+                         siRNA=="ARMC5 pool" ~ "ARMC5",
+                         TRUE ~ siRNA)) %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")),
+         drug=factor(drug,levels=c("Vehicle","Triptolide 1 µM","LDC4297 10 µM","THZ1 1 µM","AZD4573 1 µM","DRB 100 µM","0")))
+
+well_summaries <- dat_non_border %>%
+  group_by(imaging_date,siRNA,drug,drug_time_minutes,primary,secondary,well_name) %>%
+  summarise(Nuclei_intensity_mean_Alexa_568=mean(`Nuclei_intensity_mean_Alexa 568`),.groups="drop") 
+
+normalisers <- well_summaries %>%
+  filter(siRNA=="Scrambled" & drug=='0' & primary=="Total Pol") %>%
+  group_by(imaging_date) %>%
+  summarise(day_mean_scrambled=mean(Nuclei_intensity_mean_Alexa_568))
+
+well_summaries_normalised <- well_summaries %>%
+  left_join(normalisers,by = join_by(imaging_date)) %>%
+  mutate(Nuclei_intensity_mean_Alexa_568_normalised=Nuclei_intensity_mean_Alexa_568/day_mean_scrambled)
+
+starting_level_well_summaries_normalised <- well_summaries_normalised %>% 
+  filter(drug=='0' & primary=="Total Pol") %>%
+  select(-drug) %>%
+  expand_grid(drug=unique(well_summaries$drug))
+
+all_well_summaries_normalised <- bind_rows(well_summaries_normalised,starting_level_well_summaries_normalised)
+
+all_overall_summaries_normalised <- all_well_summaries_normalised %>%
+  group_by(siRNA,drug,drug_time_minutes,primary,secondary) %>%
+  summarise(sd_Nuclei_intensity_mean_Alexa_568_normalised=sd(Nuclei_intensity_mean_Alexa_568_normalised),
+            Nuclei_intensity_mean_Alexa_568_normalised=mean(Nuclei_intensity_mean_Alexa_568_normalised),
+            .groups = "drop") %>%
+  filter(drug!='0')
+  
+
+all_well_summaries_normalised %>%
+  filter(drug!='0' & primary=="Total Pol") %>%
+  ggplot(aes(x=drug_time_minutes/60,y=Nuclei_intensity_mean_Alexa_568_normalised,col=siRNA)) +
+  facet_wrap(~drug,nrow=1) +
+  geom_point(pch=4,alpha=0.4,size=0.75) +
+  geom_ribbon(data=all_overall_summaries_normalised,
+                aes(fill=siRNA,
+                    ymin=Nuclei_intensity_mean_Alexa_568_normalised-sd_Nuclei_intensity_mean_Alexa_568_normalised,
+                    ymax=Nuclei_intensity_mean_Alexa_568_normalised+sd_Nuclei_intensity_mean_Alexa_568_normalised),
+              col=NA,alpha=0.2) +
+  geom_line(data=all_overall_summaries_normalised) +
+  geom_point(data=all_overall_summaries_normalised,size=1) +
+  scale_x_continuous(name="Time (h)",breaks=pretty) +
+  scale_y_continuous(name="Mean nuclear\nRPB1 intensity (F12)",limits = c(0,1.9),expand = c(0,0),breaks=pretty) +
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col)) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.minor=element_blank(),
+        legend.key.size = unit(3,"mm"))
+ggsave("PLOTS/HCT116_wt_ARMC5_kd_timecourse_total.pdf",width=5.5,height=1.5)
+
+```
+
+```{r old_code}
+background <- controls %>%
+  filter(primary=="None") %>%
+  group_by(date) %>%
+  summarise(background=mean(mean_nuclear_intensity))
+
+controls <- controls %>%
+  filter(primary=="F12") %>%
+  left_join(background,by = join_by(date)) %>%
+  mutate(mean_nuclear_intensity_minus_background=mean_nuclear_intensity-background) %>%
+  mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")))
+
+controls %>%
+  ggplot(aes(x=as.factor(date),col=siRNA,y=mean_nuclear_intensity_minus_background)) +
+  geom_point() +
+  scale_y_continuous(limits = c(0,NA))
+
+normalisers <- controls %>%
+  filter(siRNA=="Scrambled") %>%
+  group_by(date) %>%
+  summarise(day_mean_scrambled=mean(mean_nuclear_intensity_minus_background))
+
+controls %>%
+  left_join(normalisers) %>%
+  ggplot(aes(x=as.factor(date),col=siRNA,y=mean_nuclear_intensity_minus_background/day_mean_scrambled)) +
+  geom_point() +
+  scale_y_continuous(limits = c(0,NA))
+
+overall_summary <- controls %>%
+  left_join(normalisers) %>%
+  group_by(siRNA) %>%
+  summarise(overall_mean=mean(mean_nuclear_intensity_minus_background/day_mean_scrambled),
+            overall_sd=sd(mean_nuclear_intensity_minus_background/day_mean_scrambled))
+
+controls %>%
+  left_join(normalisers) %>%
+  ggplot(aes(x=siRNA,y=mean_nuclear_intensity_minus_background/day_mean_scrambled)) +
+  scale_y_continuous(name="Mean nuclear\nRPB1 intensity (F12)",limits = c(0,1.7),expand=c(0,0),breaks = pretty) +
+  geom_col(data=overall_summary,
+           aes(y=overall_mean,fill=siRNA),col=NA,alpha=0.4,width=0.8) +
+  geom_point(data=overall_summary,
+             aes(y=overall_mean,col=siRNA),size=0.75) +
+  geom_errorbar(data=overall_summary,
+                aes(y=overall_mean,
+                    ymin=overall_mean-overall_sd,
+                    ymax=overall_mean+overall_sd,
+                    col=siRNA),width=0.1) +
+  geom_jitter(aes(col=siRNA),pch=4,alpha=0.4,position = position_jitter(width = 0.2)) +
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col)) +
+  theme_bw(8) +
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
+        axis.title.x = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = "none")
+#ggsave("Alex/202402_ARMC5_Fixed/PLOTS/HCT116_wt_ARMC5_kd_barplot_untreated_total.pdf",width=1.1,height=1.75)
+
+# Timecourses
+
+timecourses_wider <- read_csv("Alex/202402_ARMC5_Fixed/DATA/HCT116_ARMC5KD_TransInhib_Summary_reshape_timecourses.csv")
+
+timecourses <- pivot_longer(timecourses_wider,
+                            cols=-c(date,siRNA,time,primary),
+                            names_to = "treatment",
+                            values_to = "mean_nuclear_intensity") %>%
+  separate(treatment,into=c("treatment","original_column"),sep="\\.\\.\\.") %>%
+  left_join(background,by = join_by(date)) %>%
+  mutate(mean_nuclear_intensity_minus_background = mean_nuclear_intensity - background) %>%
+  left_join(normalisers,by = join_by(date)) %>%
+  mutate(mean_nuclear_intensity_minus_background_normalised = mean_nuclear_intensity_minus_background / day_mean_scrambled)
+
+add_untreated_controls_as_zero_timepoint <- controls %>%
+  select(date,siRNA,mean_nuclear_intensity_minus_background) %>%
+  left_join(normalisers,by = join_by(date)) %>%
+  mutate(mean_nuclear_intensity_minus_background_normalised = mean_nuclear_intensity_minus_background / day_mean_scrambled) %>%
+  mutate(time=0) %>%
+  expand_grid(treatment=unique(timecourses$treatment))
+
+timecourses <- bind_rows(timecourses,add_untreated_controls_as_zero_timepoint) %>%
+  mutate(time_h = time/60,
+         siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")),
+         treatment=factor(treatment,levels=c("Vehicle","Triptolide 1 µM","LDC4297 10 µM","THZ1 1 µM","AZD4573 1 µM","DRB 100 µM")))
+
+timecourses_per_day_average <- timecourses %>%
+  group_by(date,siRNA,time,time_h,treatment) %>%
+  summarise(mean_nuclear_intensity_minus_background_normalised = mean(mean_nuclear_intensity_minus_background_normalised),.groups = "drop")
+
+timecourses_overall_average <- timecourses %>%
+  group_by(siRNA,time,time_h,treatment) %>%
+  summarise(sd_nuclear_intensity_minus_background_normalised = sd(mean_nuclear_intensity_minus_background_normalised,na.rm = T),
+            mean_nuclear_intensity_minus_background_normalised = mean(mean_nuclear_intensity_minus_background_normalised,na.rm = T),
+            .groups = "drop")
+
+timecourses %>%
+  ggplot(aes(x=time_h,y=mean_nuclear_intensity_minus_background_normalised,col=siRNA)) +
+  facet_wrap(~treatment,nrow=1) +
+  geom_point(pch=4,alpha=0.4,size=0.75) +
+  #geom_line(data=timecourses_per_day_average,aes(group=interaction(siRNA,date)),alpha=0.4) +
+  geom_ribbon(data=timecourses_overall_average,
+                aes(fill=siRNA,
+                    ymin=mean_nuclear_intensity_minus_background_normalised-sd_nuclear_intensity_minus_background_normalised,
+                    ymax=mean_nuclear_intensity_minus_background_normalised+sd_nuclear_intensity_minus_background_normalised),
+              col=NA,alpha=0.2) +
+  geom_line(data=timecourses_overall_average) +
+  geom_point(data=timecourses_overall_average,size=1) +
+  scale_x_continuous(name="Time (h)",breaks=pretty) +
+  scale_y_continuous(name="Mean nuclear\nRPB1 intensity (F12)",limits = c(0,1.9),expand = c(0,0),breaks=pretty) +
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col)) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.minor=element_blank(),
+        legend.key.size = unit(3,"mm"))
+ggsave("Alex/202402_ARMC5_Fixed/PLOTS/HCT116_wt_ARMC5_kd_timecourse_total.pdf",width=5.5,height=1.5)
+
+timecourses %>%
+  filter(siRNA=="Scrambled") %>%
+  ggplot(aes(x=time_h,y=mean_nuclear_intensity_minus_background_normalised,col=siRNA)) +
+  facet_wrap(~treatment,nrow=1) +
+  geom_point(pch=4,alpha=0.4,size=0.75) +
+  #geom_line(data=timecourses_per_day_average,aes(group=interaction(siRNA,date)),alpha=0.4) +
+  geom_ribbon(data=timecourses_overall_average %>% filter(siRNA=="Scrambled"),
+              aes(fill=siRNA,
+                  ymin=mean_nuclear_intensity_minus_background_normalised-sd_nuclear_intensity_minus_background_normalised,
+                  ymax=mean_nuclear_intensity_minus_background_normalised+sd_nuclear_intensity_minus_background_normalised),
+              col=NA,alpha=0.2) +
+  geom_line(data=timecourses_overall_average %>% filter(siRNA=="Scrambled")) +
+  geom_point(data=timecourses_overall_average %>% filter(siRNA=="Scrambled"),size=1) +
+  scale_x_continuous(name="Time (h)",breaks=pretty) +
+  scale_y_continuous(name="Mean nuclear\nRPB1 intensity (F12)",limits = c(0,1.9),expand = c(0,0),breaks=pretty) +
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col)) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.minor=element_blank(),
+        legend.key.size = unit(3,"mm"))
+ggsave("Alex/202402_ARMC5_Fixed/PLOTS/HCT116_wt_ARMC5_kd_timecourse_total_noARMC5.pdf",width=5.5,height=1.5)
+
+
+# normalise to starting level
+siRNA_effect <- timecourses_overall_average %>%
+  filter(time==0) %>%
+  distinct(siRNA,mean_nuclear_intensity_minus_background_normalised) %>%
+  rename(siRNA_normaliser = mean_nuclear_intensity_minus_background_normalised)
+
+timecourses %>%
+  left_join(siRNA_effect,by = join_by(siRNA)) %>%
+  ggplot(aes(x=time_h,y=mean_nuclear_intensity_minus_background_normalised/siRNA_normaliser,col=siRNA)) +
+  facet_wrap(~treatment,nrow=1) +
+  geom_point(pch=4,alpha=0.4,size=0.75) +
+  #geom_line(data=timecourses_per_day_average,aes(group=interaction(siRNA,date)),alpha=0.4) +
+  geom_ribbon(data=left_join(timecourses_overall_average,siRNA_effect,by = join_by(siRNA)),
+              aes(fill=siRNA,
+                  ymin=mean_nuclear_intensity_minus_background_normalised/siRNA_normaliser-sd_nuclear_intensity_minus_background_normalised/siRNA_normaliser,
+                  ymax=mean_nuclear_intensity_minus_background_normalised/siRNA_normaliser+sd_nuclear_intensity_minus_background_normalised/siRNA_normaliser),
+              col=NA,alpha=0.2) +
+  geom_line(data=left_join(timecourses_overall_average,siRNA_effect,by = join_by(siRNA))) +
+  geom_point(data=left_join(timecourses_overall_average,siRNA_effect,by = join_by(siRNA)),size=1) +
+  scale_x_continuous(name="Time (h)",breaks=pretty) +
+  scale_y_continuous(name="Normalised mean nuclear\nRPB1 intensity (F12)",limits = c(0,1.3),expand = c(0,0),breaks=pretty) +
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col)) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.minor=element_blank(),
+        legend.key.size = unit(3,"mm"))
+ggsave("Alex/202402_ARMC5_Fixed/PLOTS/HCT116_wt_ARMC5_kd_timecourse_total_normalised.pdf",width=5.5,height=1.5)
+
+
+```
+
+```{r session_info}
+
+sessionInfo()
+
+```
