@@ -14,7 +14,7 @@
 ### batch number on each node. Batches should run from zero to N_BATCHES-1
 ### to process all files
 
-#PBS -J 0-1456
+#PBS -J 0-1152
 
 ###---------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ conda activate berrylab-py310
 
 cd $PBS_O_WORKDIR
 
-dataset="240404/240401_HCT116_ARMC5_INTS8/20240404_153226_053"
+dataset="240701/240628_siRNA_ARMC5_INTS8/20240701_193044_047"
 
 python /srv/scratch/z3532965/src/publications/2024_ARMC5/hct116_IF/run_quantification_IF_mCherry-POLR2A_siRNA.py \
   --id ${PBS_ARRAY_INDEX} \
