@@ -1,0 +1,36 @@
+#!/bin/bash
+
+### quantify in parallel
+
+#PBS -N batch_run_quantification
+#PBS -l select=1:ncpus=1:mem=32gb
+#PBS -l walltime=1:00:00
+#PBS -o /srv/scratch/z3532965/src/blana/Alex/202402_ARMC5_Fixed/PBS/log/
+#PBS -e /srv/scratch/z3532965/src/blana/Alex/202402_ARMC5_Fixed/PBS/log/
+#PBS -M scott.berry@unsw.edu.au
+#PBS -m ae
+
+### The following parameter is modulated at runtime to specify the
+### batch number on each node. Batches should run from zero to N_BATCHES-1
+### to process all files
+
+#PBS -J 0-216
+
+###---------------------------------------------------------------------------
+
+source /home/z3532965/.bashrc
+conda activate berrylab-py310
+
+cd $PBS_O_WORKDIR
+
+dataset="ARMC5_KD_EU/240713_ARMC5_EU/Cycle2_EU/20240715_173604_562"
+
+python /srv/scratch/z3532965/src/publications/2024_ARMC5/hct116_EU/run_quantification_EU.py \
+  --id ${PBS_ARRAY_INDEX} \
+  --cellpose_model_file /srv/scratch/z3532965/src/blana/Alex/202402_ARMC5_Fixed/CELLPOSE/20X_DAPI_HCT116 \
+  --illumination_correction_file "/srv/scratch/berrylab/z3532965/NikonSpinningDisk/ARMC5_KD_EU/ILLUMCORR/illumination_correction.pkl" \
+  --features_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/${dataset}/QUANTIFICATION \
+  --input_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/${dataset}/OME-TIFF-MIP \
+  --output_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/${dataset}/SEGMENTATION
+
+conda deactivate

@@ -1,0 +1,25 @@
+﻿CELL,WELL,SIRNA,PRIMARY,SECONDARY,EU
+C3,HCT116,ARMC5 pool,Total Pol II,Anti-mouse 561,100 µM
+D3,HCT116,Scramble,Total Pol II,Anti-mouse 561,100 µM
+E3,HCT116,No reaction,No primary,Anti-mouse 561,100 µM
+F3,HCT116,No reaction,Total Pol II,Anti-mouse 561,No EU
+C4,HCT116,Scramble,Total Pol II,Anti-mouse 561,100 µM
+D4,HCT116,ARMC5 pool,Total Pol II,Anti-mouse 561,100 µM
+E4,HCT116,No reaction,No primary,Anti-mouse 561,100 µM
+F4,HCT116,No reaction,Total Pol II,Anti-mouse 561,No EU
+C5,HCT116,ARMC5 pool,Total Pol II,Anti-mouse 561,100 µM
+D5,HCT116,Scramble,Total Pol II,Anti-mouse 561,100 µM
+E5,HCT116,No reaction,No primary,Anti-mouse 561,100 µM
+F5,HCT116,No reaction,Total Pol II,Anti-mouse 561,No EU
+C6,HCT116,Scramble,Total Pol II,Anti-mouse 561,100 µM
+D6,HCT116,ARMC5 pool,Total Pol II,Anti-mouse 561,100 µM
+E6,HCT116,No reaction,No primary,Anti-mouse 561,100 µM
+F6,HCT116,No reaction,Total Pol II,Anti-mouse 561,No EU
+C7,HCT116,ARMC5 pool,Total Pol II,Anti-mouse 561,100 µM
+D7,HCT116,Scramble,Total Pol II,Anti-mouse 561,100 µM
+E7,HCT116,No reaction,No primary,Anti-mouse 561,100 µM
+F7,HCT116,No reaction,Total Pol II,Anti-mouse 561,No EU
+C8,HCT116,Scramble,Total Pol II,Anti-mouse 561,100 µM
+D8,HCT116,ARMC5 pool,Total Pol II,Anti-mouse 561,100 µM
+E8,HCT116,No reaction,No primary,Anti-mouse 561,100 µM
+F8,HCT116,No reaction,Total Pol II,Anti-mouse 561,No EU
