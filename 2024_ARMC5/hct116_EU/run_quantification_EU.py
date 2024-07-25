@@ -14,7 +14,17 @@ def process_single_site(input_file,input_dir,label_image_dir,features_dir,cellpo
     illumination_correction = IlluminationCorrection(
         from_file=illumcorr_file
     )
-    intensity_image_corrected = illumination_correction.correct(intensity_image)
+
+    # acquisition 3 has an extra two channels, remove these here to fit the shape of the correction object
+    if intensity_image.dims.C > 2:
+        arr = np.stack([intensity_image.get_image_data('ZYX',C=i) for i in range(2)])
+        im = AICSImage(
+            arr[np.newaxis,:,:,:,:],
+            physical_pixel_sizes=intensity_image.physical_pixel_sizes,
+            channel_names=intensity_image.channel_names[:2])
+        intensity_image_corrected = illumination_correction.correct(im)
+    else:
+        intensity_image_corrected = illumination_correction.correct(intensity_image)
 
     # segment DAPI channel (1)
     nuclei_label_image = segment_nuclei_cellpose(
