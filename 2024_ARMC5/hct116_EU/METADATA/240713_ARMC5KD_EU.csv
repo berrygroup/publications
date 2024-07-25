@@ -1,4 +1,4 @@
-﻿CELL,WELL,SIRNA,PRIMARY,SECONDARY,EU
+WELL,CELL,SIRNA,PRIMARY,SECONDARY,EU
 C3,HCT116,Scramble,Total Pol II,Anti-mouse 561,100 µM
 D3,HCT116,ARMC5 pool,Total Pol II,Anti-mouse 561,100 µM
 E3,HCT116,No reaction,No primary,Anti-mouse 561,100 µM
