@@ -1,0 +1,73 @@
+﻿Well,Cell,siRNA,Primary,Secondary
+C03,HCT116 mCherryPOLR2A,INTS8 pool,pSer5 Pol II,Anti-rat 488
+D03,HCT116 mCherryPOLR2A,ARMC5 pool,pSer5 Pol II,Anti-rat 488
+E03,HCT116 mCherryPOLR2A,Scrambled,pSer5 Pol II,Anti-rat 488
+F03,HCT116 mCherryPOLR2A,ARMC5+INTS8,pSer5 Pol II,Anti-rat 488
+G03,HCT116 mCherryPOLR2A,ARMC5 #1,pSer5 Pol II,Anti-rat 488
+H03,HCT116 mCherryPOLR2A,ARMC5 #2,pSer5 Pol II,Anti-rat 488
+I03,HCT116 mCherryPOLR2A,ARMC5 #3,pSer5 Pol II,Anti-rat 488
+J03,HCT116 mCherryPOLR2A,INTS8 #1,pSer5 Pol II,Anti-rat 488
+K03,HCT116 mCherryPOLR2A,INTS8 #2,pSer5 Pol II,Anti-rat 488
+L03,HCT116 mCherryPOLR2A,INTS8 #3,pSer5 Pol II,Anti-rat 488
+M03,HCT116 mCherryPOLR2A,No reaction,None,Anti-rat 488
+N03,HCT116,No reaction,pSer5 Pol II,Anti-rat 488
+C04,HCT116 mCherryPOLR2A,INTS8 pool,pSer5 Pol II,Anti-rat 488
+D04,HCT116 mCherryPOLR2A,ARMC5 pool,pSer5 Pol II,Anti-rat 488
+E04,HCT116 mCherryPOLR2A,Scrambled,pSer5 Pol II,Anti-rat 488
+F04,HCT116 mCherryPOLR2A,ARMC5+INTS8,pSer5 Pol II,Anti-rat 488
+G04,HCT116 mCherryPOLR2A,ARMC5 #1,pSer5 Pol II,Anti-rat 488
+H04,HCT116 mCherryPOLR2A,ARMC5 #2,pSer5 Pol II,Anti-rat 488
+I04,HCT116 mCherryPOLR2A,ARMC5 #3,pSer5 Pol II,Anti-rat 488
+J04,HCT116 mCherryPOLR2A,INTS8 #1,pSer5 Pol II,Anti-rat 488
+K04,HCT116 mCherryPOLR2A,INTS8 #2,pSer5 Pol II,Anti-rat 488
+L04,HCT116 mCherryPOLR2A,INTS8 #3,pSer5 Pol II,Anti-rat 488
+M04,HCT116 mCherryPOLR2A,No reaction,pSer5 Pol II,Anti-rat 488
+N04,HCT116,No reaction,pSer5 Pol II,Anti-rat 488
+C05,HCT116 mCherryPOLR2A,INTS8 pool,pSer2 Pol II,Anti-rat 488
+D05,HCT116 mCherryPOLR2A,ARMC5 pool,pSer2 Pol II,Anti-rat 488
+E05,HCT116 mCherryPOLR2A,Scrambled,pSer2 Pol II,Anti-rat 488
+F05,HCT116 mCherryPOLR2A,ARMC5+INTS8,pSer2 Pol II,Anti-rat 488
+G05,HCT116 mCherryPOLR2A,ARMC5 #1,pSer2 Pol II,Anti-rat 488
+H05,HCT116 mCherryPOLR2A,ARMC5 #2,pSer2 Pol II,Anti-rat 488
+I05,HCT116 mCherryPOLR2A,ARMC5 #3,pSer2 Pol II,Anti-rat 488
+J05,HCT116 mCherryPOLR2A,INTS8 #1,pSer2 Pol II,Anti-rat 488
+K05,HCT116 mCherryPOLR2A,INTS8 #2,pSer2 Pol II,Anti-rat 488
+L05,HCT116 mCherryPOLR2A,INTS8 #3,pSer2 Pol II,Anti-rat 488
+M05,HCT116 mCherryPOLR2A,No reaction,None,Anti-rat 488
+N05,HCT116,No reaction,pSer2 Pol II,Anti-rat 488
+C06,HCT116 mCherryPOLR2A,INTS8 pool,pSer2 Pol II,Anti-rat 488
+D06,HCT116 mCherryPOLR2A,ARMC5 pool,pSer2 Pol II,Anti-rat 488
+E06,HCT116 mCherryPOLR2A,Scrambled,pSer2 Pol II,Anti-rat 488
+F06,HCT116 mCherryPOLR2A,ARMC5+INTS8,pSer2 Pol II,Anti-rat 488
+G06,HCT116 mCherryPOLR2A,ARMC5 #1,pSer2 Pol II,Anti-rat 488
+H06,HCT116 mCherryPOLR2A,ARMC5 #2,pSer2 Pol II,Anti-rat 488
+I06,HCT116 mCherryPOLR2A,ARMC5 #3,pSer2 Pol II,Anti-rat 488
+J06,HCT116 mCherryPOLR2A,INTS8 #1,pSer2 Pol II,Anti-rat 488
+K06,HCT116 mCherryPOLR2A,INTS8 #2,pSer2 Pol II,Anti-rat 488
+L06,HCT116 mCherryPOLR2A,INTS8 #3,pSer2 Pol II,Anti-rat 488
+M06,HCT116 mCherryPOLR2A,No reaction,pSer2 Pol II,Anti-rat 488
+N06,HCT116,No reaction,pSer2 Pol II,Anti-rat 488
+C07,HCT116 mCherryPOLR2A,INTS8 pool,Total Pol II,Anti-mouse 488
+D07,HCT116 mCherryPOLR2A,ARMC5 pool,Total Pol II,Anti-mouse 488
+E07,HCT116 mCherryPOLR2A,Scrambled,Total Pol II,Anti-mouse 488
+F07,HCT116 mCherryPOLR2A,ARMC5+INTS8,Total Pol II,Anti-mouse 488
+G07,HCT116 mCherryPOLR2A,ARMC5 #1,Total Pol II,Anti-mouse 488
+H07,HCT116 mCherryPOLR2A,ARMC5 #2,Total Pol II,Anti-mouse 488
+I07,HCT116 mCherryPOLR2A,ARMC5 #3,Total Pol II,Anti-mouse 488
+J07,HCT116 mCherryPOLR2A,INTS8 #1,Total Pol II,Anti-mouse 488
+K07,HCT116 mCherryPOLR2A,INTS8 #2,Total Pol II,Anti-mouse 488
+L07,HCT116 mCherryPOLR2A,INTS8 #3,Total Pol II,Anti-mouse 488
+M07,HCT116 mCherryPOLR2A,No reaction,None,Anti-mouse 488
+N07,HCT116,No reaction,Total Pol II,Anti-mouse 488
+C08,HCT116 mCherryPOLR2A,INTS8 pool,Total Pol II,Anti-mouse 488
+D08,HCT116 mCherryPOLR2A,ARMC5 pool,Total Pol II,Anti-mouse 488
+E08,HCT116 mCherryPOLR2A,Scrambled,Total Pol II,Anti-mouse 488
+F08,HCT116 mCherryPOLR2A,ARMC5+INTS8,Total Pol II,Anti-mouse 488
+G08,HCT116 mCherryPOLR2A,ARMC5 #1,Total Pol II,Anti-mouse 488
+H08,HCT116 mCherryPOLR2A,ARMC5 #2,Total Pol II,Anti-mouse 488
+I08,HCT116 mCherryPOLR2A,ARMC5 #3,Total Pol II,Anti-mouse 488
+J08,HCT116 mCherryPOLR2A,INTS8 #1,Total Pol II,Anti-mouse 488
+K08,HCT116 mCherryPOLR2A,INTS8 #2,Total Pol II,Anti-mouse 488
+L08,HCT116 mCherryPOLR2A,INTS8 #3,Total Pol II,Anti-mouse 488
+M08,HCT116 mCherryPOLR2A,No reaction,Total Pol II,Anti-mouse 488
+N08,HCT116,No reaction,Total Pol II,Anti-mouse 488
