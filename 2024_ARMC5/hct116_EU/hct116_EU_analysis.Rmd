@@ -30,7 +30,7 @@ Original data (Nikon `.nd2` files) are stored on UNSW's data archive under Berry
 
 ## Image analysis 
 
-Image analysis performed using the following series of python scripts (found on github for [hek_inhibitors_EU](https://github.com/berrygroup/publications/tree/main/2024_ARMC5/hct116_EU))
+Image analysis performed using the following series of python scripts (found on github for [hct116_EU](https://github.com/berrygroup/publications/tree/main/2024_ARMC5/hct116_EU))
 
 - `illumination_correction_EU.ipynb`
 - `save_example_images_EU.ipynb` (used to generate example images and training data for the cellpose model)
@@ -175,7 +175,7 @@ Calculate background by maximum intensity projecting, illumination-correcting, a
 
 # update 25/7/24 for EU in HCT116
 
-bg_647 <- mean(c(134.5,144.4,142))
+bg_647 <- mean(c(142.125,144.4,142))
 bg_405 <-mean(c(174.8,191.2,179))
 
 dat_minus_bg <- mutate(dat,
@@ -281,83 +281,62 @@ dat_non_border <- filter(dat_non_border,Nuclei_area>150)
 
 ```{r EU_by_cell, fig.width=14,fig.height=10}
 
-dat_non_border <- mutate(dat_non_border,Drug=factor(Drug,levels=c("None","Vehicle","Triptolide 300 nM","LDC4297 10 µM","THZ1 1 µM","AZD4573 1 µM","DRB 100 µM"))) 
+dat_non_border <- mutate(dat_non_border,
+                         siRNA = case_when(siRNA=="Scramble" ~ "Scrambled",
+                                           siRNA=="ARMC5 pool" ~ "ARMC5",
+                                           siRNA=="No reaction" ~ "None",
+                                           TRUE ~ NA_character_),
+                         siRNA=factor(siRNA,levels=c("None","Scrambled","ARMC5"))) 
 
-p15min <- dat_non_border %>%
-  filter(Drug!="None") %>% 
-  filter(EU_time=="15 min") %>%
-  ggplot(aes(x=interaction(Cell,EU_concentration),y=Nuclei_intensity_mean_647,col=Drug,group=interaction(well_name,Drug))) + 
-  geom_boxplot(outlier.shape=NA) + facet_grid(EU_time~imaging_date) +
-  coord_cartesian(ylim = c(0,600)) +
+dat_non_border %>% 
+  ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_647,col=siRNA,group=interaction(well_name,siRNA))) + 
+  #geom_boxplot(outlier.shape=NA) + 
+  geom_boxplot() + 
+  facet_grid(EU~imaging_date) +
+  #coord_cartesian(ylim = c(0,1000)) +
   theme_bw(base_size = 8) +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.title.y = element_blank())
-
-p30min <- dat_non_border %>% 
-  filter(Drug!="None") %>% 
-  filter(EU_time=="30 min") %>%
-  ggplot(aes(x=interaction(Cell,EU_concentration),y=Nuclei_intensity_mean_647,col=Drug,group=interaction(well_name,Drug))) + 
-  geom_boxplot(outlier.shape=NA) + facet_grid(EU_time~imaging_date) +
-  coord_cartesian(ylim = c(0,1750)) +
-  theme_bw(base_size = 8) +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank())
-
-p60min <- dat_non_border %>% 
-  filter(Drug!="None") %>% 
-  filter(EU_time=="60 min") %>%
-  ggplot(aes(x=interaction(Cell,EU_concentration),y=Nuclei_intensity_mean_647,col=Drug,group=interaction(well_name,Drug))) + 
-  geom_boxplot(outlier.shape=NA) + facet_grid(EU_time~imaging_date) +
-  coord_cartesian(ylim = c(0,5000)) +
-  theme_bw(base_size = 8) +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
-        axis.title.y = element_blank())
-
-p15min / p30min / p60min + plot_layout(guides="collect")
-
-ggsave("PLOTS/EU_boxplot_per_well_by_drug.pdf",width=14,height=10)
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
 
 ```
 
-```{r EU_by_treatment, fig.width=14,fig.height=10}
+Seems to be some very bright intensities in some wells. Check for outliers using boxplot rule.
 
-p15min <- dat_non_border %>%
-  filter(Drug!="None") %>% 
-  filter(EU_time=="15 min") %>%
-  ggplot(aes(x=interaction(Drug,EU_concentration),y=Nuclei_intensity_mean_647,col=Cell,group=interaction(well_name,Cell))) + 
-  geom_boxplot(outlier.shape=NA) + facet_grid(EU_time~imaging_date) +
-  coord_cartesian(ylim = c(0,600)) +
-  theme_bw(base_size = 8) +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.title.y = element_blank())
+```{r outlier_sites_detection}
 
-p30min <- dat_non_border %>% 
-  filter(Drug!="None") %>% 
-  filter(EU_time=="30 min") %>%
-  ggplot(aes(x=interaction(Drug,EU_concentration),y=Nuclei_intensity_mean_647,col=Cell,group=interaction(well_name,Cell))) + 
-  geom_boxplot(outlier.shape=NA) + facet_grid(EU_time~imaging_date) +
-  coord_cartesian(ylim = c(0,1750)) +
-  theme_bw(base_size = 8) +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank())
+field_averages <- dat_non_border %>%
+  group_by(image_dir,filename_ome_tiff,EU,siRNA,imaging_date,well_name,field_id) %>%
+  summarise(Nuclei_intensity_mean_647_mean=mean(Nuclei_intensity_mean_647),.groups = 'drop') 
 
-p60min <- dat_non_border %>% 
-  filter(Drug!="None") %>% 
-  filter(EU_time=="60 min") %>%
-  ggplot(aes(x=interaction(Drug,EU_concentration),y=Nuclei_intensity_mean_647,col=Cell,group=interaction(well_name,Cell))) + 
-  geom_boxplot(outlier.shape=NA) + facet_grid(EU_time~imaging_date) +
-  coord_cartesian(ylim = c(0,5000)) +
-  theme_bw(base_size = 8) +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
-        axis.title.y = element_blank())
+outlier_fields <- field_averages %>%
+  group_by(image_dir,EU,siRNA,imaging_date) %>%
+  summarise(across(Nuclei_intensity_mean_647_mean,c(p25=~quantile(.,0.25),p75=~quantile(.,0.75))),.groups = 'drop') %>%
+  left_join(field_averages,by = join_by(image_dir, EU, siRNA, imaging_date)) %>%
+  mutate(Nuclei_intensity_mean_647_mean_IQR = Nuclei_intensity_mean_647_mean_p75 - Nuclei_intensity_mean_647_mean_p25,
+         outlier = case_when(
+           Nuclei_intensity_mean_647_mean > Nuclei_intensity_mean_647_mean_p75 + 1.5*Nuclei_intensity_mean_647_mean_IQR ~ TRUE,
+           Nuclei_intensity_mean_647_mean < Nuclei_intensity_mean_647_mean_p25 - 1.5*Nuclei_intensity_mean_647_mean_IQR ~ TRUE,
+           TRUE ~ FALSE))
 
-p15min / p30min / p60min + plot_layout(guides="collect")
+outlier_fields %>%
+  ggplot(aes(y=Nuclei_intensity_mean_647_mean,x=siRNA,col=outlier)) +
+  geom_jitter() +
+  scale_y_log10() +
+  facet_wrap(EU~imaging_date)
 
-ggsave("PLOTS/EU_boxplot_per_well_by_cell.pdf",width=14,height=10)
+outlier_fields %>%
+  count(imaging_date,EU,siRNA,outlier) %>%
+  group_by(imaging_date,EU,siRNA) %>%
+  mutate(freq=n/sum(n)) %>%
+  filter(outlier=="TRUE")
+
+```
+
+Remove outlier fields-of-view
+
+```{r outlier_sites_removal}
+
+dat_non_border <- dat_non_border %>%
+  anti_join(filter(outlier_fields,outlier==TRUE),by = join_by(image_dir, well_name, field_id, filename_ome_tiff, imaging_date, siRNA, EU))
 
 ```
 
@@ -370,53 +349,21 @@ Visualise plate layouts and examine the well-means across the plates for each ex
 dat_non_border %>%
   mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
          well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  distinct(imaging_date,well_name,well_row,well_column,Drug) %>%
-  ggplot(aes(x=well_column,y=well_row,fill=Drug)) +
+  distinct(imaging_date,well_name,well_row,well_column,siRNA) %>%
+  ggplot(aes(x=well_column,y=well_row,fill=siRNA)) +
   geom_tile() +
   scale_y_discrete(limits=rev) +
   facet_wrap(~imaging_date) +
-  ggtitle("Drug")
+  ggtitle("siRNA")
 
 dat_non_border %>%
   mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
          well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  distinct(imaging_date,well_name,well_row,well_column,Cell) %>%
-  ggplot(aes(x=well_column,y=well_row,fill=Cell)) +
+  distinct(imaging_date,well_name,well_row,well_column,EU) %>%
+  ggplot(aes(x=well_column,y=well_row,fill=EU)) +
   geom_tile() +
   scale_y_discrete(limits=rev) +
   facet_wrap(~imaging_date) +
-  ggtitle("Cell")
-
-dat_non_border %>%
-  mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
-         well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  distinct(imaging_date,well_name,well_row,well_column,EU_concentration) %>%
-  ggplot(aes(x=well_column,y=well_row,fill=EU_concentration)) +
-  geom_tile() +
-  scale_y_discrete(limits=rev) +
-  facet_wrap(~imaging_date) +
-  ggtitle("EU concentration")
-
-dat_non_border %>%
-  mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
-         well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  distinct(imaging_date,well_name,well_row,well_column,EU_time) %>%
-  ggplot(aes(x=well_column,y=well_row,fill=EU_time)) +
-  geom_tile() +
-  scale_y_discrete(limits=rev) +
-  facet_wrap(~imaging_date) +
-  ggtitle("EU time")
-
-
-dat_non_border %>%
-  mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
-         well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  count(imaging_date,well_name,well_row,well_column,EU_concentration) %>%
-  ggplot(aes(x=well_column,y=well_row,fill=n)) +
-  geom_tile() +
-  scale_y_discrete(limits=rev) +
-  facet_wrap(~imaging_date) +
-  scale_fill_viridis_c() +
   ggtitle("EU concentration")
 
 
@@ -424,14 +371,14 @@ dat_non_border %>%
 dat_non_border %>%
   mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
          well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  group_by(imaging_date,well_name,well_row,well_column,EU_concentration,EU_time,Cell,Drug) %>%
+  group_by(imaging_date,well_name,well_row,well_column,EU,siRNA) %>%
   summarise(well_mean_EU = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
   left_join(dat_non_border %>%
-              group_by(imaging_date,well_name,EU_concentration,EU_time,Cell,Drug) %>%
+              group_by(imaging_date,well_name,EU,siRNA) %>%
               summarise(well_mean_EU = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
-              group_by(imaging_date,EU_concentration,EU_time,Cell,Drug) %>%
+              group_by(imaging_date,EU,siRNA) %>%
               summarise(plate_mean_EU = mean(well_mean_EU),.groups="drop"),
-            by = join_by(imaging_date, EU_concentration, EU_time, Cell, Drug)) %>%
+            by = join_by(imaging_date, EU,siRNA)) %>%
   mutate(log2FC_from_mean = log2(well_mean_EU/plate_mean_EU)) %>%
   ggplot(aes(x=well_column,y=well_row,fill=log2FC_from_mean)) +
   geom_tile() +
@@ -444,14 +391,14 @@ dat_non_border %>%
 dat_non_border %>%
   mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
          well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  group_by(imaging_date,well_name,well_row,well_column,EU_concentration,EU_time,Cell,Drug) %>%
+  group_by(imaging_date,well_name,well_row,well_column,EU,siRNA) %>%
   summarise(well_mean_EU = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
   left_join(dat_non_border %>%
-              group_by(imaging_date,well_name,EU_concentration,EU_time,Cell,Drug) %>%
+              group_by(imaging_date,well_name,EU,siRNA) %>%
               summarise(well_mean_EU = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
-              group_by(EU_concentration,EU_time,Cell,Drug) %>%
+              group_by(EU,siRNA) %>%
               summarise(overall_mean_EU = mean(well_mean_EU),.groups="drop"),
-            by = join_by(EU_concentration, EU_time, Cell, Drug)) %>%
+            by = join_by(EU,siRNA)) %>%
   mutate(log2FC_from_mean = log2(well_mean_EU/overall_mean_EU)) %>%
   ggplot(aes(x=well_column,y=well_row,fill=log2FC_from_mean)) +
   geom_tile() +
@@ -462,45 +409,24 @@ dat_non_border %>%
 
 ```
 
-Plate overviews indicate that imaging date 20240229 rows M/N are clear outliers. This is likely due to pipetting inaccuracies during click reaction addition (Alex said he added click manually after the other rows). We exclude this data.
-
-```{r exclude_data}
-
-dat_non_border_with_exclusions <- dat_non_border %>%
-    mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
-           well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  filter(!(imaging_date=="20240229" & well_row %in% c("M","N")))
-
-```
-
 Correct for plate-to-plate variation in EU staining for plotting (don't use normalisation for statistics, just include plate and well as random effects.)
 
 ```{r plate_normalisation}
 
-normalisation_data <- dat_non_border_with_exclusions %>%
-  filter(EU_concentration!="None" & Drug=="Vehicle") %>%
-  group_by(imaging_date,well_name,EU_time,Cell) %>%
+normalisation_data <- dat_non_border %>%
+  filter(EU!="No EU" & siRNA!="None") %>%
+  group_by(imaging_date,well_name,siRNA) %>%
   summarise(well_mean_IF = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
-  group_by(imaging_date,EU_time,Cell) %>%
+  group_by(imaging_date,siRNA) %>%
   summarise(plate_mean_IF = mean(well_mean_IF),.groups="drop")
 
-normalisation_data %>%
-  pivot_wider(names_from = imaging_date, values_from=plate_mean_IF) %>%
-  ggplot(aes(x=`20240304`,y=`20240229`)) + geom_point() + geom_abline() + facet_wrap(~EU_time)
-
-normalisation_data %>%
-  pivot_wider(names_from = imaging_date, values_from=plate_mean_IF) %>%
-  ggplot(aes(x=`20240304`,y=`20240307`)) + geom_point() + geom_abline() + facet_wrap(~EU_time)
-
-# compute a normalisation factor for plates on imaging_date 20240305 and 20240308
-
 normalisation_factors <- normalisation_data %>%
-  filter(imaging_date=="20240304") %>%
+  filter(imaging_date=="20240701") %>%
   select(-imaging_date) %>%
   rename(normalise_to = plate_mean_IF) %>%
-  left_join(normalisation_data,by = join_by(EU_time, Cell)) %>%
+  left_join(normalisation_data,by="siRNA") %>%
   mutate(normalisation_factor=normalise_to/plate_mean_IF) %>%
-  group_by(EU_time,imaging_date) %>%
+  group_by(imaging_date) %>%
   summarise(plate_normaliser = mean(normalisation_factor),.groups = "drop")
 
 normalisation_factors
@@ -511,239 +437,99 @@ Now average over replicates, including plate-to-plate normalisation factors.
 
 ```{r average_over_replicates,fig.height=4,fig.width=12}
 
-well_summaries <- dat_non_border_with_exclusions %>%
-  filter(EU_concentration!="None" & Drug!="None") %>%
-  left_join(normalisation_factors, by = join_by(imaging_date, EU_time)) %>%
+well_summaries <- dat_non_border %>%
+  filter(EU!="No EU" & siRNA!="None") %>%
+  left_join(normalisation_factors, by = join_by(imaging_date)) %>%
   mutate(Nuclei_intensity_mean_647_plate_normalised = Nuclei_intensity_mean_647 * plate_normaliser) %>%
-  group_by(imaging_date,well_name,EU_time,Cell,Drug) %>%
+  group_by(imaging_date,well_name,siRNA) %>%
   summarise(Nuclei_intensity_mean_647 = mean(Nuclei_intensity_mean_647),
             Nuclei_intensity_mean_647_plate_normalised = mean(Nuclei_intensity_mean_647_plate_normalised),
             .groups='drop')
 
 overall_summaries <- well_summaries %>%
-  group_by(EU_time,Cell,Drug) %>%
+  group_by(siRNA) %>%
   summarise(mean_Nuclei_intensity_mean_647 = mean(Nuclei_intensity_mean_647),
             sd_Nuclei_intensity_mean_647 = sd(Nuclei_intensity_mean_647),
             mean_Nuclei_intensity_mean_647_plate_normalised = mean(Nuclei_intensity_mean_647_plate_normalised),
             sd_Nuclei_intensity_mean_647_plate_normalised = sd(Nuclei_intensity_mean_647_plate_normalised),
             .groups='drop')
 
-well_summaries %>%
-  ggplot(aes(x=Drug,y=Nuclei_intensity_mean_647_plate_normalised,col=Cell)) +
-  facet_wrap(~factor(EU_time, levels=c("15 min","30 min","60 min")), nrow=1,scales="free_y") +
-  geom_col(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised,fill=Cell),col=NA,alpha=0.4,position=position_dodge(0.8),width=0.8) +
-  geom_point(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised),position=position_dodge(0.8)) +
-  geom_errorbar(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised,
-                                              ymin=mean_Nuclei_intensity_mean_647_plate_normalised-sd_Nuclei_intensity_mean_647_plate_normalised,
-                                              ymax=mean_Nuclei_intensity_mean_647_plate_normalised+sd_Nuclei_intensity_mean_647_plate_normalised),
-                position=position_dodge(0.8),width=0.1) +
-  geom_jitter(position=position_jitterdodge(jitter.width=0.15,dodge.width=0.8),pch=4,alpha=0.5) +
-  scale_y_continuous(limits = c(0,NA),name="Nuclear intensity (A.U.)") +
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
-        axis.title.x = element_blank(),
-        panel.grid = element_blank())
-ggsave("PLOTS/EU_barplots_by_cell.pdf",width=12,height=4)
+axis_rescaler <- filter(overall_summaries,siRNA=="Scrambled") %>% pull(mean_Nuclei_intensity_mean_647_plate_normalised)
 
-well_summaries %>%
-  ggplot(aes(x=Cell,y=Nuclei_intensity_mean_647_plate_normalised,col=Drug)) +
-  facet_wrap(~factor(EU_time, levels=c("15 min","30 min","60 min")), nrow=1,scales="free_y") +
-  geom_col(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised,fill=Drug),col=NA,alpha=0.4,position=position_dodge(0.8),width=0.8) +
-  geom_point(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised),position=position_dodge(0.8)) +
-  geom_errorbar(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised,
-                                              ymin=mean_Nuclei_intensity_mean_647_plate_normalised-sd_Nuclei_intensity_mean_647_plate_normalised,
-                                              ymax=mean_Nuclei_intensity_mean_647_plate_normalised+sd_Nuclei_intensity_mean_647_plate_normalised),
-                position=position_dodge(0.8),width=0.1) +
-  scale_y_continuous(limits = c(0,NA),name="Nuclear intensity (A.U.)") +
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
-        axis.title.x = element_blank(),
-        panel.grid = element_blank())
-ggsave("PLOTS/EU_barplots_by_drug.pdf",width=12,height=4)
+no_EU_well_summaries <- dat_non_border %>%
+  filter(EU=="No EU") %>%
+  left_join(normalisation_factors, by = join_by(imaging_date)) %>%
+  mutate(Nuclei_intensity_mean_647_plate_normalised = Nuclei_intensity_mean_647 * plate_normaliser) %>%
+  group_by(imaging_date,well_name,siRNA) %>%
+  summarise(Nuclei_intensity_mean_647 = mean(Nuclei_intensity_mean_647),
+            Nuclei_intensity_mean_647_plate_normalised = mean(Nuclei_intensity_mean_647_plate_normalised),
+            .groups='drop')
 
-```
+no_EU_overall_summaries <- no_EU_well_summaries %>%
+  group_by(siRNA) %>%
+  summarise(mean_Nuclei_intensity_mean_647 = mean(Nuclei_intensity_mean_647),
+            sd_Nuclei_intensity_mean_647 = sd(Nuclei_intensity_mean_647),
+            mean_Nuclei_intensity_mean_647_plate_normalised = mean(Nuclei_intensity_mean_647_plate_normalised),
+            sd_Nuclei_intensity_mean_647_plate_normalised = sd(Nuclei_intensity_mean_647_plate_normalised),
+            .groups='drop')
 
-EU data has more convincing signal-to-background at 30 min than at 15 min incubation time. Particularly for studying the effects of transcriptional inhibitors. Therefore 15 min data are noisier and 60 min data are not preferred (due to longer EU incubation). We therefore focus on 30 min data.
-
-
-```{r plot_EU_30min_data}
-
-well_summaries %>%
-  filter(EU_time=="30 min") %>%
-  ggplot(aes(x=Drug,y=Nuclei_intensity_mean_647_plate_normalised,col=Cell)) +
-  geom_col(data = filter(overall_summaries,EU_time=="30 min"), aes(y=mean_Nuclei_intensity_mean_647_plate_normalised,fill=Cell),col=NA,alpha=0.4,position=position_dodge(0.8),width=0.8) +
-  geom_point(data = filter(overall_summaries,EU_time=="30 min"), aes(y=mean_Nuclei_intensity_mean_647_plate_normalised),position=position_dodge(0.8)) +
-  geom_errorbar(data = filter(overall_summaries,EU_time=="30 min"), aes(y=mean_Nuclei_intensity_mean_647_plate_normalised,
-                                              ymin=mean_Nuclei_intensity_mean_647_plate_normalised-sd_Nuclei_intensity_mean_647_plate_normalised,
-                                              ymax=mean_Nuclei_intensity_mean_647_plate_normalised+sd_Nuclei_intensity_mean_647_plate_normalised),
-                position=position_dodge(0.8),width=0.1) +
-  geom_jitter(position=position_jitterdodge(jitter.width=0.15,dodge.width=0.8),pch=4,alpha=0.5) +
-  scale_y_continuous(limits = c(0,NA),name="Nuclear intensity (A.U.)") +
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
-        axis.title.x = element_blank(),
-        panel.grid = element_blank())
-ggsave("PLOTS/EU_barplots_by_cell_30min.pdf",width=6,height=4)
-
-```
-
-## Statistical modelling
-
-Can see a stronger effect of Triptolide on parental cells compared to ARMC5 KO, however the effect appears mild when one considers the higher starting level of EU in these clones. Can also see pronounced clone-to-clone variability.
-
-To make this more rigorous, we use linear mixed-effects models on single-cell data.
-
-```{r stats_testing_unperturbed}
-
-to_fit_unperturbed <- dat_non_border_with_exclusions %>%
-  filter(Drug=="Vehicle" & EU_concentration=="100 µM" & EU_time=="30 min") %>%
-  select(imaging_date,well_name,Cell,Nuclei_intensity_mean_647) %>%
-  mutate(Cell=factor(Cell,levels=c("HEK293 parental","HEK293 ARMC5 KO 1A3","HEK293 ARMC5 KO 2B6")),
-         imaging_date=factor(imaging_date),
-         well_name=factor(well_name)) %>%
-  rename(EU_incorporation=Nuclei_intensity_mean_647) %>%
-  filter(EU_incorporation > 0) %>%
-  mutate(log_EU_incorporation=log(EU_incorporation))
-  
-unperturbed_model <- nlme::lme(fixed = log_EU_incorporation ~ Cell,
-                               random= ~1 | imaging_date/well_name,
-                               data = to_fit_unperturbed)
-
-summary(unperturbed_model)
-
-emmeans(unperturbed_model, trt.vs.ctrl1 ~ Cell, adjust="bonferroni")
-
-to_fit_unperturbed %>%
-  ggplot(aes(x=Cell,y=log_EU_incorporation,col=imaging_date,group=interaction(imaging_date,well_name,Cell))) +
-  geom_boxplot() +
-  ggtitle("unperturbed")
-
-to_fit_unperturbed %>%
-  ggplot(aes(x=imaging_date,y=log_EU_incorporation,col=Cell,group=interaction(imaging_date,well_name,Cell))) +
-  geom_boxplot() +
-  ggtitle("unperturbed")
-
-```
-
-One of the two clones has significantly higher EU incorporation at 30 min.
-
-This is interesting, but what we actually want to know is whether the triptolide has a different effect on ARMC5 KO compared to parental cells.
-
-```{r stats_testing_triptolide,fig.height=5,fig.width=8}
-
-# remove the few cells with EU < 0
-
-to_fit_triptolide <- dat_non_border_with_exclusions %>%
-  filter(Drug %in% c("Vehicle","Triptolide 300 nM") & EU_concentration=="100 µM" & EU_time=="30 min") %>%
-  select(imaging_date,well_name,Cell,Drug,Nuclei_intensity_median_647) %>%
-  mutate(Cell=factor(Cell,levels=c("HEK293 parental","HEK293 ARMC5 KO 1A3","HEK293 ARMC5 KO 2B6")),
-         Drug=factor(Drug,levels=c("Vehicle","Triptolide 300 nM")),
-         imaging_date=factor(imaging_date),
-         well_name=factor(well_name)) %>%
-  rename(EU_incorporation=Nuclei_intensity_median_647) %>%
-  filter(EU_incorporation > 0) %>%
-  mutate(log_EU_incorporation=log(EU_incorporation))
-  
-triptolide_model <- nlme::lme(fixed = log_EU_incorporation ~ Cell*Drug,
-                               random= ~1 | imaging_date/well_name,
-                               data = to_fit_triptolide)
-
-summary(triptolide_model)
-
-# Use emmeans to look at marginal effects across cell lines. 
-# looks like a different effect of Triptolide on the cell lines
-emmip(triptolide_model, Cell ~ Drug)
-
-# Test for Drug effect in each cell type (treated vs vehicle)
-contrast(emmeans(triptolide_model, ~ Drug|Cell),interaction = "trt.vs.ctrl1", adjust="bonferroni")
-# Test for Cell effect in each treatment (KO vs parental)
-contrast(emmeans(triptolide_model, ~ Cell|Drug),interaction = "trt.vs.ctrl1", adjust="bonferroni")
-
-# Test for difference in drug effect in each KO cell line
-contrast(emmeans(triptolide_model, ~ Drug*Cell),interaction = "trt.vs.ctrl1", adjust="bonferroni")
-
-to_fit_triptolide %>%
-  ggplot(aes(x=Drug,y=log_EU_incorporation,col=Cell)) +
-  geom_boxplot() +
-  facet_wrap(~imaging_date,ncol=3)
-
-```
-
-Not only does triptolide affect EU for all cell lines, but it seems there is a significant interaction between drug and cell (i.e. Triptolide has a different effect on the KO cells compared to the parental cells)
-
-```{r plots}
-
-to_plot_well_summaries <- well_summaries %>%
-  filter(EU_time=="30 min" & Drug %in% c("Vehicle","Triptolide 300 nM")) %>%
-  mutate(cell_label=case_when(Cell == "HEK293 parental" ~ "WT",
-                              Cell == "HEK293 ARMC5 KO 1A3" ~ "K.O. 1",
-                              Cell == "HEK293 ARMC5 KO 2B6" ~ "K.O. 2",
-                              TRUE ~ NA_character_),
-         cell_label=factor(cell_label,levels=c("WT","K.O. 1","K.O. 2"))) %>%
-  mutate(condition_label=paste(cell_label,Drug),
-         condition_label=factor(condition_label,
-                                levels=c("WT Vehicle","K.O. 1 Vehicle","K.O. 2 Vehicle",
-                                         "WT Triptolide 300 nM","K.O. 1 Triptolide 300 nM","K.O. 2 Triptolide 300 nM")))
-
-to_plot_overall_summaries <- overall_summaries %>%
-  filter(EU_time=="30 min" & Drug %in% c("Vehicle","Triptolide 300 nM")) %>%
-    mutate(cell_label=case_when(Cell == "HEK293 parental" ~ "WT",
-                              Cell == "HEK293 ARMC5 KO 1A3" ~ "K.O. 1",
-                              Cell == "HEK293 ARMC5 KO 2B6" ~ "K.O. 2",
-                              TRUE ~ NA_character_),
-         cell_label=factor(cell_label,levels=c("WT","K.O. 1","K.O. 2"))) %>%
-  mutate(condition_label=paste(cell_label,Drug),
-         condition_label=factor(condition_label,
-                                levels=c("WT Vehicle","K.O. 1 Vehicle","K.O. 2 Vehicle",
-                                         "WT Triptolide 300 nM","K.O. 1 Triptolide 300 nM","K.O. 2 Triptolide 300 nM")))
-
-axis_norm <- to_plot_overall_summaries %>% filter(condition_label=="WT Vehicle") %>% pull(mean_Nuclei_intensity_mean_647_plate_normalised)
-
-to_plot_well_summaries %>%
-  ggplot(aes(x=Drug,y=Nuclei_intensity_mean_647_plate_normalised/axis_norm,col=condition_label)) +
-  geom_col(data = to_plot_overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_norm,fill=condition_label),
-           col=NA,alpha=0.4,position=position_dodge(0.8),width=0.6) +
-  geom_point(data = to_plot_overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_norm),position=position_dodge(0.8)) +
-  geom_errorbar(data = to_plot_overall_summaries,
-                aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_norm,
-                    ymin=(mean_Nuclei_intensity_mean_647_plate_normalised-sd_Nuclei_intensity_mean_647_plate_normalised)/axis_norm,
-                    ymax=(mean_Nuclei_intensity_mean_647_plate_normalised+sd_Nuclei_intensity_mean_647_plate_normalised)/axis_norm),
-                position=position_dodge(0.8),width=0.25) +
-  geom_jitter(position=position_jitterdodge(jitter.width=0.15,dodge.width=0.8),pch=4,alpha=0.5) +
-  scale_y_continuous(limits = c(0,1.55),name="Mean nuclear\nintensity",expand = c(0,0)) +
-  scale_fill_manual(values = c(wt_col,armc5_col,armc5_col,wt_trp_col,armc5_trp_col,armc5_trp_col)) +
-  scale_colour_manual(values = c(wt_col,armc5_col,armc5_col,wt_trp_col,armc5_trp_col,armc5_trp_col)) +
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
+with_EU <- well_summaries %>%
+  ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,col=siRNA)) +
+  geom_col(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,fill=siRNA),col=NA,alpha=0.4,width=0.8) +
+  geom_point(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler)) +
+  geom_errorbar(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,
+                                              ymin=(mean_Nuclei_intensity_mean_647_plate_normalised-sd_Nuclei_intensity_mean_647_plate_normalised)/axis_rescaler,
+                                              ymax=(mean_Nuclei_intensity_mean_647_plate_normalised+sd_Nuclei_intensity_mean_647_plate_normalised)/axis_rescaler),width=0.25) +
+  geom_jitter(width=0.25,pch=4,alpha=0.3) +
+  scale_y_continuous(limits = c(0,1.4),name="Mean nuclear\nintensity",expand = c(0,0)) +
+  theme_bw(base_size = 8) + 
+  scale_color_manual(values = c(wt_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col)) +
+  theme(axis.text.x = element_text(angle=45,hjust=1,vjust=1),
         axis.title.x = element_blank(),
         panel.grid = element_blank(),
-        legend.position = "none")
-ggsave("PLOTS/EU_trp_only_30min.pdf",width=2,height=2.5)
+        legend.key.size = unit(2.5,"mm"))
+
+no_EU <- no_EU_well_summaries %>%
+  ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,col=siRNA)) +
+  geom_col(data = no_EU_overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,fill=siRNA),col=NA,alpha=0.4,width=0.8) +
+  geom_point(data = no_EU_overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler)) +
+  geom_errorbar(data = no_EU_overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,
+                                              ymin=(mean_Nuclei_intensity_mean_647_plate_normalised-sd_Nuclei_intensity_mean_647_plate_normalised)/axis_rescaler,
+                                              ymax=(mean_Nuclei_intensity_mean_647_plate_normalised+sd_Nuclei_intensity_mean_647_plate_normalised)/axis_rescaler),width=0.25) +
+  geom_jitter(width=0.25,pch=4,alpha=0.3) +
+  scale_y_continuous(limits = c(0,1.4),name="Mean nuclear\nintensity",expand = c(0,0)) +
+  theme_bw(base_size = 8) + 
+  scale_color_manual(values = c("grey")) +
+  scale_fill_manual(values = c("grey")) +
+  theme(axis.text.x = element_text(angle=45,hjust=1,vjust=1),
+        axis.title.x = element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid = element_blank(),
+        legend.key.size = unit(2.5,"mm"))
+
+with_EU + no_EU + plot_layout(widths=c(2,1),guides="collect")
+
+ggsave("PLOTS/EU_barplots_by_siRNA.pdf",width=6,height=4,units="cm")
 
 ```
 
 ```{r well_numbers}
 
-dat_non_border %>%
-  filter(EU_time=="30 min" & Drug %in% c("Vehicle","Triptolide 300 nM")) %>%
-  group_by(imaging_date,Cell,Drug,EU_time,EU_concentration,well_name) %>%
-  count() 
-
-to_plot_well_summaries %>%
-  group_by(imaging_date,Cell,Drug,EU_time) %>%
+well_summaries %>%
+  group_by(imaging_date,siRNA) %>%
   count()
 
-to_plot_well_summaries %>%
-  group_by(Cell,Drug,EU_time) %>%
+well_summaries %>%
+  group_by(siRNA) %>%
   count()
-
 
 ```
 
 ```{r save_summaries}
 
-write_csv(x = well_summaries,file = "SUMMARIES/Drug_EU_well_summaries.csv")
-write_csv(x = overall_summaries,file = "SUMMARIES/Drug_EU_overall_summaries.csv")
+write_csv(x = well_summaries,file = "SUMMARIES/siRNA_EU_well_summaries.csv")
+write_csv(x = overall_summaries,file = "SUMMARIES/siRNA_EU_overall_summaries.csv")
 
 ```
 
