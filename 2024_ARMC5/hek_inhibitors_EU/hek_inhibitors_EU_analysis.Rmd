@@ -420,7 +420,7 @@ dat_non_border %>%
   scale_y_discrete(limits=rev) +
   facet_wrap(~imaging_date) +
   scale_fill_viridis_c() +
-  ggtitle("EU concentration")
+  ggtitle("Number of cells")
 
 
 # compute fold-change from mean for each well
