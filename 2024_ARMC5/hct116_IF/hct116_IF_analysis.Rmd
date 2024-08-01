@@ -32,9 +32,11 @@ Original data (Nikon `.nd2` files) are stored on UNSW's data archive under Berry
 
 Image analysis performed using the following series of python scripts (found on github for [hct116_IF](https://github.com/berrygroup/publications/tree/main/2024_ARMC5/hct116_IF))
 
-- `illumination_correction_IF.ipynb`
+- `illumination_correction_IF_mCherry-POLR2A_siRNA.ipynb`
 - `save_example_images_IF.ipynb` (used to generate example images and training data for the cellpose model)
 - `run_quantification_IF.py` (parallelised using `PBS/batch_quantify_IF_240328.pbs`)
+
+Note that acquisitions 1 and 2 were imaged at 40X (`illumination_correction_IF_40X.ipynb`) while acquisition 3 was imaged at 20X (`illumination_correction_IF_20X.ipynb`).
 
 ## Data analysis
 
@@ -275,9 +277,11 @@ dat_non_border %>%
   geom_density() +
   facet_wrap(imaging_date~interaction(siRNA,Cell),scales = "free") +
   theme(legend.position = "none") +
-  scale_x_continuous(limits = c(0,4e6))
+  scale_x_continuous(limits = c(0,4e6)) +
+  theme(axis.text.y = element_blank())
 
 ```
+
 ## Check "No reaction" wells on 2024/03/28
 
 Some strange-looking results in the histograms of DAPI for some "no reaction" wells on 2024/03/28. Removing low cell number wells seems to fix this issue.
@@ -299,11 +303,13 @@ dat_non_border %>%
   geom_density() +
   facet_wrap(imaging_date~interaction(siRNA,Cell),scales = "free") +
   theme(legend.position = "none") +
-  scale_x_continuous(limits = c(0,4e6))
+  scale_x_continuous(limits = c(0,4e6)) +
+  theme(axis.text.y = element_blank())
 
 dat_non_border <- dat_non_border %>% anti_join(low_cell_number_wells,by = join_by(well_name, imaging_date))
 
 ```
+
 
 ```{r DAPI_histograms_average}
 
@@ -359,15 +365,6 @@ dat_non_border %>%
   geom_density() +
   facet_wrap(siRNA~imaging_date,scales = "free") +
   theme(legend.position = "none")
-
-scatter <- dat_non_border %>%
-  filter(imaging_date=="20240701") %>%
-  filter(siRNA %in% c("INTS8 pool","Scrambled") & Cell=="HCT116 mCherryPOLR2A" & Primary=="pSer5 Pol II") %>%
-  ggplot(aes(x=Nuclei_area,y=Nuclei_intensity_mean_488,col=siRNA)) +
-  geom_point(pch=".",alpha=0.1) +
-  geom_smooth(aes(group=interaction(well_name,siRNA)))
-
-ggExtra::ggMarginal(scatter,group=TRUE)
 
 ```
 
