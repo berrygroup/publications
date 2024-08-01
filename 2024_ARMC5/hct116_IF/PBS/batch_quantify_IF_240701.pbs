@@ -27,8 +27,8 @@ dataset="240701/240628_siRNA_ARMC5_INTS8/20240701_193044_047"
 
 python /srv/scratch/z3532965/src/publications/2024_ARMC5/hct116_IF/run_quantification_IF_mCherry-POLR2A_siRNA.py \
   --id ${PBS_ARRAY_INDEX} \
-  --cellpose_model_file /srv/scratch/z3532965/src/blana/Alex/202402_ARMC5_Fixed/CELLPOSE/40X_DAPI_HCT116 \
-  --illumination_correction_file /srv/scratch/berrylab/z3532965/NikonSpinningDisk/240328/240325_siRNA_ARMC5_INTS8/ILLUMCORR/illumination_correction.pkl \
+  --cellpose_model_file /srv/scratch/z3532965/src/blana/Alex/202402_ARMC5_Fixed/CELLPOSE/20X_DAPI_HCT116 \
+  --illumination_correction_file /srv/scratch/berrylab/z3532965/NikonSpinningDisk/240701/240628_siRNA_ARMC5_INTS8/ILLUMCORR/illumination_correction.pkl \
   --features_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/${dataset}/QUANTIFICATION \
   --input_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/${dataset}/OME-TIFF-MIP \
   --output_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/${dataset}/SEGMENTATION

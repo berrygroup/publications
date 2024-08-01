@@ -165,25 +165,45 @@ dat %>%
 
 ### Subtract background
 
-Calculate background by maximum intensity projecting, illumination-correcting, and getting the mean intensity in a region containing no cells. See `calculate_background.ipynb` in the corresponding github repository.
-
+Calculate background by maximum intensity projecting, illumination-correcting, and getting the mean intensity in a region containing no cells.
 
 ```{r subtract_background}
 
 # updated 6/4/24 using 240328/240325_siRNA_ARMC5_INTS8/20240328_172603_573 dataset
 
-bg_488 <- mean(c(174.621,173.198,174.548))
-bg_561 <- mean(c(147.854,149.994,149.375))
-bg_405 <- mean(c(165.801,161.261,162.563))
+bg1 <- tibble(
+  imaging_date = "20240328",
+  bg_488 = mean(c(174.621,173.198,174.548)),
+  bg_561 = mean(c(147.854,149.994,149.375)),
+  bg_405 = mean(c(165.801,161.261,162.563)))
 
-dat_minus_bg <- mutate(dat,
-                       Nuclei_intensity_mean_561 = Nuclei_intensity_mean_561 - bg_561,
-                       Nuclei_intensity_mean_405 = Nuclei_intensity_mean_405 - bg_405,
-                       Nuclei_intensity_mean_488 = Nuclei_intensity_mean_488 - bg_488,
-                       
-                       Nuclei_intensity_median_561 = Nuclei_intensity_median_561 - bg_561,
-                       Nuclei_intensity_median_405 = Nuclei_intensity_median_405 - bg_405,
-                       Nuclei_intensity_median_488 = Nuclei_intensity_median_488 - bg_488)
+# updated 31/7/24 using 240404/240401_HCT116_ARMC5_INTS8/20240404_153226_053 dataset
+
+bg2 <- tibble(
+  imaging_date = "20240404",
+  bg_488 = mean(c(156.613,156.161,150.555)),
+  bg_561 = mean(c(146.011,147.680,146.994)),
+  bg_405 = mean(c(145.918,146.395,141.207)))
+
+# updated 31/7/24 using 240701/240628_siRNA_ARMC5_INTS8/20240701_193044_047 dataset
+
+bg3 <- tibble(
+  imaging_date = "20240701",
+  bg_488 = mean(c(208.341,209.422,209.720)),
+  bg_561 = mean(c(165.268,168.705,162.277)),
+  bg_405 = mean(c(160.416,162.876,159.648)))
+
+bg_manual <- bind_rows(bg1,bg2,bg3)
+
+dat_minus_bg <- left_join(dat,bg_manual,by="imaging_date") %>%
+  mutate(
+    Nuclei_intensity_mean_561 = Nuclei_intensity_mean_561 - bg_561,
+    Nuclei_intensity_mean_405 = Nuclei_intensity_mean_405 - bg_405,
+    Nuclei_intensity_mean_488 = Nuclei_intensity_mean_488 - bg_488,
+    
+    Nuclei_intensity_median_561 = Nuclei_intensity_median_561 - bg_561,
+    Nuclei_intensity_median_405 = Nuclei_intensity_median_405 - bg_405,
+    Nuclei_intensity_median_488 = Nuclei_intensity_median_488 - bg_488)
 
 ```
 
@@ -248,7 +268,7 @@ wrap_plots(p) & ggtitle("Illumination biases")
 
 ## Check DAPI distributions
 
-```{r check_DAPI}
+```{r check_DAPI, fig.height=12}
 
 dat_non_border %>%
   ggplot(aes(x=Nuclei_intensity_sum_405,col=as.factor(well_name))) +
@@ -262,7 +282,7 @@ dat_non_border %>%
 
 Some strange-looking results in the histograms of DAPI for some "no reaction" wells on 2024/03/28. Removing low cell number wells seems to fix this issue.
 
-```{r check_no_reaction}
+```{r check_no_reaction, fig.height=12}
 
 qc <- dat_non_border %>%
   filter(siRNA=="No reaction") %>%
@@ -284,18 +304,70 @@ dat_non_border %>%
 dat_non_border <- dat_non_border %>% anti_join(low_cell_number_wells,by = join_by(well_name, imaging_date))
 
 ```
+
+```{r DAPI_histograms_average}
+
+dat_non_border %>% 
+  filter(!grepl("\\#",siRNA)) %>%
+  group_by(imaging_date,well_name,siRNA) %>%
+  mutate(Nuclei_intensity_sum_405=scale(Nuclei_intensity_sum_405)) %>%
+  ggplot(aes(x=Nuclei_intensity_sum_405,col=siRNA,group=interaction(siRNA,imaging_date))) + 
+  geom_density() + facet_wrap(~imaging_date,ncol=1) +
+  xlim(c(-3,4))
+
+```
+
 ## Nuclear Area
 
 ```{r nuclear_area_qc}
 
 dat_non_border %>%
+  filter(imaging_date %in% c("20240328")) %>%
   ggplot(aes(x=Nuclei_area,col=as.factor(well_name))) +
   geom_density() +
   facet_wrap(imaging_date~interaction(siRNA,Cell),scales = "free") +
   theme(legend.position = "none") +
   geom_vline(xintercept = 750)
 
-dat_non_border <- filter(dat_non_border,Nuclei_area>750)
+dat_non_border %>%
+  filter(imaging_date %in% c("20240404")) %>%
+  ggplot(aes(x=Nuclei_area,col=as.factor(well_name))) +
+  geom_density() +
+  facet_wrap(imaging_date~interaction(siRNA,Cell),scales = "free") +
+  theme(legend.position = "none") +
+  geom_vline(xintercept = 750)
+
+dat_non_border %>%
+  filter(imaging_date %in% c("20240701")) %>%
+  ggplot(aes(x=Nuclei_area,col=as.factor(well_name))) +
+  geom_density() +
+  facet_wrap(imaging_date~interaction(siRNA,Cell),scales = "free") +
+  theme(legend.position = "none") +
+  geom_vline(xintercept = 187.5)
+
+dat_non_border <- filter(dat_non_border,!(imaging_date %in% c("20240328","20240404") & (Nuclei_area<750 | Nuclei_area>20000)) & !(imaging_date=="20240701" & (Nuclei_area<187.5 | Nuclei_area>5000)))
+
+
+```
+## Nuclear area distributions
+
+```{r plot_nuclear_area_dist, fig.width=8,fig.height=4}
+
+dat_non_border %>%
+  filter(siRNA %in% c("INTS8 pool","Scrambled") & Cell=="HCT116 mCherryPOLR2A") %>%
+  ggplot(aes(x=Nuclei_area,col=as.factor(well_name))) +
+  geom_density() +
+  facet_wrap(siRNA~imaging_date,scales = "free") +
+  theme(legend.position = "none")
+
+scatter <- dat_non_border %>%
+  filter(imaging_date=="20240701") %>%
+  filter(siRNA %in% c("INTS8 pool","Scrambled") & Cell=="HCT116 mCherryPOLR2A" & Primary=="pSer5 Pol II") %>%
+  ggplot(aes(x=Nuclei_area,y=Nuclei_intensity_mean_488,col=siRNA)) +
+  geom_point(pch=".",alpha=0.1) +
+  geom_smooth(aes(group=interaction(well_name,siRNA)))
+
+ggExtra::ggMarginal(scatter,group=TRUE)
 
 ```
 
@@ -306,7 +378,7 @@ dat_non_border <- filter(dat_non_border,Nuclei_area>750)
 dat_non_border %>%
   ggplot(aes(x=interaction(siRNA,Cell),y=Nuclei_intensity_mean_561,group=interaction(siRNA,Cell,well_name))) + 
   geom_boxplot(outlier.shape = NA) +
-  coord_cartesian(ylim = c(0,250)) +
+  coord_cartesian(ylim = c(0,500)) +
   facet_wrap(~imaging_date) +
   theme_bw(base_size = 8) +
   theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
@@ -316,10 +388,10 @@ dat_non_border %>%
   group_by(well_name,siRNA,imaging_date,Cell) %>%
   summarise(Nuclei_intensity_mean_561=mean(Nuclei_intensity_mean_561),.groups = "drop") %>%
   ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_561)) + 
-  geom_boxplot() +
+  #geom_boxplot() +
   geom_jitter(width = 0.2) +
-  coord_cartesian(ylim = c(0,250)) +
-  facet_wrap(Cell~imaging_date) +
+  coord_cartesian(ylim = c(0,NA)) +
+  facet_wrap(Cell~imaging_date,scales = "free") +
   theme_bw(base_size = 8) +
   theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
 
@@ -345,7 +417,7 @@ dat_non_border %>%
   ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_561)) + 
   geom_boxplot() +
   geom_jitter(width = 0.2) +
-  coord_cartesian(ylim = c(0,250)) +
+  coord_cartesian(ylim = c(0,350)) +
   facet_wrap(~imaging_date) +
   theme_bw(base_size = 8) +
   theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
@@ -362,18 +434,18 @@ dat_non_border_summarised_minus_mCherry_bkgrd %>%
   ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_561_minus_bkgrd)) + 
   geom_boxplot() +
   geom_jitter(width = 0.2) +
-  coord_cartesian(ylim = c(0,150)) +
+  coord_cartesian(ylim = c(0,300)) +
   facet_wrap(~imaging_date) +
   theme_bw(base_size = 8) +
   theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
 
 plate_normalisers <- dat_non_border_summarised_minus_mCherry_bkgrd %>%
-  filter(siRNA=="Scramble") %>%
+  filter(siRNA=="Scrambled") %>%
   group_by(imaging_date) %>%
   summarise(plate_mean_scrambled = mean(Nuclei_intensity_mean_561_minus_bkgrd))
 
 dat_non_border_summarised_minus_mCherry_bkgrd %>%
-  left_join(plate_normalisers) %>%
+  left_join(plate_normalisers,by = join_by(imaging_date)) %>%
   mutate(Nuclei_intensity_mean_561_minus_bkgrd_plate_normalised = Nuclei_intensity_mean_561_minus_bkgrd / plate_mean_scrambled) %>%
   ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_561_minus_bkgrd_plate_normalised,group=interaction(imaging_date,siRNA),fill=imaging_date)) + 
   geom_boxplot() +
@@ -382,7 +454,7 @@ dat_non_border_summarised_minus_mCherry_bkgrd %>%
   theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
 
 to_plot <- dat_non_border_summarised_minus_mCherry_bkgrd %>%
-  left_join(plate_normalisers) %>%
+  left_join(plate_normalisers,by = join_by(imaging_date)) %>%
   mutate(Nuclei_intensity_mean_561_minus_bkgrd_plate_normalised = Nuclei_intensity_mean_561_minus_bkgrd / plate_mean_scrambled) %>%
   mutate(siRNA = if_else(siRNA=="Scramble","Scrambled",siRNA),
          siRNA = if_else(siRNA=="ARMC5+INTS8","ARMC5 + INTS8 (pools)",siRNA),
@@ -401,7 +473,8 @@ to_plot <- dat_non_border_summarised_minus_mCherry_bkgrd %>%
   
 to_plot_summary <- group_by(to_plot,siRNA,siRNA_colour) %>%
   summarise(mean_Nuclei_intensity_mean_561_minus_bkgrd_plate_normalised = mean(Nuclei_intensity_mean_561_minus_bkgrd_plate_normalised),
-            sd_Nuclei_intensity_mean_561_minus_bkgrd_plate_normalised = sd(Nuclei_intensity_mean_561_minus_bkgrd_plate_normalised))
+            sd_Nuclei_intensity_mean_561_minus_bkgrd_plate_normalised = sd(Nuclei_intensity_mean_561_minus_bkgrd_plate_normalised),
+            .groups='drop')
 
 to_plot %>%
   ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_561_minus_bkgrd_plate_normalised,fill=siRNA_colour,col=siRNA_colour)) + 
@@ -434,8 +507,8 @@ ggsave(filename = "PLOTS/mCherry_barplots_by_siRNA_all.pdf",width=3,height=2)
 pTotal <- dat_non_border %>%
   filter(Primary=="Total Pol II") %>%
   ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_488,group=interaction(well_name,siRNA))) + 
-  geom_boxplot(outlier.shape=NA,aes(fill=imaging_date)) + facet_grid(Primary~plating_date) +
-  coord_cartesian(ylim = c(0,1500)) +
+  geom_boxplot(outlier.shape=NA,aes(fill=siRNA)) + facet_grid(Primary~plating_date) +
+  coord_cartesian(ylim = c(0,3000)) +
   theme_bw(base_size = 8) +
   theme(axis.title.x = element_blank(),
         axis.text.x = element_blank())
@@ -443,8 +516,8 @@ pTotal <- dat_non_border %>%
 pS5P <- dat_non_border %>%
   filter(Primary=="pSer5 Pol II") %>% 
   ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_488,group=interaction(well_name,siRNA))) + 
-  geom_boxplot(outlier.shape=NA,aes(fill=imaging_date)) + facet_grid(Primary~plating_date) +
-  coord_cartesian(ylim = c(0,4000)) +
+  geom_boxplot(outlier.shape=NA,aes(fill=siRNA)) + facet_grid(Primary~plating_date) +
+  coord_cartesian(ylim = c(0,8000)) +
   theme_bw(base_size = 8) +
   theme(axis.title.x = element_blank(),
         axis.text.x = element_blank())
@@ -452,8 +525,8 @@ pS5P <- dat_non_border %>%
 pS2P <- dat_non_border %>%
   filter(Primary=="pSer2 Pol II") %>%
   ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_488,group=interaction(well_name,siRNA))) + 
-  geom_boxplot(outlier.shape=NA,aes(fill=imaging_date)) + facet_grid(Primary~plating_date) +
-  coord_cartesian(ylim = c(0,1500)) +
+  geom_boxplot(outlier.shape=NA,aes(fill=siRNA)) + facet_grid(Primary~plating_date) +
+  coord_cartesian(ylim = c(0,3000)) +
   theme_bw(base_size = 8) +
   theme(axis.title.x = element_blank(),
         axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
@@ -461,11 +534,9 @@ pS2P <- dat_non_border %>%
 
 pTotal / pS5P / pS2P + plot_layout(guides="collect")
 
-ggsave("PLOTS/mCherry-POLR2A_IF_siRNA_boxplot_per_well.pdf",width=6,height=10)
+ggsave("PLOTS/mCherry-POLR2A_IF_siRNA_boxplot_per_well.pdf",width=8,height=10)
 
 ```
-
-pSer2 results for ARMC5 are inconsistent across the ARMC5 conditions and are inconsistent with previous results showing limited effect of ARMC5 on Ser2P also in both HCT with siRNA and HEK KO vs wt cells, so exclude these for now. Include Ser5P results (which are consistent across the ARMC5 siRNAs and with previous data). Repeat these Ser2P experiments later if necessary.
 
 ```{r plot_IF}
 
@@ -476,7 +547,7 @@ dat_non_border_summarised_IF <- dat_non_border %>%
   summarise(Nuclei_intensity_mean_488=mean(Nuclei_intensity_mean_488),.groups="drop") 
 
 plate_normalisers_IF <- dat_non_border_summarised_IF %>%
-  filter(siRNA=="Scramble") %>%
+  filter(siRNA=="Scrambled") %>%
   group_by(imaging_date,Primary,Secondary) %>%
   summarise(plate_mean_scrambled = mean(Nuclei_intensity_mean_488),.groups="drop")
 
@@ -505,6 +576,14 @@ to_plot_IF <- dat_non_border_summarised_IF %>%
     TRUE ~ NA_character_),
     Primary_label=factor(Primary_label,levels=c("Total RPB1","Ser5 phos. RPB1","Ser2 phos. RPB1","Total RPB2")))
 
+to_plot_IF %>%
+  ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_488_plate_normalised,group=interaction(imaging_date,siRNA),col=imaging_date)) + 
+  geom_boxplot() +
+  coord_cartesian(ylim = c(0,2)) +
+  theme_bw(base_size = 8) +
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5)) +
+  facet_wrap(~Primary)
+
 to_plot_IF_summary <- group_by(to_plot_IF,siRNA,siRNA_colour,Primary,Primary_label,Secondary) %>%
   summarise(mean_Nuclei_intensity_mean_488_plate_normalised = mean(Nuclei_intensity_mean_488_plate_normalised),
             sd_Nuclei_intensity_mean_488_plate_normalised = sd(Nuclei_intensity_mean_488_plate_normalised))
@@ -532,17 +611,17 @@ to_plot_IF %>%
         legend.key.size = unit(2,"mm"))
 
 filter(to_plot_IF,
-       siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II")) %>%
+       siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II","pSer2 Pol II")) %>%
   ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_488_plate_normalised,fill=siRNA_colour,col=siRNA_colour)) + 
-  geom_col(data=filter(to_plot_IF_summary,siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II")),
+  geom_col(data=filter(to_plot_IF_summary,siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II","pSer2 Pol II")),
            aes(y=mean_Nuclei_intensity_mean_488_plate_normalised),
            col=NA,alpha=0.4,width=0.8) +
-  geom_errorbar(data=filter(to_plot_IF_summary,siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II")),
+  geom_errorbar(data=filter(to_plot_IF_summary,siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II","pSer2 Pol II")),
                 aes(y=mean_Nuclei_intensity_mean_488_plate_normalised,
                     ymin=mean_Nuclei_intensity_mean_488_plate_normalised-sd_Nuclei_intensity_mean_488_plate_normalised,
                     ymax=mean_Nuclei_intensity_mean_488_plate_normalised+sd_Nuclei_intensity_mean_488_plate_normalised),
                 width=0.4) +
-  geom_point(data=filter(to_plot_IF_summary,siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II")),
+  geom_point(data=filter(to_plot_IF_summary,siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II","pSer2 Pol II")),
              aes(y=mean_Nuclei_intensity_mean_488_plate_normalised),size=0.75) +
   scale_y_continuous(name="Mean nuclear\nintensity",limits = c(0,2.2),expand = c(0,0)) +
   scale_fill_manual(values = c(wt_col,armc5_col,ints8_col,armc5_ints8_col)) +
@@ -555,7 +634,7 @@ filter(to_plot_IF,
         panel.grid = element_blank(),
         legend.title = element_blank(),
         legend.key.size = unit(3,"mm"))
-ggsave(filename = "PLOTS/mCherry_barplots_IF_by_siRNA_subset.pdf",width=3,height=2)
+ggsave(filename = "PLOTS/mCherry_barplots_IF_by_siRNA_subset.pdf",width=5,height=2)
 
 ```
 
@@ -664,6 +743,17 @@ to_plot_IF %>%
   group_by(Primary,Cell,siRNA) %>%
   count()
 
+
+```
+
+
+```{r save_summaries}
+
+write_csv(x = to_plot_IF,file = "SUMMARIES/IF_well_summaries.csv")
+write_csv(x = to_plot_IF_summary,file = "SUMMARIES/IF_overall_summaries.csv")
+
+write_csv(x = to_plot,file = "SUMMARIES/mCherry_well_summaries.csv")
+write_csv(x = to_plot_summary,file = "SUMMARIES/mCherry_overall_summaries.csv")
 
 ```
 
