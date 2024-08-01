@@ -1,0 +1,614 @@
+---
+title: "Poly(A) FISH in ARMC5 KO cells"
+author: "Scott Berry"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup_r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list=ls())
+library(tidyverse)
+library(patchwork)
+
+wt_col <- "#184cee"
+armc5_col <- "#9d24ec"
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+```
+
+# Experiment
+
+# Data handling
+
+Original data (Nikon `.nd2` files) are stored on UNSW's data archive under Berry Lab project D0419427. Data were maximum-intensity projected and converted to OME-TIFF using the `blimp` tools.
+
+# Analysis
+
+## Image analysis 
+
+Image analysis performed using the following series of python scripts (found on github for [hek_polyA](https://github.com/berrygroup/publications/tree/main/2024_ARMC5/hek_polyA))
+
+- `illumination_correction_polyA_1.ipynb` and `illumination_correction_polyA_2.ipynb`
+- `save_example_images_polyA.ipynb` (used to generate example images and training data for the cellpose model)
+- `run_quantification_polyA_1.py` (parallelised using `PBS/batch_quantify_polyA_240315.pbs`)
+- `run_quantification_polyA_2.py` (parallelised using `PBS/batch_quantify_polyA_240322.pbs` and `PBS/batch_quantify_polyA_240329.pbs`)
+
+## Data analysis
+
+Quantitative data analysis performed in this document.
+
+### Load data
+
+Load data from `scratch/berrylab` on UNSW's Katana HPC.
+
+```{r load_data}
+
+ana_dir <- "/srv/scratch/z3532965/src/publications/2024_ARMC5/hek_polyA"
+data_dir <- "/srv/scratch/berrylab/z3532965/NikonSpinningDisk"
+acquisition_dirs <- purrr::map_chr(
+  c("240315/240314_ARMC5KO_PolyA/20240315_142116_487",
+    "240322/240322_ARMC5KO_PolyA/20240322_143358_441",
+    "240403/240329_ARMC5KO_PolyA/20240403_160700_583"),~file.path(data_dir,.))
+intensity_image_dirs <- map_chr(acquisition_dirs,~file.path(.,"OME-TIFF"))
+intensity_image_mip_dirs <- map_chr(acquisition_dirs,~file.path(.,"OME-TIFF-MIP"))
+label_image_dirs <- map_chr(acquisition_dirs,~file.path(.,"SEGMENTATION"))
+quantification_dirs <- map_chr(acquisition_dirs,~file.path(.,"QUANTIFICATION"))
+
+read_quantification <- function(dir_name) {
+  csv_files <- Sys.glob(file.path(dir_name,"*.csv"))
+  dt_list <- lapply(csv_files, data.table::fread)
+  df <- tibble(path = csv_files,
+               feature_values = dt_list) %>%
+    mutate(dir_name = dir_name,
+           file_name = basename(path),
+           feature_values = purrr::map(feature_values,tibble)) %>%
+    separate(file_name,into = c("well_name","ch1","ch2","ch3","ch4","sample","id"),sep="[,_.]", extra = "drop") %>%
+    mutate(well_name = str_replace(well_name, "^Well", ""),
+           field_id = as.integer(id))
+  return(df)
+}
+
+pad_well_names <- function(names) {
+  gsub("(\\D)(\\d)$", "\\10\\2", names)
+}
+
+# features
+f <- lapply(quantification_dirs,read_quantification) %>%
+  bind_rows() %>%
+  mutate(acquisition_dir = dirname(dirname(path)),
+         imaging_date = basename(acquisition_dir) %>% str_extract("\\d{8}(?=_)")) %>%
+  select(-c(ch1, ch2, ch3, ch4, sample))
+
+# layouts
+plate_layouts <- tibble(layout_filename=c("240311_ARMC5KO_PolyA_longlayout.csv","240311_ARMC5KO_PolyA_longlayout.csv","240311_ARMC5KO_PolyA_longlayout.csv"),
+                        plating_date=c("240311","240319","240329"),
+                        imaging_date=c("20240315","20240322","20240403"),
+                        metadata=purrr::map(layout_filename,~read_csv(file.path(ana_dir,"METADATA",.),show_col_types = FALSE, name_repair = ~sub(" ", "_", .)))) %>%
+  unnest(metadata) %>%
+  mutate(well_name=pad_well_names(Well_name)) %>%
+  select(-Well_name) %>%
+  left_join(distinct(f,acquisition_dir,well_name,imaging_date),by = join_by(imaging_date, well_name))
+
+```
+
+Check that the data are complete.
+
+```{r check_complete}
+
+# check completeness (count wells)
+f %>% 
+  distinct(acquisition_dir,well_name) %>%
+  group_by(acquisition_dir) %>%
+  count()
+
+# check completeness (count sites per well)
+f %>% 
+  group_by(acquisition_dir,well_name) %>%
+  count() %>%
+  filter(!(n %in% c(16)))
+
+```
+
+Load metadata and join with quantified image data.
+
+```{r load metadata}
+# read image metadata and join to plate metadata
+m <- tibble(acquisition_dir = acquisition_dirs) %>%
+  mutate(image_dir = purrr::map_chr(acquisition_dirs,~file.path(.,"OME-TIFF-MIP"))) %>%
+  mutate(metadata_file = purrr::map(image_dir,~list.files(.))) %>%
+  unnest(metadata_file) %>%
+  filter(grepl("metadata.csv$",metadata_file)) %>%
+  mutate(dat = purrr::map(file.path(image_dir,metadata_file),~read_csv(.,show_col_types = FALSE))) %>%
+  separate(metadata_file,into = c("well_name","ch1","ch2","ch3","ch4","sample"),sep="[,_.]", extra = "drop") %>%
+  unnest(dat) %>%
+  mutate(well_name = str_replace(well_name, "^Well", ""),
+           field_id = as.integer(field_id)) %>%
+  select(-c(ch1, ch2, ch3, ch4, sample)) %>%
+  left_join(filter(plate_layouts,!is.na(acquisition_dir)),by=join_by(acquisition_dir,well_name))
+
+# attach image and plate metadata 
+dat <- right_join(m,f,by = join_by(acquisition_dir, well_name, field_id, imaging_date)) %>%
+  unnest(feature_values) %>%
+  select(-matches("None$"))
+
+```
+
+Some basic QC regarding number of cells per well, etc.
+
+```{r cell_counts, fig.width=8,fig.height=12}
+
+dat %>% 
+  distinct(Cell,plating_date,imaging_date,well_name,Hybridisation) %>%
+  group_by(Cell,plating_date,imaging_date,Hybridisation) %>%
+  count() %>%
+  ungroup() %>%
+  ggplot(aes(x=Cell,y=n)) + geom_col(position = "dodge") + facet_grid(Hybridisation~imaging_date) +
+  coord_flip() +
+  ggtitle("Number of wells of each condition")
+
+dat %>% 
+  group_by(Cell,plating_date,imaging_date,Hybridisation) %>%
+  count() %>%
+  ungroup() %>%
+  ggplot(aes(x=Cell,y=n)) + geom_col(position = "dodge") + facet_grid(Hybridisation~imaging_date) +
+  coord_flip() +
+  ggtitle("Total number of cells in each condition")
+
+```
+
+### Subtract background
+
+Calculate background by maximum intensity projecting, illumination-correcting, and getting the mean intensity in a region containing no cells. See `calculate_background.ipynb` in the corresponding github repository.
+
+
+```{r subtract_background}
+
+bg_488 <-mean(c(163.671,158.321,161.861))
+bg_647 <- mean(c(131.045,129.943,133.541))
+bg_405 <-mean(c(193.651,193.498,192.183))
+
+dat_minus_bg <- mutate(dat,
+                       Nuclei_intensity_mean_647 = Nuclei_intensity_mean_647 - bg_647,
+                       Nuclei_intensity_mean_405 = Nuclei_intensity_mean_405 - bg_405,
+                       Nuclei_intensity_mean_488 = Nuclei_intensity_mean_488 - bg_488,
+                       
+                       Cell_intensity_mean_647 = Cell_intensity_mean_647 - bg_647,
+                       Cell_intensity_mean_405 = Cell_intensity_mean_405 - bg_405,
+                       Cell_intensity_mean_488 = Cell_intensity_mean_488 - bg_488,
+                       
+                       Nuclei_intensity_median_647 = Nuclei_intensity_median_647 - bg_647,
+                       Nuclei_intensity_median_405 = Nuclei_intensity_median_405 - bg_405,
+                       Nuclei_intensity_median_488 = Nuclei_intensity_median_488 - bg_488,
+                       
+                       Cell_intensity_median_647 = Cell_intensity_median_647 - bg_647,
+                       Cell_intensity_median_405 = Cell_intensity_median_405 - bg_405,
+                       Cell_intensity_median_488 = Cell_intensity_median_488 - bg_488)
+
+```
+
+### Sum intensities
+
+Compute sum intensities by multiplying the background-subtracted means by the corresponding area
+
+```{r sum_intensities}
+
+dat_minus_bg <- mutate(dat_minus_bg,
+                       Nuclei_intensity_sum_647 = Nuclei_intensity_mean_647 * Nuclei_area,
+                       Nuclei_intensity_sum_405 = Nuclei_intensity_mean_405 * Nuclei_area,
+                       Nuclei_intensity_sum_488 = Nuclei_intensity_mean_488 * Nuclei_area,
+                       
+                       Cell_intensity_sum_647 = Cell_intensity_mean_647 * Cell_area,
+                       Cell_intensity_sum_405 = Cell_intensity_mean_405 * Cell_area,
+                       Cell_intensity_sum_488 = Cell_intensity_mean_488 * Cell_area,
+                       
+                       Cytoplasm_intensity_sum_647 = Cell_intensity_sum_647 - Nuclei_intensity_sum_647,
+                       Cytoplasm_intensity_sum_405 = Cell_intensity_sum_405 - Nuclei_intensity_sum_405,
+                       Cytoplasm_intensity_sum_488 = Cell_intensity_sum_488 - Nuclei_intensity_sum_488,
+                       
+                       Cytoplasm_area = Cell_area - Nuclei_area,
+                       
+                       Cytoplasm_intensity_mean_647 = Cytoplasm_intensity_sum_647 / Cytoplasm_area,
+                       Cytoplasm_intensity_mean_405 = Cytoplasm_intensity_sum_405 / Cytoplasm_area,
+                       Cytoplasm_intensity_mean_488 = Cytoplasm_intensity_sum_488 / Cytoplasm_area)
+
+```
+
+### Data cleanup
+
+Remove border cells 
+
+```{r remove_variables}
+
+dat_non_border <- filter(dat_minus_bg,!Nuclei_is_border)
+
+```
+
+# Check illumination correction
+
+After correction of illumination biases across the field of view, there should be no bias for mean intensities across the field-of-view.
+
+```{r test_illum_corr}
+
+dat_non_border_sample_longer <- dat_non_border %>%
+  filter(imaging_date=="20240322") %>%
+  filter(well_name=="F04") %>%
+  select(Nuclei_centroid_0,Nuclei_centroid_1,Nuclei_intensity_mean_405,Nuclei_intensity_mean_488,Nuclei_intensity_mean_647) %>%
+  pivot_longer(-c(Nuclei_centroid_0,Nuclei_centroid_1)) 
+
+rescaling_limits <- dat_non_border_sample_longer %>%
+  group_by(name) %>%
+  summarise(upper_limit = quantile(value,0.99))
+
+dat_non_border_sample_longer <- left_join(dat_non_border_sample_longer,rescaling_limits,by="name")
+
+channels <- unique(dat_non_border_sample_longer$name)
+
+p <- list(length=length(channels))
+for (i in 1:length(channels)) {
+  p[[i]] <- dat_non_border_sample_longer %>%
+    filter(name==channels[i]) %>%
+    ggplot(aes(x=Nuclei_centroid_0,y=Nuclei_centroid_1,col=value/upper_limit)) +
+    geom_point(size=0.5) +
+    scale_color_viridis_c(limits=c(0,1)) +
+    facet_wrap(~name) +
+    coord_fixed() +
+    theme(legend.position = "none")
+}
+
+wrap_plots(p) & ggtitle("Illumination biases")
+
+```
+
+## Check DAPI distributions
+
+```{r check_DAPI}
+
+dat_non_border %>%
+  ggplot(aes(x=Nuclei_intensity_sum_405,col=as.factor(well_name))) +
+  geom_density() +
+  facet_wrap(imaging_date~Cell,scales = "free") +
+  theme(legend.position = "none") +
+  scale_x_continuous(limits = c(0,8e6))
+
+dat_non_border %>%
+  ggplot(aes(x=Nuclei_area,col=as.factor(well_name))) +
+  geom_density() +
+  facet_wrap(imaging_date~Cell,scales = "free") +
+  theme(legend.position = "none") +
+  scale_x_continuous()
+
+```
+
+## Check poly(A) distributions
+
+```{r FISH_by_treatment, fig.width=8,fig.height=4}
+
+dat_non_border <- filter(dat_non_border)
+
+dat_non_border %>%
+  ggplot(aes(x=Cell,y=Nuclei_intensity_mean_647,group=interaction(well_name,Hybridisation))) + 
+  geom_boxplot(aes(fill=Hybridisation),outlier.shape=NA) + facet_grid(.~imaging_date) +
+  coord_cartesian(ylim = c(0,1500)) +
+  theme_bw(base_size = 8) +
+  theme(axis.text.x = element_text(angle = 90,hjust=1,vjust=0.5))
+
+ggsave("PLOTS/FISH_boxplot_per_well_by_cell.pdf",width=14,height=10)
+
+```
+
+```{r check_plate_layouts, fig.width=9,fig.height=3}
+
+dat_non_border %>%
+  mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
+         well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
+  distinct(imaging_date,well_name,well_row,well_column,Cell) %>%
+  ggplot(aes(x=well_column,y=well_row,fill=Cell)) +
+  geom_tile() +
+  scale_y_discrete(limits=rev) +
+  facet_wrap(~imaging_date)
+
+dat_non_border %>%
+  mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
+         well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
+  distinct(imaging_date,well_name,well_row,well_column,Hybridisation) %>%
+  ggplot(aes(x=well_column,y=well_row,fill=Hybridisation)) +
+  geom_tile() +
+  scale_y_discrete(limits=rev) +
+  facet_wrap(~imaging_date)
+
+# compute fold-change from mean for each well
+dat_non_border %>%
+  filter(Hybridisation!="Negative") %>%
+  mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
+         well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
+  group_by(imaging_date,well_name,well_row,well_column,Hybridisation,Cell) %>%
+  summarise(well_mean_IF = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
+  left_join(dat_non_border %>%
+              group_by(imaging_date,well_name,Hybridisation,Cell) %>%
+              summarise(well_mean_IF = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
+              group_by(imaging_date,Hybridisation,Cell) %>%
+              summarise(plate_mean_IF = mean(well_mean_IF),.groups="drop"),
+            by = join_by(imaging_date,Hybridisation,Cell)) %>%
+  mutate(log2FC_from_mean = log2(well_mean_IF/plate_mean_IF)) %>%
+  ggplot(aes(x=well_column,y=well_row,fill=log2FC_from_mean)) +
+  geom_tile() +
+  scale_fill_distiller(type = "div", palette = "RdBu", limits = c(-2,2)) +
+  scale_y_discrete(limits=rev) +
+  facet_wrap(~imaging_date) +
+  ggtitle("Within plate difference from mean per well")
+
+# compute fold-change from mean for each well
+dat_non_border %>%
+  filter(Hybridisation!="Negative") %>%
+  mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
+         well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
+  group_by(imaging_date,well_name,well_row,well_column,Hybridisation,Cell) %>%
+  summarise(well_mean_IF = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
+  left_join(dat_non_border %>%
+              group_by(imaging_date,well_name,Hybridisation,Cell) %>%
+              summarise(well_mean_IF = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
+              group_by(Hybridisation,Cell) %>%
+              summarise(overall_mean_IF = mean(well_mean_IF),.groups="drop"),
+            by = join_by(Hybridisation, Cell)) %>%
+  mutate(log2FC_from_mean = log2(well_mean_IF/overall_mean_IF)) %>%
+  ggplot(aes(x=well_column,y=well_row,fill=log2FC_from_mean)) +
+  geom_tile() +
+  scale_fill_distiller(type = "div", palette = "RdBu", limits = c(-2,2)) +
+  scale_y_discrete(limits=rev) +
+  facet_wrap(~imaging_date) +
+  ggtitle("Experiment difference from mean per well")
+
+```
+
+No extreme outliers other than plate-to-plate variation in absolute intensities. We can compute a rescaling factor across plates using HEK293 parental wells.
+
+```{r plate_normalisation}
+
+normalisation_data <- dat_non_border %>%
+  filter(Hybridisation!="Negative" & Cell=="HEK293 parental") %>%
+  select(imaging_date,well_name,Cell,Nucleus=Nuclei_intensity_mean_647,`Whole cell`=Cell_intensity_mean_647,Cytoplasm=Cytoplasm_intensity_mean_647) %>%
+  pivot_longer(-c(imaging_date,well_name,Cell)) %>%
+  group_by(imaging_date,well_name,Cell,name) %>%
+  summarise(well_mean_IF = mean(value,na.rm=T),.groups="drop") %>%
+  group_by(imaging_date,Cell,name) %>%
+  summarise(plate_mean_IF = mean(well_mean_IF),.groups="drop")
+
+# compute a normalisation factor for plates on imaging_date 20240322
+
+normalisation_factors <- normalisation_data %>%
+  filter(imaging_date=="20240315") %>%
+  select(-imaging_date) %>%
+  rename(normalise_to = plate_mean_IF) %>%
+  left_join(normalisation_data,by = join_by(Cell,name)) %>%
+  mutate(normalisation_factor=normalise_to/plate_mean_IF) %>%
+  group_by(imaging_date,name) %>%
+  summarise(plate_normaliser = mean(normalisation_factor),.groups = "drop")
+
+```
+
+
+```{r average_over_replicates,fig.height=3.5,fig.width=3}
+
+well_summaries <- dat_non_border %>%
+  filter(Hybridisation!="Negative") %>%
+  select(imaging_date,well_name,Cell,Nucleus=Nuclei_intensity_mean_647,`Whole cell`=Cell_intensity_mean_647,Cytoplasm=Cytoplasm_intensity_mean_647) %>%
+  pivot_longer(-c(imaging_date,well_name,Cell)) %>%
+  left_join(normalisation_factors, by = join_by(imaging_date,name)) %>%
+  mutate(value_normalised = value * plate_normaliser) %>%
+  group_by(imaging_date,well_name,Cell,name) %>%
+  summarise(value = mean(value,na.rm=T),
+            value_plate_normalised = mean(value_normalised,na.rm=T),
+            .groups='drop') %>%
+  mutate(cell_labels=case_when(Cell=="HEK293 parental" ~ "HEK293",
+                               Cell=="HEK293 ARMC5 KO 1A3" ~ "ARMC5 K.O. 1",
+                               Cell=="HEK293 ARMC5 KO 2B6" ~ "ARMC5 K.O. 2",
+                               TRUE ~ NA_character_),
+         cell_labels=factor(cell_labels,levels=c("HEK293","ARMC5 K.O. 1","ARMC5 K.O. 2")),
+         name=factor(name,levels=c("Nucleus","Cytoplasm","Whole cell")))
+
+overall_summaries <- well_summaries %>%
+  group_by(Cell,cell_labels,name) %>%
+  summarise(mean = mean(value),
+            sd = sd(value),
+            mean_plate_normalised = mean(value_plate_normalised),
+            sd_plate_normalised = sd(value_plate_normalised),
+            .groups='drop')
+
+axis_rescalers <- filter(overall_summaries,Cell=="HEK293 parental") %>% select(name,axis_rescaler=mean_plate_normalised)
+
+well_summaries <- left_join(well_summaries,axis_rescalers,by = join_by(name)) 
+overall_summaries <- left_join(overall_summaries,axis_rescalers,by = join_by(name)) 
+
+well_summaries %>%
+  ggplot(aes(x=cell_labels,y=value_plate_normalised/axis_rescaler,col=cell_labels)) +
+  geom_col(data = overall_summaries, aes(y=mean_plate_normalised/axis_rescaler,fill=cell_labels),col=NA,alpha=0.4,position=position_dodge(0.8),width=0.8) +
+  geom_point(data = overall_summaries, aes(y=mean_plate_normalised/axis_rescaler),position=position_dodge(0.8)) +
+  geom_errorbar(data = overall_summaries, aes(y=mean_plate_normalised/axis_rescaler,
+                                              ymin=mean_plate_normalised/axis_rescaler-sd_plate_normalised/axis_rescaler,
+                                              ymax=mean_plate_normalised/axis_rescaler+sd_plate_normalised/axis_rescaler),
+                position=position_dodge(0.8),width=0.4) +
+  geom_jitter(width=0.3,pch=4,alpha=0.5,size=0.7) +
+  scale_y_continuous(limits = c(0,1.25),name="Mean Poly(A)\nFISH intensity",breaks = pretty, expand = c(0,0)) +
+  scale_color_manual(values = c(wt_col,armc5_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col,armc5_col)) +
+  facet_wrap(~name) +
+  theme_bw(8) + 
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
+        axis.title.x = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = "none")
+ggsave("PLOTS/polyA_barplots_by_cell.pdf",width=2,height=2)
+
+
+well_summaries %>%
+  filter(name!="Cytoplasm") %>%
+  ggplot(aes(x=cell_labels,y=value_plate_normalised/axis_rescaler,col=cell_labels)) +
+  geom_col(data = filter(overall_summaries,name!="Cytoplasm"), aes(y=mean_plate_normalised/axis_rescaler,fill=cell_labels),col=NA,alpha=0.4,position=position_dodge(0.8),width=0.8) +
+  geom_point(data = filter(overall_summaries,name!="Cytoplasm"), aes(y=mean_plate_normalised/axis_rescaler),position=position_dodge(0.8)) +
+  geom_errorbar(data = filter(overall_summaries,name!="Cytoplasm"), aes(y=mean_plate_normalised/axis_rescaler,
+                                              ymin=mean_plate_normalised/axis_rescaler-sd_plate_normalised/axis_rescaler,
+                                              ymax=mean_plate_normalised/axis_rescaler+sd_plate_normalised/axis_rescaler),
+                position=position_dodge(0.8),width=0.4) +
+  geom_jitter(width=0.3,pch=4,alpha=0.4,size=0.7) +
+  scale_y_continuous(limits = c(0,1.25),name="Mean Poly(A)\nFISH intensity",breaks = pretty, expand = c(0,0)) +
+  scale_color_manual(values = c(wt_col,armc5_col,armc5_col)) +
+  scale_fill_manual(values = c(wt_col,armc5_col,armc5_col)) +
+  facet_wrap(~name) +
+  theme_bw(8) + 
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
+        axis.title.x = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = "none")
+ggsave("PLOTS/polyA_barplots_by_cell_no_cytoplasm.pdf",width=1.5,height=2)
+
+
+
+```
+
+
+Suspect that these small differences arise due to cell desnsity changes, check this by plotting as a function of cell area.
+
+
+```{r area_plots}
+
+# compare area distributions
+dat_non_border %>%
+  ggplot(aes(x=Cell_area,col=Cell)) + 
+  facet_wrap(~imaging_date) + 
+  geom_density() +
+  scale_x_continuous(limits = c(0,40000))
+
+area_features <- dat_non_border %>%
+  filter(Hybridisation!="Negative") %>%
+  select(imaging_date,well_name,field_id,label,Cell,
+         Nucleus=Nuclei_area,
+         `Whole cell`=Cell_area,
+         Cytoplasm=Cytoplasm_area) %>%
+    pivot_longer(-c(imaging_date,well_name,field_id,label,Cell),values_to = "area")
+
+cut_borders <- function(x){
+  pattern <- "(\\(|\\[)(-*[0-9]+\\.*[0-9]*),(-*[0-9]+\\.*[0-9]*)(\\)|\\])"
+  
+  start <- as.numeric(gsub(pattern,"\\2", x))
+  end <- as.numeric(gsub(pattern,"\\3", x))
+  
+  data.frame(start, end)
+}
+
+single_cell_intensities_areas <- dat_non_border %>%
+  filter(Hybridisation!="Negative") %>%
+  select(imaging_date,well_name,field_id,label,Cell,
+         Nucleus=Nuclei_intensity_mean_647,
+         `Whole cell`=Cell_intensity_mean_647,
+         Cytoplasm=Cytoplasm_intensity_mean_647) %>%
+  pivot_longer(-c(imaging_date,well_name,field_id,label,Cell)) %>%
+  left_join(normalisation_factors, by = join_by(imaging_date,name)) %>%
+  mutate(value_normalised = value * plate_normaliser) %>%
+  left_join(area_features,by = join_by(imaging_date, well_name, field_id, label, Cell, name)) %>%
+  filter(name=="Whole cell") %>%
+  mutate(cell_labels=case_when(Cell=="HEK293 parental" ~ "HEK293",
+                               Cell=="HEK293 ARMC5 KO 1A3" ~ "ARMC5 K.O. 1",
+                               Cell=="HEK293 ARMC5 KO 2B6" ~ "ARMC5 K.O. 2",
+                               TRUE ~ NA_character_),
+         cell_labels=factor(cell_labels,levels=c("HEK293","ARMC5 K.O. 1","ARMC5 K.O. 2")),
+         name=factor(name,levels=c("Nucleus","Cytoplasm","Whole cell")),
+         area_sq_micron=area*0.1625*0.1625,
+         area_bin=cut_width(area_sq_micron,width=50)) 
+
+get_bin_center <- function(bin_name) {
+  clean_bin <- substr(bin_name, 2, nchar(bin_name) - 1)
+  parts <- unlist(strsplit(clean_bin, "[,]"))
+  numeric_values <- as.numeric(parts)
+  center <- (numeric_values[2] - numeric_values[1]) / 2 + numeric_values[1]
+  return(center)
+}
+
+cut_borders_lut <- distinct(single_cell_intensities_areas,area_bin) %>%
+  mutate(area_bin=as.character(area_bin)) %>%
+  mutate(area_bin_centre = map(area_bin,~get_bin_center(.))) %>%
+  unnest(cols = c(area_bin_centre))
+
+well_summaries_intensities_areas <- single_cell_intensities_areas %>%
+  left_join(cut_borders_lut,by = join_by(area_bin)) %>%
+  group_by(area_bin_centre,imaging_date,well_name,Cell,name) %>%
+  summarise(value_normalised=mean(value_normalised,na.rm = T),
+            n_cells=n(),.groups = "drop") %>% 
+  filter(area_bin_centre >= 50 & area_bin_centre <= 1000)
+
+overall_summaries_intensities_by_area_bin <- well_summaries_intensities_areas %>% 
+  group_by(area_bin_centre,Cell,name) %>%
+  summarise(value_normalised_mean=mean(value_normalised,na.rm = T),
+            value_normalised_sd=sd(value_normalised,na.rm = T),
+            n_cells=mean(n_cells),.groups = "drop") %>%
+  group_by(Cell,name) %>%
+  mutate(frac_cells = n_cells/sum(n_cells)) %>%
+  ungroup()
+
+cell_count_plot <- overall_summaries_intensities_by_area_bin %>%
+  ggplot(aes(x=area_bin_centre,y=frac_cells,col=Cell)) + 
+  geom_line() + 
+  scale_x_continuous(limits = c(0,1100)) +
+  scale_y_continuous(name="Fraction of cells") +
+  theme_bw(8) +
+  theme(legend.position = "none",
+        axis.title.x = element_blank())
+
+intensity_plot <- well_summaries_intensities_areas %>% 
+  ggplot(aes(x=area_bin_centre,y=value_normalised,col=Cell)) + 
+  geom_jitter(size=0.1,alpha=0.2) +
+  geom_line(data=overall_summaries_intensities_by_area_bin,
+             aes(x=area_bin_centre,y=value_normalised_mean)) + 
+  geom_point(data=overall_summaries_intensities_by_area_bin,
+             aes(x=area_bin_centre,y=value_normalised_mean),size=0.5) + 
+  geom_ribbon(data=overall_summaries_intensities_by_area_bin,
+             aes(x=area_bin_centre,
+                 y=value_normalised_mean,
+                 ymin=value_normalised_mean-value_normalised_sd,
+                 ymax=value_normalised_mean+value_normalised_sd,
+                 fill=Cell),col=NA,alpha=0.1) + 
+  scale_x_continuous(name="Cell area (µm<sup>2</sup>)",limits = c(0,1100)) +
+  scale_y_continuous(name="Mean poly(A) intensity",limits = c(0,750)) +
+  theme_bw(8) +
+  theme(axis.title.x = ggtext::element_markdown()) 
+
+cell_count_plot / intensity_plot + plot_layout(heights = c(1,3),guides = "collect")
+
+ggsave("PLOTS/polyA_by_area_whole_cell.pdf",width=4,height=3)
+
+```
+
+
+```{r well_numbers}
+
+dat_non_border %>%
+  filter(Hybridisation!="Negative") %>%
+  group_by(imaging_date,well_name,Cell) %>%
+  count()
+
+well_summaries %>%
+  group_by(imaging_date,Cell,name) %>%
+  count()
+
+well_summaries %>%
+  group_by(Cell,name) %>%
+  count()
+
+```
+
+
+```{r save_summaries}
+
+write_csv(x = well_summaries,file = "SUMMARIES/polyA_well_summaries.csv")
+write_csv(x = overall_summaries,file = "SUMMARIES/polyA_overall_summaries.csv")
+
+```
+
+
+
+```{r session_info}
+
+sessionInfo()
+
+```
