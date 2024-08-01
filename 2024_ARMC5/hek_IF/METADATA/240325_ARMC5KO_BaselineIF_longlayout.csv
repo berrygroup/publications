@@ -1,0 +1,121 @@
+﻿Well,Cell,Primary,Secondary
+C3,HEK293 parental,Total Pol II,Anti-mouse 488
+D3,HEK293 ARMC5 KO 1A3,Total Pol II,Anti-mouse 488
+E3,HEK293 ARMC5 KO 2B6,Total Pol II,Anti-mouse 488
+F3,HEK293 parental,Total Pol II,Anti-mouse 488
+G3,HEK293 ARMC5 KO 1A3,Total Pol II,Anti-mouse 488
+H3,HEK293 ARMC5 KO 2B6,Total Pol II,Anti-mouse 488
+I3,HEK293 parental,Total Pol II,Anti-mouse 488
+J3,HEK293 ARMC5 KO 1A3,Total Pol II,Anti-mouse 488
+K3,HEK293 ARMC5 KO 2B6,Total Pol II,Anti-mouse 488
+L3,HEK293 parental,Total Pol II,Anti-mouse 488
+M3,HEK293 ARMC5 KO 1A3,Total Pol II,Anti-mouse 488
+N3,HEK293 ARMC5 KO 2B6,Total Pol II,Anti-mouse 488
+C4,HEK293 parental,Total Pol II,Anti-mouse 488
+D4,HEK293 ARMC5 KO 1A3,Total Pol II,Anti-mouse 488
+E4,HEK293 ARMC5 KO 2B6,Total Pol II,Anti-mouse 488
+F4,HEK293 parental,Total Pol II,Anti-mouse 488
+G4,HEK293 ARMC5 KO 1A3,Total Pol II,Anti-mouse 488
+H4,HEK293 ARMC5 KO 2B6,Total Pol II,Anti-mouse 488
+I4,HEK293 parental,Total Pol II,Anti-mouse 488
+J4,HEK293 ARMC5 KO 1A3,Total Pol II,Anti-mouse 488
+K4,HEK293 ARMC5 KO 2B6,Total Pol II,Anti-mouse 488
+L4,HEK293 parental,Total Pol II,Anti-mouse 488
+M4,HEK293 ARMC5 KO 1A3,Total Pol II,Anti-mouse 488
+N4,HEK293 ARMC5 KO 2B6,Total Pol II,Anti-mouse 488
+C5,HEK293 parental,pSer5 Pol II,Anti-rat 488
+D5,HEK293 ARMC5 KO 1A3,pSer5 Pol II,Anti-rat 488
+E5,HEK293 ARMC5 KO 2B6,pSer5 Pol II,Anti-rat 488
+F5,HEK293 parental,pSer5 Pol II,Anti-rat 488
+G5,HEK293 ARMC5 KO 1A3,pSer5 Pol II,Anti-rat 488
+H5,HEK293 ARMC5 KO 2B6,pSer5 Pol II,Anti-rat 488
+I5,HEK293 parental,pSer5 Pol II,Anti-rat 488
+J5,HEK293 ARMC5 KO 1A3,pSer5 Pol II,Anti-rat 488
+K5,HEK293 ARMC5 KO 2B6,pSer5 Pol II,Anti-rat 488
+L5,HEK293 parental,pSer5 Pol II,Anti-rat 488
+M5,HEK293 ARMC5 KO 1A3,pSer5 Pol II,Anti-rat 488
+N5,HEK293 ARMC5 KO 2B6,pSer5 Pol II,Anti-rat 488
+C6,HEK293 parental,pSer5 Pol II,Anti-rat 488
+D6,HEK293 ARMC5 KO 1A3,pSer5 Pol II,Anti-rat 488
+E6,HEK293 ARMC5 KO 2B6,pSer5 Pol II,Anti-rat 488
+F6,HEK293 parental,pSer5 Pol II,Anti-rat 488
+G6,HEK293 ARMC5 KO 1A3,pSer5 Pol II,Anti-rat 488
+H6,HEK293 ARMC5 KO 2B6,pSer5 Pol II,Anti-rat 488
+I6,HEK293 parental,pSer5 Pol II,Anti-rat 488
+J6,HEK293 ARMC5 KO 1A3,pSer5 Pol II,Anti-rat 488
+K6,HEK293 ARMC5 KO 2B6,pSer5 Pol II,Anti-rat 488
+L6,HEK293 parental,pSer5 Pol II,Anti-rat 488
+M6,HEK293 ARMC5 KO 1A3,pSer5 Pol II,Anti-rat 488
+N6,HEK293 ARMC5 KO 2B6,pSer5 Pol II,Anti-rat 488
+C7,HEK293 parental,pSer2 Pol II,Anti-rat 488
+D7,HEK293 ARMC5 KO 1A3,pSer2 Pol II,Anti-rat 488
+E7,HEK293 ARMC5 KO 2B6,pSer2 Pol II,Anti-rat 488
+F7,HEK293 parental,pSer2 Pol II,Anti-rat 488
+G7,HEK293 ARMC5 KO 1A3,pSer2 Pol II,Anti-rat 488
+H7,HEK293 ARMC5 KO 2B6,pSer2 Pol II,Anti-rat 488
+I7,HEK293 parental,pSer2 Pol II,Anti-rat 488
+J7,HEK293 ARMC5 KO 1A3,pSer2 Pol II,Anti-rat 488
+K7,HEK293 ARMC5 KO 2B6,pSer2 Pol II,Anti-rat 488
+L7,HEK293 parental,pSer2 Pol II,Anti-rat 488
+M7,HEK293 ARMC5 KO 1A3,pSer2 Pol II,Anti-rat 488
+N7,HEK293 ARMC5 KO 2B6,pSer2 Pol II,Anti-rat 488
+C8,HEK293 parental,pSer2 Pol II,Anti-rat 488
+D8,HEK293 ARMC5 KO 1A3,pSer2 Pol II,Anti-rat 488
+E8,HEK293 ARMC5 KO 2B6,pSer2 Pol II,Anti-rat 488
+F8,HEK293 parental,pSer2 Pol II,Anti-rat 488
+G8,HEK293 ARMC5 KO 1A3,pSer2 Pol II,Anti-rat 488
+H8,HEK293 ARMC5 KO 2B6,pSer2 Pol II,Anti-rat 488
+I8,HEK293 parental,pSer2 Pol II,Anti-rat 488
+J8,HEK293 ARMC5 KO 1A3,pSer2 Pol II,Anti-rat 488
+K8,HEK293 ARMC5 KO 2B6,pSer2 Pol II,Anti-rat 488
+L8,HEK293 parental,pSer2 Pol II,Anti-rat 488
+M8,HEK293 ARMC5 KO 1A3,pSer2 Pol II,Anti-rat 488
+N8,HEK293 ARMC5 KO 2B6,pSer2 Pol II,Anti-rat 488
+C9,HEK293 parental,None,Anti-mouse 488
+D9,HEK293 ARMC5 KO 1A3,None,Anti-mouse 488
+E9,HEK293 ARMC5 KO 2B6,None,Anti-mouse 488
+F9,HEK293 parental,None,Anti-mouse 488
+G9,HEK293 ARMC5 KO 1A3,None,Anti-mouse 488
+H9,HEK293 ARMC5 KO 2B6,None,Anti-mouse 488
+I9,HEK293 parental,None,Anti-rat 488
+J9,HEK293 ARMC5 KO 1A3,None,Anti-rat 488
+K9,HEK293 ARMC5 KO 2B6,None,Anti-rat 488
+L9,HEK293 parental,None,Anti-rat 488
+M9,HEK293 ARMC5 KO 1A3,None,Anti-rat 488
+N9,HEK293 ARMC5 KO 2B6,None,Anti-rat 488
+C10,HEK293 parental,None,None
+D10,HEK293 ARMC5 KO 1A3,None,None
+E10,HEK293 ARMC5 KO 2B6,None,None
+F10,HEK293 parental,None,None
+G10,HEK293 ARMC5 KO 1A3,None,None
+H10,HEK293 ARMC5 KO 2B6,None,None
+I10,HEK293 parental,None,None
+J10,HEK293 ARMC5 KO 1A3,None,None
+K10,HEK293 ARMC5 KO 2B6,None,None
+L10,HEK293 parental,None,None
+M10,HEK293 ARMC5 KO 1A3,None,None
+N10,HEK293 ARMC5 KO 2B6,None,None
+C11,HEK293 parental,None,None
+D11,HEK293 ARMC5 KO 1A3,None,None
+E11,HEK293 ARMC5 KO 2B6,None,None
+F11,HEK293 parental,None,None
+G11,HEK293 ARMC5 KO 1A3,None,None
+H11,HEK293 ARMC5 KO 2B6,None,None
+I11,HEK293 parental,None,None
+J11,HEK293 ARMC5 KO 1A3,None,None
+K11,HEK293 ARMC5 KO 2B6,None,None
+L11,HEK293 parental,None,None
+M11,HEK293 ARMC5 KO 1A3,None,None
+N11,HEK293 ARMC5 KO 2B6,None,None
+C12,HEK293 parental,None,None
+D12,HEK293 ARMC5 KO 1A3,None,None
+E12,HEK293 ARMC5 KO 2B6,None,None
+F12,HEK293 parental,None,None
+G12,HEK293 ARMC5 KO 1A3,None,None
+H12,HEK293 ARMC5 KO 2B6,None,None
+I12,HEK293 parental,None,None
+J12,HEK293 ARMC5 KO 1A3,None,None
+K12,HEK293 ARMC5 KO 2B6,None,None
+L12,HEK293 parental,None,None
+M12,HEK293 ARMC5 KO 1A3,None,None
+N12,HEK293 ARMC5 KO 2B6,None,None
