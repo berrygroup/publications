@@ -32,8 +32,8 @@ Original data (Nikon `.nd2` files) are stored on UNSW's data archive under Berry
 
 Image analysis performed using the following series of python scripts (found on github for [hct116_EU](https://github.com/berrygroup/publications/tree/main/2024_ARMC5/hct116_EU))
 
-- `illumination_correction_EU.ipynb`
-- `save_example_images_EU.ipynb` (used to generate example images and training data for the cellpose model)
+- `illumination_correction_EU_EU.ipynb`
+- `save_example_images_EU_EU.ipynb` (used to generate example images and training data for the cellpose model)
 - `run_quantification_EU.py` (parallelised using e.g. `PBS/batch_quantify_EU_240628.pbs`)
 
 ## Data analysis

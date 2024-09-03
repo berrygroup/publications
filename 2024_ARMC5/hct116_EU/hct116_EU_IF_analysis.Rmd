@@ -1,5 +1,5 @@
 ---
-title: "EU in HCT116 cells with ARMC5 KD"
+title: "Total Pol II IF in HCT116 cells with ARMC5 KD (EU experiment)"
 author: "Scott Berry"
 date: "`r Sys.Date()`"
 output: html_document
@@ -32,9 +32,9 @@ Original data (Nikon `.nd2` files) are stored on UNSW's data archive under Berry
 
 Image analysis performed using the following series of python scripts (found on github for [hct116_EU](https://github.com/berrygroup/publications/tree/main/2024_ARMC5/hct116_EU))
 
-- `illumination_correction_EU.ipynb`
-- `save_example_images_EU.ipynb` (used to generate example images and training data for the cellpose model)
-- `run_quantification_EU.py` (parallelised using e.g. `PBS/batch_quantify_EU_240628.pbs`)
+- `illumination_correction_EU_IF.ipynb`
+- `save_example_images_EU_IF.ipynb` (used to generate example images and training data for the cellpose model)
+- `run_quantification_EU.py` (parallelised using e.g. `PBS/batch_quantify_IF_240628.pbs`)
 
 ## Data analysis
 
@@ -280,7 +280,7 @@ dat_non_border <- filter(dat_non_border,Nuclei_area>150)
 
 ### Check IF distributions
 
-```{r EU_by_cell, fig.width=14,fig.height=10}
+```{r IF_by_cell, fig.width=14,fig.height=10}
 
 dat_non_border <- mutate(dat_non_border,
                          siRNA = case_when(siRNA=="Scramble" ~ "Scrambled",
@@ -410,7 +410,7 @@ dat_non_border %>%
 
 ```
 
-Correct for plate-to-plate variation in EU staining for plotting (don't use normalisation for statistics, just include plate and well as random effects.)
+Correct for plate-to-plate variation in IF staining for plotting (don't use normalisation for statistics, just include plate and well as random effects.)
 
 ```{r plate_normalisation}
 
