@@ -14,7 +14,7 @@
 ### batch number on each node. Batches should run from zero to N_BATCHES-1
 ### to process all files
 
-#PBS -J 0-216
+#PBS -J 0-288
 
 ###---------------------------------------------------------------------------
 
