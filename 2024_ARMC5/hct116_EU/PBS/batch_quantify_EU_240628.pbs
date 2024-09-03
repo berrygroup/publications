@@ -28,8 +28,8 @@ dataset="ARMC5_KD_EU/240628_ARMC5_EU/Cycle2_EU/20240701_175159_151"
 python /srv/scratch/z3532965/src/publications/2024_ARMC5/hct116_EU/run_quantification_EU.py \
   --id ${PBS_ARRAY_INDEX} \
   --cellpose_model_file /srv/scratch/z3532965/src/blana/Alex/202402_ARMC5_Fixed/CELLPOSE/20X_DAPI_HCT116 \
-  --illumination_correction_file "/srv/scratch/berrylab/z3532965/NikonSpinningDisk/ARMC5_KD_EU/ILLUMCORR/illumination_correction.pkl" \
-  --features_dir ARMC5_KD_EU/240628_ARMC5_EU/Cycle2_EU/20240701_175159_151${dataset}/QUANTIFICATION \
+  --illumination_correction_file "/srv/scratch/berrylab/z3532965/NikonSpinningDisk/ARMC5_KD_EU/ILLUMCORR/illumination_correction_EU.pkl" \
+  --features_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/${dataset}/QUANTIFICATION \
   --input_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/${dataset}/OME-TIFF-MIP \
   --output_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/${dataset}/SEGMENTATION
 
