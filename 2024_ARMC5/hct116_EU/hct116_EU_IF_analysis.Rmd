@@ -49,9 +49,9 @@ Load data from `scratch/berrylab` on UNSW's Katana HPC.
 ana_dir <- "/srv/scratch/z3532965/src/publications/2024_ARMC5/hct116_EU"
 data_dir <- "/srv/scratch/berrylab/z3532965/NikonSpinningDisk"
 acquisition_dirs <- purrr::map_chr(
-  c("ARMC5_KD_EU/240628_ARMC5_EU/Cycle2_EU/20240701_175159_151",
-    "ARMC5_KD_EU/240705_ARMC5_EU/Cycle2_EU/20240708_171627_050",
-    "ARMC5_KD_EU/240713_ARMC5_EU/Cycle2_EU/20240715_173604_562"),~file.path(data_dir,.))
+  c("ARMC5_KD_EU/240628_ARMC5_EU/Cycle1_IF/20240701_151828_786",
+    "ARMC5_KD_EU/240705_ARMC5_EU/Cycle1_IF/20240708_135644_856",
+    "ARMC5_KD_EU/240713_ARMC5_EU/Cycle1_IF/20240715_144144_254"),~file.path(data_dir,.))
 intensity_image_dirs <- map_chr(acquisition_dirs,~file.path(.,"OME-TIFF"))
 intensity_image_mip_dirs <- map_chr(acquisition_dirs,~file.path(.,"OME-TIFF-MIP"))
 label_image_dirs <- map_chr(acquisition_dirs,~file.path(.,"SEGMENTATION"))
@@ -66,7 +66,7 @@ read_quantification <- function(dir_name) {
            file_name = basename(path),
            
            # acq3 has an extra two channels!
-           file_name = str_remove(file_name,",561,405"),
+           #file_name = str_remove(file_name,",561,405"),
            
            feature_values = purrr::map(feature_values,tibble)) %>%
     separate(file_name,into = c("well_name","ch1","ch2","sample","id"),sep="[,_.]", extra = "drop") %>%
@@ -128,7 +128,8 @@ m <- tibble(acquisition_dir = acquisition_dirs) %>%
   filter(grepl("metadata.csv$",metadata_file)) %>%
   mutate(dat = purrr::map(file.path(image_dir,metadata_file),~read_csv(.,show_col_types = FALSE)),
          # acq3 has an extra two channels!
-         metadata_file = str_remove(metadata_file,",561,405")) %>%
+         #metadata_file = str_remove(metadata_file,",561,405")
+         ) %>%
   separate(metadata_file,into = c("well_name","ch1","ch2","sample"),sep="[,_.]", extra = "drop") %>%
   unnest(dat) %>%
   mutate(well_name = str_replace(well_name, "^Well", ""),
@@ -148,19 +149,19 @@ Some basic QC regarding number of cells per well, etc.
 ```{r cell_counts, fig.width=8,fig.height=8}
 
 dat %>% 
-  distinct(cell,plating_date,imaging_date,well_name,siRNA,EU) %>%
-  group_by(cell,plating_date,imaging_date,siRNA,EU) %>%
+  distinct(cell,plating_date,imaging_date,well_name,siRNA,primary) %>%
+  group_by(cell,plating_date,imaging_date,siRNA,primary) %>%
   count() %>%
   ungroup() %>%
-  ggplot(aes(x=cell,y=n,fill=siRNA)) + geom_col(position = "dodge") + facet_grid(EU~imaging_date) +
+  ggplot(aes(x=cell,y=n,fill=siRNA)) + geom_col(position = "dodge") + facet_grid(primary~imaging_date) +
   coord_flip() +
   ggtitle("Number of wells of each condition")
 
 dat %>% 
-  group_by(cell,plating_date,imaging_date,siRNA,EU) %>%
+  group_by(cell,plating_date,imaging_date,siRNA,primary) %>%
   count() %>%
   ungroup() %>%
-  ggplot(aes(x=cell,y=n,fill=siRNA)) + geom_col(position = "dodge") + facet_grid(EU~imaging_date) +
+  ggplot(aes(x=cell,y=n,fill=siRNA)) + geom_col(position = "dodge") + facet_grid(primary~imaging_date) +
   coord_flip() +
   ggtitle("Total number of cells in each condition")
 
@@ -173,16 +174,16 @@ Calculate background by maximum intensity projecting, illumination-correcting, a
 
 ```{r subtract_background}
 
-# update 25/7/24 for EU in HCT116
+# update 3/9/24 for EU-IF in HCT116
 
-bg_647 <- mean(c(142.125,144.4,142))
-bg_405 <-mean(c(174.8,191.2,179))
+bg_561 <- mean(c(166.8,169.4,161.4))
+bg_405 <-mean(c(152.0,153.7,150.5))
 
 dat_minus_bg <- mutate(dat,
-                       Nuclei_intensity_mean_647 = Nuclei_intensity_mean_647 - bg_647,
+                       Nuclei_intensity_mean_561 = Nuclei_intensity_mean_561 - bg_561,
                        Nuclei_intensity_mean_405 = Nuclei_intensity_mean_405 - bg_405,
                        
-                       Nuclei_intensity_median_647 = Nuclei_intensity_median_647 - bg_647,
+                       Nuclei_intensity_median_561 = Nuclei_intensity_median_561 - bg_561,
                        Nuclei_intensity_median_405 = Nuclei_intensity_median_405 - bg_405)
 
 ```
@@ -194,7 +195,7 @@ Compute sum intensities by multiplying the background-subtracted means by the co
 ```{r sum_intensities}
 
 dat_minus_bg <- mutate(dat_minus_bg,
-                       Nuclei_intensity_sum_647 = Nuclei_intensity_mean_647 * Nuclei_area,
+                       Nuclei_intensity_sum_561 = Nuclei_intensity_mean_561 * Nuclei_area,
                        Nuclei_intensity_sum_405 = Nuclei_intensity_mean_405 * Nuclei_area)
 
 ```
@@ -218,7 +219,7 @@ After correction of illumination biases across the field of view, there should b
 dat_non_border_sample_longer <- dat_non_border %>%
   filter(imaging_date=="20240701") %>%
   filter(well_name=="D03") %>%
-  select(Nuclei_centroid_0,Nuclei_centroid_1,Nuclei_intensity_mean_405,Nuclei_intensity_mean_647) %>%
+  select(Nuclei_centroid_0,Nuclei_centroid_1,Nuclei_intensity_mean_405,Nuclei_intensity_mean_561) %>%
   pivot_longer(-c(Nuclei_centroid_0,Nuclei_centroid_1)) 
 
 rescaling_limits <- dat_non_border_sample_longer %>%
@@ -277,7 +278,7 @@ dat_non_border <- filter(dat_non_border,Nuclei_area>150)
 
 ## Quantify stains of interest
 
-### Check EU distributions
+### Check IF distributions
 
 ```{r EU_by_cell, fig.width=14,fig.height=10}
 
@@ -289,10 +290,10 @@ dat_non_border <- mutate(dat_non_border,
                          siRNA=factor(siRNA,levels=c("None","Scrambled","ARMC5"))) 
 
 dat_non_border %>% 
-  ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_647,col=siRNA,group=interaction(well_name,siRNA))) + 
+  ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_561,col=siRNA,group=interaction(well_name,siRNA))) + 
   #geom_boxplot(outlier.shape=NA) + 
   geom_boxplot() + 
-  facet_grid(EU~imaging_date) +
+  facet_grid(primary~imaging_date) +
   #coord_cartesian(ylim = c(0,1000)) +
   theme_bw(base_size = 8) +
   theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
@@ -304,28 +305,28 @@ Seems to be some very bright intensities in some wells. Check for outliers using
 ```{r outlier_sites_detection}
 
 field_averages <- dat_non_border %>%
-  group_by(image_dir,filename_ome_tiff,EU,siRNA,imaging_date,well_name,field_id) %>%
-  summarise(Nuclei_intensity_mean_647_mean=mean(Nuclei_intensity_mean_647),.groups = 'drop') 
+  group_by(image_dir,filename_ome_tiff,primary,siRNA,imaging_date,well_name,field_id) %>%
+  summarise(Nuclei_intensity_mean_561_mean=mean(Nuclei_intensity_mean_561),.groups = 'drop') 
 
 outlier_fields <- field_averages %>%
-  group_by(image_dir,EU,siRNA,imaging_date) %>%
-  summarise(across(Nuclei_intensity_mean_647_mean,c(p25=~quantile(.,0.25),p75=~quantile(.,0.75))),.groups = 'drop') %>%
-  left_join(field_averages,by = join_by(image_dir, EU, siRNA, imaging_date)) %>%
-  mutate(Nuclei_intensity_mean_647_mean_IQR = Nuclei_intensity_mean_647_mean_p75 - Nuclei_intensity_mean_647_mean_p25,
+  group_by(image_dir,primary,siRNA,imaging_date) %>%
+  summarise(across(Nuclei_intensity_mean_561_mean,c(p25=~quantile(.,0.25),p75=~quantile(.,0.75))),.groups = 'drop') %>%
+  left_join(field_averages,by = join_by(image_dir, primary, siRNA, imaging_date)) %>%
+  mutate(Nuclei_intensity_mean_561_mean_IQR = Nuclei_intensity_mean_561_mean_p75 - Nuclei_intensity_mean_561_mean_p25,
          outlier = case_when(
-           Nuclei_intensity_mean_647_mean > Nuclei_intensity_mean_647_mean_p75 + 1.5*Nuclei_intensity_mean_647_mean_IQR ~ TRUE,
-           Nuclei_intensity_mean_647_mean < Nuclei_intensity_mean_647_mean_p25 - 1.5*Nuclei_intensity_mean_647_mean_IQR ~ TRUE,
+           Nuclei_intensity_mean_561_mean > Nuclei_intensity_mean_561_mean_p75 + 1.5*Nuclei_intensity_mean_561_mean_IQR ~ TRUE,
+           Nuclei_intensity_mean_561_mean < Nuclei_intensity_mean_561_mean_p25 - 1.5*Nuclei_intensity_mean_561_mean_IQR ~ TRUE,
            TRUE ~ FALSE))
 
 outlier_fields %>%
-  ggplot(aes(y=Nuclei_intensity_mean_647_mean,x=siRNA,col=outlier)) +
+  ggplot(aes(y=Nuclei_intensity_mean_561_mean,x=siRNA,col=outlier)) +
   geom_jitter() +
   scale_y_log10() +
-  facet_wrap(EU~imaging_date)
+  facet_wrap(primary~imaging_date)
 
 outlier_fields %>%
-  count(imaging_date,EU,siRNA,outlier) %>%
-  group_by(imaging_date,EU,siRNA) %>%
+  count(imaging_date,primary,siRNA,outlier) %>%
+  group_by(imaging_date,primary,siRNA) %>%
   mutate(freq=n/sum(n)) %>%
   filter(outlier=="TRUE")
 
@@ -336,7 +337,7 @@ Remove outlier fields-of-view
 ```{r outlier_sites_removal}
 
 dat_non_border <- dat_non_border %>%
-  anti_join(filter(outlier_fields,outlier==TRUE),by = join_by(image_dir, well_name, field_id, filename_ome_tiff, imaging_date, siRNA, EU))
+  anti_join(filter(outlier_fields,outlier==TRUE),by = join_by(image_dir, well_name, field_id, filename_ome_tiff, imaging_date, siRNA, primary))
 
 ```
 
@@ -359,27 +360,27 @@ dat_non_border %>%
 dat_non_border %>%
   mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
          well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  distinct(imaging_date,well_name,well_row,well_column,EU) %>%
-  ggplot(aes(x=well_column,y=well_row,fill=EU)) +
+  distinct(imaging_date,well_name,well_row,well_column,primary) %>%
+  ggplot(aes(x=well_column,y=well_row,fill=primary)) +
   geom_tile() +
   scale_y_discrete(limits=rev) +
   facet_wrap(~imaging_date) +
-  ggtitle("EU concentration")
+  ggtitle("primary")
 
 
 # compute fold-change from mean for each well
 dat_non_border %>%
   mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
          well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  group_by(imaging_date,well_name,well_row,well_column,EU,siRNA) %>%
-  summarise(well_mean_EU = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
+  group_by(imaging_date,well_name,well_row,well_column,primary,siRNA) %>%
+  summarise(well_mean_IF = mean(Nuclei_intensity_mean_561),.groups="drop") %>%
   left_join(dat_non_border %>%
-              group_by(imaging_date,well_name,EU,siRNA) %>%
-              summarise(well_mean_EU = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
-              group_by(imaging_date,EU,siRNA) %>%
-              summarise(plate_mean_EU = mean(well_mean_EU),.groups="drop"),
-            by = join_by(imaging_date, EU,siRNA)) %>%
-  mutate(log2FC_from_mean = log2(well_mean_EU/plate_mean_EU)) %>%
+              group_by(imaging_date,well_name,primary,siRNA) %>%
+              summarise(well_mean_IF = mean(Nuclei_intensity_mean_561),.groups="drop") %>%
+              group_by(imaging_date,primary,siRNA) %>%
+              summarise(plate_mean_IF = mean(well_mean_IF),.groups="drop"),
+            by = join_by(imaging_date, primary,siRNA)) %>%
+  mutate(log2FC_from_mean = log2(well_mean_IF/plate_mean_IF)) %>%
   ggplot(aes(x=well_column,y=well_row,fill=log2FC_from_mean)) +
   geom_tile() +
   scale_fill_distiller(type = "div", palette = "RdBu", limits = c(-2,2)) +
@@ -391,15 +392,15 @@ dat_non_border %>%
 dat_non_border %>%
   mutate(well_row = factor(str_extract(well_name, "[A-Z]"),levels=LETTERS),
          well_column = as.integer(as.character(str_extract(well_name, "[0-9]+")))) %>%
-  group_by(imaging_date,well_name,well_row,well_column,EU,siRNA) %>%
-  summarise(well_mean_EU = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
+  group_by(imaging_date,well_name,well_row,well_column,primary,siRNA) %>%
+  summarise(well_mean_IF = mean(Nuclei_intensity_mean_561),.groups="drop") %>%
   left_join(dat_non_border %>%
-              group_by(imaging_date,well_name,EU,siRNA) %>%
-              summarise(well_mean_EU = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
-              group_by(EU,siRNA) %>%
-              summarise(overall_mean_EU = mean(well_mean_EU),.groups="drop"),
-            by = join_by(EU,siRNA)) %>%
-  mutate(log2FC_from_mean = log2(well_mean_EU/overall_mean_EU)) %>%
+              group_by(imaging_date,well_name,primary,siRNA) %>%
+              summarise(well_mean_IF = mean(Nuclei_intensity_mean_561),.groups="drop") %>%
+              group_by(primary,siRNA) %>%
+              summarise(overall_mean_IF = mean(well_mean_IF),.groups="drop"),
+            by = join_by(primary,siRNA)) %>%
+  mutate(log2FC_from_mean = log2(well_mean_IF/overall_mean_IF)) %>%
   ggplot(aes(x=well_column,y=well_row,fill=log2FC_from_mean)) +
   geom_tile() +
   scale_fill_distiller(type = "div", palette = "RdBu", limits = c(-2,2)) +
@@ -414,9 +415,9 @@ Correct for plate-to-plate variation in EU staining for plotting (don't use norm
 ```{r plate_normalisation}
 
 normalisation_data <- dat_non_border %>%
-  filter(EU!="No EU" & siRNA!="None") %>%
+  filter(primary=="Total Pol II" & siRNA!="None") %>%
   group_by(imaging_date,well_name,siRNA) %>%
-  summarise(well_mean_IF = mean(Nuclei_intensity_mean_647),.groups="drop") %>%
+  summarise(well_mean_IF = mean(Nuclei_intensity_mean_561),.groups="drop") %>%
   group_by(imaging_date,siRNA) %>%
   summarise(plate_mean_IF = mean(well_mean_IF),.groups="drop")
 
@@ -438,50 +439,50 @@ Now average over replicates, including plate-to-plate normalisation factors.
 ```{r average_over_replicates,fig.height=4,fig.width=12}
 
 well_summaries <- dat_non_border %>%
-  filter(EU!="No EU" & siRNA!="None") %>%
+  filter(primary=="Total Pol II" & siRNA!="None") %>%
   left_join(normalisation_factors, by = join_by(imaging_date)) %>%
-  mutate(Nuclei_intensity_mean_647_plate_normalised = Nuclei_intensity_mean_647 * plate_normaliser) %>%
+  mutate(Nuclei_intensity_mean_561_plate_normalised = Nuclei_intensity_mean_561 * plate_normaliser) %>%
   group_by(imaging_date,well_name,siRNA) %>%
-  summarise(Nuclei_intensity_mean_647 = mean(Nuclei_intensity_mean_647),
-            Nuclei_intensity_mean_647_plate_normalised = mean(Nuclei_intensity_mean_647_plate_normalised),
+  summarise(Nuclei_intensity_mean_561 = mean(Nuclei_intensity_mean_561),
+            Nuclei_intensity_mean_561_plate_normalised = mean(Nuclei_intensity_mean_561_plate_normalised),
             .groups='drop')
 
 overall_summaries <- well_summaries %>%
   group_by(siRNA) %>%
-  summarise(mean_Nuclei_intensity_mean_647 = mean(Nuclei_intensity_mean_647),
-            sd_Nuclei_intensity_mean_647 = sd(Nuclei_intensity_mean_647),
-            mean_Nuclei_intensity_mean_647_plate_normalised = mean(Nuclei_intensity_mean_647_plate_normalised),
-            sd_Nuclei_intensity_mean_647_plate_normalised = sd(Nuclei_intensity_mean_647_plate_normalised),
+  summarise(mean_Nuclei_intensity_mean_561 = mean(Nuclei_intensity_mean_561),
+            sd_Nuclei_intensity_mean_561 = sd(Nuclei_intensity_mean_561),
+            mean_Nuclei_intensity_mean_561_plate_normalised = mean(Nuclei_intensity_mean_561_plate_normalised),
+            sd_Nuclei_intensity_mean_561_plate_normalised = sd(Nuclei_intensity_mean_561_plate_normalised),
             .groups='drop')
 
-axis_rescaler <- filter(overall_summaries,siRNA=="Scrambled") %>% pull(mean_Nuclei_intensity_mean_647_plate_normalised)
+axis_rescaler <- filter(overall_summaries,siRNA=="Scrambled") %>% pull(mean_Nuclei_intensity_mean_561_plate_normalised)
 
-no_EU_well_summaries <- dat_non_border %>%
-  filter(EU=="No EU") %>%
+no_primary_well_summaries <- dat_non_border %>%
+  filter(primary=="No primary") %>%
   left_join(normalisation_factors, by = join_by(imaging_date)) %>%
-  mutate(Nuclei_intensity_mean_647_plate_normalised = Nuclei_intensity_mean_647 * plate_normaliser) %>%
+  mutate(Nuclei_intensity_mean_561_plate_normalised = Nuclei_intensity_mean_561 * plate_normaliser) %>%
   group_by(imaging_date,well_name,siRNA) %>%
-  summarise(Nuclei_intensity_mean_647 = mean(Nuclei_intensity_mean_647),
-            Nuclei_intensity_mean_647_plate_normalised = mean(Nuclei_intensity_mean_647_plate_normalised),
+  summarise(Nuclei_intensity_mean_561 = mean(Nuclei_intensity_mean_561),
+            Nuclei_intensity_mean_561_plate_normalised = mean(Nuclei_intensity_mean_561_plate_normalised),
             .groups='drop')
 
-no_EU_overall_summaries <- no_EU_well_summaries %>%
+no_primary_overall_summaries <- no_primary_well_summaries %>%
   group_by(siRNA) %>%
-  summarise(mean_Nuclei_intensity_mean_647 = mean(Nuclei_intensity_mean_647),
-            sd_Nuclei_intensity_mean_647 = sd(Nuclei_intensity_mean_647),
-            mean_Nuclei_intensity_mean_647_plate_normalised = mean(Nuclei_intensity_mean_647_plate_normalised),
-            sd_Nuclei_intensity_mean_647_plate_normalised = sd(Nuclei_intensity_mean_647_plate_normalised),
+  summarise(mean_Nuclei_intensity_mean_561 = mean(Nuclei_intensity_mean_561),
+            sd_Nuclei_intensity_mean_561 = sd(Nuclei_intensity_mean_561),
+            mean_Nuclei_intensity_mean_561_plate_normalised = mean(Nuclei_intensity_mean_561_plate_normalised),
+            sd_Nuclei_intensity_mean_561_plate_normalised = sd(Nuclei_intensity_mean_561_plate_normalised),
             .groups='drop')
 
-with_EU <- well_summaries %>%
-  ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,col=siRNA)) +
-  geom_col(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,fill=siRNA),col=NA,alpha=0.4,width=0.8) +
-  geom_point(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler)) +
-  geom_errorbar(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,
-                                              ymin=(mean_Nuclei_intensity_mean_647_plate_normalised-sd_Nuclei_intensity_mean_647_plate_normalised)/axis_rescaler,
-                                              ymax=(mean_Nuclei_intensity_mean_647_plate_normalised+sd_Nuclei_intensity_mean_647_plate_normalised)/axis_rescaler),width=0.25) +
+with_primary <- well_summaries %>%
+  ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_561_plate_normalised/axis_rescaler,col=siRNA)) +
+  geom_col(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_561_plate_normalised/axis_rescaler,fill=siRNA),col=NA,alpha=0.4,width=0.8) +
+  geom_point(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_561_plate_normalised/axis_rescaler)) +
+  geom_errorbar(data = overall_summaries, aes(y=mean_Nuclei_intensity_mean_561_plate_normalised/axis_rescaler,
+                                              ymin=(mean_Nuclei_intensity_mean_561_plate_normalised-sd_Nuclei_intensity_mean_561_plate_normalised)/axis_rescaler,
+                                              ymax=(mean_Nuclei_intensity_mean_561_plate_normalised+sd_Nuclei_intensity_mean_561_plate_normalised)/axis_rescaler),width=0.25) +
   geom_jitter(width=0.25,pch=4,alpha=0.3) +
-  scale_y_continuous(limits = c(0,1.4),name="Mean nuclear\nintensity",expand = c(0,0)) +
+  scale_y_continuous(limits = c(0,1.8),name="Mean nuclear\nintensity",expand = c(0,0)) +
   theme_bw(base_size = 8) + 
   scale_color_manual(values = c(wt_col,armc5_col)) +
   scale_fill_manual(values = c(wt_col,armc5_col)) +
@@ -490,15 +491,15 @@ with_EU <- well_summaries %>%
         panel.grid = element_blank(),
         legend.key.size = unit(2.5,"mm"))
 
-no_EU <- no_EU_well_summaries %>%
-  ggplot(aes(x="No EU",y=Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,col=siRNA)) +
-  geom_col(data = no_EU_overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,fill=siRNA),col=NA,alpha=0.4,width=0.8) +
-  geom_point(data = no_EU_overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler)) +
-  geom_errorbar(data = no_EU_overall_summaries, aes(y=mean_Nuclei_intensity_mean_647_plate_normalised/axis_rescaler,
-                                              ymin=(mean_Nuclei_intensity_mean_647_plate_normalised-sd_Nuclei_intensity_mean_647_plate_normalised)/axis_rescaler,
-                                              ymax=(mean_Nuclei_intensity_mean_647_plate_normalised+sd_Nuclei_intensity_mean_647_plate_normalised)/axis_rescaler),width=0.25) +
+no_primary <- no_primary_well_summaries %>%
+  ggplot(aes(x="No primary",y=Nuclei_intensity_mean_561_plate_normalised/axis_rescaler,col=siRNA)) +
+  geom_col(data = no_primary_overall_summaries, aes(y=mean_Nuclei_intensity_mean_561_plate_normalised/axis_rescaler,fill=siRNA),col=NA,alpha=0.4,width=0.8) +
+  geom_point(data = no_primary_overall_summaries, aes(y=mean_Nuclei_intensity_mean_561_plate_normalised/axis_rescaler)) +
+  geom_errorbar(data = no_primary_overall_summaries, aes(y=mean_Nuclei_intensity_mean_561_plate_normalised/axis_rescaler,
+                                              ymin=(mean_Nuclei_intensity_mean_561_plate_normalised-sd_Nuclei_intensity_mean_561_plate_normalised)/axis_rescaler,
+                                              ymax=(mean_Nuclei_intensity_mean_561_plate_normalised+sd_Nuclei_intensity_mean_561_plate_normalised)/axis_rescaler),width=0.25) +
   geom_jitter(width=0.25,pch=4,alpha=0.3) +
-  scale_y_continuous(limits = c(0,1.4),name="Mean nuclear\nEU intensity",expand = c(0,0)) +
+  scale_y_continuous(limits = c(0,1.8),name="Mean nuclear\nRPB1 intensity",expand = c(0,0)) +
   theme_bw(base_size = 8) + 
   scale_color_manual(values = c("grey")) +
   scale_fill_manual(values = c("grey")) +
@@ -508,9 +509,9 @@ no_EU <- no_EU_well_summaries %>%
         panel.grid = element_blank(),
         legend.key.size = unit(2.5,"mm"))
 
-with_EU + no_EU + plot_layout(widths=c(2,1),guides="collect")
+with_primary + no_primary + plot_layout(widths=c(2,1),guides="collect")
 
-ggsave("PLOTS/EU_barplots_by_siRNA.pdf",width=6,height=4,units="cm")
+ggsave("PLOTS/IF_barplots_by_siRNA.pdf",width=6,height=4,units="cm")
 
 ```
 
@@ -528,8 +529,8 @@ well_summaries %>%
 
 ```{r save_summaries}
 
-write_csv(x = well_summaries,file = "SUMMARIES/siRNA_EU_well_summaries.csv")
-write_csv(x = overall_summaries,file = "SUMMARIES/siRNA_EU_overall_summaries.csv")
+write_csv(x = well_summaries,file = "SUMMARIES/siRNA_EU_IF_well_summaries.csv")
+write_csv(x = overall_summaries,file = "SUMMARIES/siRNA_EU_IF_overall_summaries.csv")
 
 ```
 
