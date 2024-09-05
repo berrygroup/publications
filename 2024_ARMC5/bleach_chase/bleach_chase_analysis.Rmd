@@ -904,11 +904,13 @@ model_fits <- tibble(summary(emm_out)$emtrends) %>%
          upper.CL_new=-lower.CL,
          lower.CL_new=-upper.CL,
          upper.CL=upper.CL_new,
-         lower.CL=lower.CL_new) %>%
+         lower.CL=lower.CL_new,
+         timepoint_h.trend_relative_error=(timepoint_h.trend - lower.CL)/timepoint_h.trend) %>%
   select(-c(upper.CL_new,lower.CL_new)) %>%
   mutate(recovery_half_life_estimate=log(2)/timepoint_h.trend,
-         recovery_half_life_lower.CL=log(2)/upper.CL,
-         recovery_half_life_upper.CL=log(2)/lower.CL) %>%
+         recovery_half_life_error=recovery_half_life_estimate*timepoint_h.trend_relative_error,
+         recovery_half_life_lower.CL=recovery_half_life_estimate-recovery_half_life_error,
+         recovery_half_life_upper.CL=recovery_half_life_estimate+recovery_half_life_error) %>%
   mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")))
 model_fits
 
@@ -1018,11 +1020,11 @@ summary(emm_out_bleach)
 
 cell_count_model_fits <- tibble(summary(emm_out_bleach)$emtrends) %>%
   mutate(dilution_rate=timepoint_h.trend,
-         dilution_rate_upper.CL=upper.CL,
-         dilution_rate_lower.CL=lower.CL,
+         dilution_rate_relative_error=(timepoint_h.trend-lower.CL)/timepoint_h.trend,
          cell_cycle_duration=log(2)/dilution_rate,
-         cell_cycle_duration_upper.CL=log(2)/dilution_rate_lower.CL,
-         cell_cycle_duration_lower.CL=log(2)/dilution_rate_upper.CL) %>%
+         cell_cycle_duration_error=dilution_rate_relative_error*cell_cycle_duration,
+         cell_cycle_duration_lower.CL=cell_cycle_duration-cell_cycle_duration_error,
+         cell_cycle_duration_upper.CL=cell_cycle_duration+cell_cycle_duration_error) %>%
   mutate(bleach_or_control=factor(bleach_or_control,levels=c("control","bleach")))
 
 cell_count_model_fits %>%
@@ -1078,7 +1080,7 @@ $$
 \delta k_\text{deg.} = \sqrt{{\delta k_\text{removal}}^2 + {\delta k_\text{dil.}}^2}
 $$
 
-And from this, convert to an (asymmetric) estimated protein half-life range from $\ln(2)/(k_\text{deg.} + \delta k_\text{deg.})$ to $\ln(2)/(k_\text{deg.} - \delta k_\text{deg.})$.
+We convert this to an error in half life, keeping the same relative error.
 
 
 ```{r correct_for_dilution,fig.height=3.5,fig.width=4}
@@ -1092,10 +1094,12 @@ combined_model_fits <- cell_count_model_fits %>%
   mutate(timepoint_h.trend_degradation = timepoint_h.trend_removal - timepoint_h.trend_dilution,
          timepoint_h.trend_removal_error = upper.CL_removal - timepoint_h.trend_removal,
          timepoint_h.trend_dilution_error = upper.CL_dilution - timepoint_h.trend_dilution,
-         timepoint_h.trend_degradation_error = sqrt(timepoint_h.trend_removal_error^2 + timepoint_h.trend_dilution_error^2)) %>%
+         timepoint_h.trend_degradation_error = sqrt(timepoint_h.trend_removal_error^2 + timepoint_h.trend_dilution_error^2),
+         timepoint_h.trend_degradation_error_relative = timepoint_h.trend_degradation_error / timepoint_h.trend_degradation) %>%
   mutate(corrected_half_life=log(2)/timepoint_h.trend_degradation,
-         corrected_half_life_lower.CL=log(2)/(timepoint_h.trend_degradation+timepoint_h.trend_degradation_error),
-         corrected_half_life_upper.CL=log(2)/(timepoint_h.trend_degradation-timepoint_h.trend_degradation_error))
+         corrected_half_life_error=timepoint_h.trend_degradation_error_relative*corrected_half_life,
+         corrected_half_life_lower.CL=corrected_half_life-corrected_half_life_error,
+         corrected_half_life_upper.CL=corrected_half_life+corrected_half_life_error)
 
 p_removal <- combined_model_fits %>%
   mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5"))) %>%
@@ -1160,9 +1164,9 @@ combined_model_fits %>%
   mutate(siRNA=factor(siRNA,levels=c("Scrambled","ARMC5")),
          siRNA=fct_recode(siRNA,`Scrambled\nsiRNA` = "Scrambled",`ARMC5\nsiRNA` = "ARMC5")) %>%
   ggplot(aes(x=siRNA,y=corrected_half_life)) + 
-  geom_col(aes(fill=siRNA),col=NA,alpha=0.4) + 
-  geom_point(aes(col=siRNA),size=0.75) + 
+  #geom_col(aes(fill=siRNA),col=NA,alpha=0.4) + 
   geom_errorbar(aes(col=siRNA,ymin=corrected_half_life_lower.CL,ymax=corrected_half_life_upper.CL),width=0.2) +
+  geom_point(aes(col=siRNA),size=2,pch=21,fill="white",stroke=1) + 
   scale_y_continuous(name="mCherry-RPB1\nhalf-life (h)",limits = c(0,14),expand=c(0,0)) +
   scale_color_manual(values = c(wt_col,armc5_col)) +
   scale_fill_manual(values = c(wt_col,armc5_col)) +
@@ -1253,7 +1257,7 @@ expected_change_error <- expected_change*error_propagation$relative_propagated_e
 
 ```
 
-Change in degradation rate of `r c` would be predicted to give a change in protein concentration of $1/c$ = `r expected_change` (95% confidence interval: `r round(expected_change - expected_change_error,2)`-`r round(expected_change + expected_change_error,2)`)
+Change in degradation rate of `r c` would be predicted to give a change in protein concentration of $1/c$ = `r expected_change` $\pm$ `r round(expected_change_error,2)`.
 
 Now calculate the mCherry-POLR2A fold-change seen in these experiments.
 
