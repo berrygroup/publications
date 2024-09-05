@@ -1166,7 +1166,7 @@ combined_model_fits %>%
   ggplot(aes(x=siRNA,y=corrected_half_life)) + 
   #geom_col(aes(fill=siRNA),col=NA,alpha=0.4) + 
   geom_errorbar(aes(col=siRNA,ymin=corrected_half_life_lower.CL,ymax=corrected_half_life_upper.CL),width=0.2) +
-  geom_point(aes(col=siRNA),size=2,pch=21,fill="white",stroke=1) + 
+  geom_point(aes(col=siRNA),size=0.8,pch=21,fill="white",stroke=0.5) + 
   scale_y_continuous(name="mCherry-RPB1\nhalf-life (h)",limits = c(0,14),expand=c(0,0)) +
   scale_color_manual(values = c(wt_col,armc5_col)) +
   scale_fill_manual(values = c(wt_col,armc5_col)) +
