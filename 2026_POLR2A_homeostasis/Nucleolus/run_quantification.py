@@ -43,7 +43,7 @@ def process_single_site(
 
     # load nucleoplasm probability image
     nucleoplasm_prob = AICSImage(
-        str(probmap_dir) + "/" + str(Path(input_file).stem) + "_Probabilities.tiff"
+        str(probmap_dir) + "/" + Path(Path(input_file).stem).stem + "_Probabilities.tiff"
     )
 
     # check probability map is 8-bit as expected (threshold of 128 assumes uint8)
@@ -71,16 +71,13 @@ def process_single_site(
     nucleoplasm_labels = erode_labels(nucleoplasm_labels, selem)
 
     # convert to AICSImage
-    nucleoplasm_image = AICSImage(
-        nucleoplasm_labels[np.newaxis, np.newaxis, np.newaxis, :, :],
-        dim_order="TCZYX",
-        channel_names=["Nucleoplasm"],
-        pixel_sizes=intensity_image.PhysicalPixelSizes,
+    all_labels = AICSImage(
+        np.stack([nucleus_labels, nucleoplasm_labels], axis=0).astype(np.int32),
+        dim_order="CYX",
+        channel_names=["Nucleus", "Nucleoplasm"],
+        pixel_sizes=intensity_image.physical_pixel_sizes,
     )
 
-    all_labels = concatenate_images(
-        [labels, nucleoplasm_image], axis="C", order="append"
-    )
     all_labels.save(
         str(label_image_output_dir) + "/labels_" + str(Path(input_file).name)
     )
