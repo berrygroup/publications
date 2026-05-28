@@ -1,79 +1,112 @@
 import os
 from glob import glob
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
 from aicsimageio import AICSImage
-
-from blimp.processing.quantify import quantify
 from blimp.preprocessing.illumination_correction import IlluminationCorrection
-
+from blimp.processing.quantify import quantify
+from blimp.utils import concatenate_images
 from skimage import measure
+from skimage.morphology import binary_erosion, disk
 
-def process_single_site(input_file,input_dir,label_image_dir,features_dir,illumcorr_file):
+
+def process_single_site(
+    input_file, input_dir, label_image_dir, probmap_dir, features_dir, illumcorr_file
+):
 
     # load intensity image
     intensity_image = AICSImage(input_dir / input_file)
-    illumination_correction = IlluminationCorrection(
-        from_file=illumcorr_file
-    )
+    illumination_correction = IlluminationCorrection(from_file=illumcorr_file)
     intensity_image_corrected = illumination_correction.correct(intensity_image)
+
+    def erode_labels(label_img, selem):
+        """Erode each label independently so touching labels separate at their shared boundary."""
+        out = np.zeros_like(label_img)
+        for lbl in np.unique(label_img):
+            if lbl == 0:
+                continue
+            out[binary_erosion(label_img == lbl, selem)] = lbl
+        return out
 
     # load corresponding label image
     labels = AICSImage(str(label_image_dir) + "/labels_" + str(Path(input_file).name))
 
+    # load nucleoplasm probability image
+    nucleoplasm_prob = AICSImage(
+        str(probmap_dir) + "/" + str(Path(input_file).stem) + "_Probabilities.tiff"
+    )
+
+    # threshold nucleoplasm probability image to create a mask for the nucleoplasm
+    nucleoplasm_mask = nucleoplasm_prob.get_image_data("YX") > 128
+
+    # first channel of labels = nucleus label image (YX), preserving label IDs
+    nucleus_labels = labels.get_image_data("YX", C=0)
+
+    selem = disk(1)
+
+    # erode the nucleus (per-label, so touching nuclei separate at the shared seam)
+    eroded_nuclei = erode_labels(nucleus_labels, selem)
+
+    # mask the eroded nucleus by the nucleoplasm mask
+    nucleoplasm_labels = np.where(nucleoplasm_mask, eroded_nuclei, 0)
+
+    # erode again to ensure no overlap with nucleolus
+    nucleoplasm_labels = erode_labels(nucleoplasm_labels, selem)
+
+    # convert to AICSImage
+    nucleoplasm_image = AICSImage(
+        nucleoplasm_labels,
+        channel_names=["Nucleoplasm"],
+        pixel_sizes=intensity_image.PhysicalPixelSizes,
+    )
+
+    all_labels = concatenate_images([nucleus_labels, nucleoplasm_labels])
+
     # quantify
     features = quantify(intensity_image_corrected, labels)
 
-    features[0].to_csv(features_dir / Path("nuclei_" + Path(input_file).stem + ".csv"), index=False)
+    features[0].to_csv(
+        features_dir / Path("nuclei_" + Path(input_file).stem + ".csv"), index=False
+    )
 
     return
 
 
-def select_input_file(input_dir,index,extension="tiff"):
+def select_input_file(input_dir, index, extension="tiff"):
     input_files = glob(str(input_dir / ("*." + extension)))
     input_files.sort()
     print(input_files[index])
-    return(input_files[index])
+    return input_files[index]
 
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
-    
+
     parser = ArgumentParser(prog="run_quantification_spots")
 
-    parser.add_argument(
-        "--id",
-        type=int,
-        help="batch id",
-        required=True
-    )
-    parser.add_argument(
-        "--input_dir"
-    )
-    parser.add_argument(
-        "--label_image_dir"
-    )
-    parser.add_argument(
-        "--features_dir"
-    )
+    parser.add_argument("--id", type=int, help="batch id", required=True)
+    parser.add_argument("--input_dir")
+    parser.add_argument("--label_image_dir")
+    parser.add_argument("--features_dir")
     parser.add_argument(
         "--illumination_correction_file",
     )
-    
+
     args = parser.parse_args()
-    input_file = select_input_file(Path(args.input_dir),index=args.id)
+    input_file = select_input_file(Path(args.input_dir), index=args.id)
     input_dir = Path(args.input_dir)
     label_image_dir = Path(args.label_image_dir)
     features_dir = Path(args.features_dir)
     illumcorr_file = Path(args.illumination_correction_file)
 
-
-    if not features_dir.exists(): 
+    if not features_dir.exists():
         features_dir.mkdir()
     if not illumcorr_file.exists():
         print("Illumination correction file does not exist")
         exit(-1)
 
-    process_single_site(input_file,input_dir,label_image_dir,features_dir,illumcorr_file)
-    
+    process_single_site(
+        input_file, input_dir, label_image_dir, features_dir, illumcorr_file
+    )
