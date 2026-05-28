@@ -13,7 +13,13 @@ from skimage.morphology import binary_erosion, disk
 
 
 def process_single_site(
-    input_file, input_dir, label_image_dir, probmap_dir, features_dir, illumcorr_file
+    input_file,
+    input_dir,
+    label_image_input_dir,
+    label_image_output_dir,
+    probmap_dir,
+    features_dir,
+    illumcorr_file,
 ):
 
     # load intensity image
@@ -31,15 +37,24 @@ def process_single_site(
         return out
 
     # load corresponding label image
-    labels = AICSImage(str(label_image_dir) + "/labels_" + str(Path(input_file).name))
+    labels = AICSImage(
+        str(label_image_input_dir) + "/labels_" + str(Path(input_file).name)
+    )
 
     # load nucleoplasm probability image
     nucleoplasm_prob = AICSImage(
         str(probmap_dir) + "/" + str(Path(input_file).stem) + "_Probabilities.tiff"
     )
 
+    # check probability map is 8-bit as expected (threshold of 128 assumes uint8)
+    if nucleoplasm_prob.dtype != np.uint8:
+        raise ValueError(
+            f"Expected uint8 probability map, got {nucleoplasm_prob.dtype}. "
+            "Adjust the threshold accordingly."
+        )
+
     # threshold nucleoplasm probability image to create a mask for the nucleoplasm
-    nucleoplasm_mask = nucleoplasm_prob.get_image_data("YX") > 128
+    nucleoplasm_mask = nucleoplasm_prob.get_image_data("YX") > 180
 
     # first channel of labels = nucleus label image (YX), preserving label IDs
     nucleus_labels = labels.get_image_data("YX", C=0)
@@ -57,19 +72,28 @@ def process_single_site(
 
     # convert to AICSImage
     nucleoplasm_image = AICSImage(
-        nucleoplasm_labels,
+        nucleoplasm_labels[np.newaxis, np.newaxis, np.newaxis, :, :],
+        dim_order="TCZYX",
         channel_names=["Nucleoplasm"],
         pixel_sizes=intensity_image.PhysicalPixelSizes,
     )
 
-    all_labels = concatenate_images([nucleus_labels, nucleoplasm_labels])
+    all_labels = concatenate_images(
+        [labels, nucleoplasm_image], axis="C", order="append"
+    )
+    all_labels.save(
+        str(label_image_output_dir) + "/labels_" + str(Path(input_file).name)
+    )
 
     # quantify
-    features = quantify(intensity_image_corrected, labels)
-
-    features[0].to_csv(
-        features_dir / Path("nuclei_" + Path(input_file).stem + ".csv"), index=False
+    features = quantify(
+        intensity_image=intensity_image_corrected,
+        label_image=all_labels,
+        parent_object=0,
+        aggregate=True,
     )
+
+    features.to_csv(features_dir / Path(Path(input_file).stem + ".csv"), index=False)
 
     return
 
@@ -88,7 +112,9 @@ if __name__ == "__main__":
 
     parser.add_argument("--id", type=int, help="batch id", required=True)
     parser.add_argument("--input_dir")
-    parser.add_argument("--label_image_dir")
+    parser.add_argument("--label_image_input_dir")
+    parser.add_argument("--label_image_output_dir")
+    parser.add_argument("--probmap_dir")
     parser.add_argument("--features_dir")
     parser.add_argument(
         "--illumination_correction_file",
@@ -97,7 +123,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     input_file = select_input_file(Path(args.input_dir), index=args.id)
     input_dir = Path(args.input_dir)
-    label_image_dir = Path(args.label_image_dir)
+    label_image_input_dir = Path(args.label_image_input_dir)
+    label_image_output_dir = Path(args.label_image_output_dir)
+    probmap_dir = Path(args.probmap_dir)
     features_dir = Path(args.features_dir)
     illumcorr_file = Path(args.illumination_correction_file)
 
@@ -108,5 +136,11 @@ if __name__ == "__main__":
         exit(-1)
 
     process_single_site(
-        input_file, input_dir, label_image_dir, features_dir, illumcorr_file
+        input_file,
+        input_dir,
+        label_image_input_dir,
+        label_image_output_dir,
+        probmap_dir,
+        features_dir,
+        illumcorr_file,
     )
