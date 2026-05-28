@@ -595,7 +595,7 @@ to_plot_IF %>%
     ymax=mean_Nuclei_intensity_mean_488_plate_normalised+sd_Nuclei_intensity_mean_488_plate_normalised),
     width=0.4) +
   geom_point(data=to_plot_IF_summary, aes(y=mean_Nuclei_intensity_mean_488_plate_normalised),size=0.75) +
-  scale_y_continuous(name="Mean nuclear\nmCherry-RPB1\nintensity",limits = c(0,2),expand = c(0,0)) +
+  scale_y_continuous(name="Mean nuclear\nmCherry-RPB1\nintensity",limits = c(0,2.2),expand = c(0,0)) +
   scale_fill_manual(values = c(wt_col,armc5_col,ints8_col,armc5_ints8_col)) +
   scale_colour_manual(values = c(wt_col,armc5_col,ints8_col,armc5_ints8_col)) +
   geom_jitter(pch=4,alpha=0.4,position = position_jitter(width = 0.2),size=0.4) +
@@ -633,8 +633,69 @@ filter(to_plot_IF,
         legend.key.size = unit(3,"mm"))
 ggsave(filename = "PLOTS/mCherry_barplots_IF_by_siRNA_subset.pdf",width=5,height=2)
 
+filter(to_plot_IF,
+       siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II")) %>%
+  ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_488_plate_normalised,fill=siRNA_colour,col=siRNA_colour)) + 
+  geom_col(data=filter(to_plot_IF_summary,siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II")),
+           aes(y=mean_Nuclei_intensity_mean_488_plate_normalised),
+           col=NA,alpha=0.4,width=0.8) +
+  geom_errorbar(data=filter(to_plot_IF_summary,siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II")),
+                aes(y=mean_Nuclei_intensity_mean_488_plate_normalised,
+                    ymin=mean_Nuclei_intensity_mean_488_plate_normalised-sd_Nuclei_intensity_mean_488_plate_normalised,
+                    ymax=mean_Nuclei_intensity_mean_488_plate_normalised+sd_Nuclei_intensity_mean_488_plate_normalised),
+                width=0.4) +
+  geom_point(data=filter(to_plot_IF_summary,siRNA %in% c("Scrambled","ARMC5 pool","INTS8 pool","ARMC5 + INTS8 (pools)") & Primary %in% c("Total Pol II","pSer5 Pol II")),
+             aes(y=mean_Nuclei_intensity_mean_488_plate_normalised),size=0.75) +
+  scale_y_continuous(name="Mean nuclear\nintensity",limits = c(0,2.2),expand = c(0,0)) +
+  scale_fill_manual(values = c(wt_col,armc5_col,ints8_col,armc5_ints8_col)) +
+  scale_colour_manual(values = c(wt_col,armc5_col,ints8_col,armc5_ints8_col)) +
+  geom_jitter(pch=4,alpha=0.4,position = position_jitter(width = 0.2),size=0.4) +
+  facet_grid(.~Primary_label) +
+  theme_bw(base_size = 8) +
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
+        axis.title.x = element_blank(),
+        panel.grid = element_blank(),
+        legend.title = element_blank(),
+        legend.key.size = unit(3,"mm"))
+ggsave(filename = "PLOTS/mCherry_barplots_IF_by_siRNA_subset_total_ser5P.pdf",width=3.2,height=2)
+
+
 ```
 
+```{r check_ser5P}
+
+p <- dat_non_border %>%
+  filter(Primary=="pSer5 Pol II" & imaging_date=="20240328") %>%
+  filter(siRNA %in% c("ARMC5 pool","ARMC5+INTS8","INTS8 pool","Scrambled")) %>%
+  ggplot(aes(y=Nuclei_area,x=Nuclei_intensity_mean_488,col=siRNA,group=interaction(well_name,siRNA,imaging_date))) +
+  geom_point(alpha=0.1) +
+  ggtitle("20240328")
+ggExtra::ggMarginal(p,groupColour = T,groupFill = T)
+
+p <- dat_non_border %>%
+  filter(Primary=="pSer5 Pol II" & imaging_date=="20240404") %>%
+  filter(siRNA %in% c("ARMC5 pool","ARMC5+INTS8","INTS8 pool","Scrambled")) %>%
+  ggplot(aes(y=Nuclei_area,x=Nuclei_intensity_mean_488,col=siRNA,group=interaction(well_name,siRNA,imaging_date))) +
+  geom_point(alpha=0.1) +
+  ggtitle("20240404")
+ggExtra::ggMarginal(p,groupColour = T,groupFill = T)
+
+p <- dat_non_border %>%
+  filter(Primary=="pSer5 Pol II" & imaging_date=="20240701") %>%
+  filter(siRNA %in% c("ARMC5 pool","ARMC5+INTS8","INTS8 pool","Scrambled")) %>%
+  ggplot(aes(y=Nuclei_area,x=Nuclei_intensity_mean_488,col=siRNA,group=interaction(well_name,siRNA,imaging_date))) +
+  geom_point(alpha=0.1) +
+  ggtitle("20240701")
+ggExtra::ggMarginal(p,groupColour = T,groupFill = T)
+
+dat_non_border %>%
+  filter(Primary=="pSer5 Pol II" ) %>%
+    filter(siRNA %in% c("ARMC5 pool","ARMC5+INTS8","INTS8 pool","Scrambled")) %>%
+  ggplot(aes(x=siRNA,y=Nuclei_intensity_mean_488,col=siRNA,group=well_name)) + geom_boxplot() +
+  facet_wrap(~imaging_date, scales = "free") +
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
+
+```
 
 ```{r check_plate_layouts, fig.width=9,fig.height=3}
 
