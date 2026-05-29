@@ -72,9 +72,9 @@ def process_single_site(
 
     # convert to AICSImage
     all_labels = AICSImage(
-        np.stack([nucleus_labels, nucleoplasm_labels], axis=0).astype(np.int32),
+        np.stack([nucleus_labels, eroded_nuclei, nucleoplasm_labels], axis=0).astype(np.int32),
         dim_order="CYX",
-        channel_names=["Nucleus", "Nucleoplasm"],
+        channel_names=["Nucleus", "ErodedNucleus", "Nucleoplasm"],
         pixel_sizes=intensity_image.physical_pixel_sizes,
     )
 
