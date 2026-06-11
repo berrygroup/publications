@@ -1,0 +1,241 @@
+﻿WELL,CELL,DRUG,DRUG TIME MINUTES,PRIMARY,SECONDARY
+C03,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C04,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C05,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C06,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C07,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C08,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C09,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C10,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C11,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C12,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C13,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C14,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C15,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C16,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C17,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C18,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C19,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C20,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C21,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+C22,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D03,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D04,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D05,HCT116 mChPOLR2A Clone 2,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D06,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D07,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D08,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D09,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D11,HCT116 mChPOLR2A Clone 2,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D12,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D14,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D15,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D17,HCT116 mChPOLR2A Clone 2,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D18,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D20,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D21,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+D22,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E03,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E04,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E05,HCT116 mChPOLR2A Clone 2,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E06,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E07,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E08,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E09,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E11,HCT116 mChPOLR2A Clone 2,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E12,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E14,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E15,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E17,HCT116 mChPOLR2A Clone 2,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E18,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E20,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E21,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+E22,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F03,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F04,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F05,HCT116 mChPOLR2A Clone 2,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F06,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F07,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F08,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F09,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F11,HCT116 mChPOLR2A Clone 2,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F12,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F14,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F15,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F17,HCT116 mChPOLR2A Clone 2,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F18,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F20,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F21,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+F22,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G03,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G04,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G05,HCT116 mChPOLR2A Clone 2,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G06,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G07,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G08,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G09,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G11,HCT116 mChPOLR2A Clone 2,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G12,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G14,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G15,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G17,HCT116 mChPOLR2A Clone 2,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G18,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G20,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G21,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+G22,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H03,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H04,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H05,HCT116 mChPOLR2A Clone 2,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H06,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H07,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H08,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H09,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H11,HCT116 mChPOLR2A Clone 2,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H12,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H14,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H15,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H17,HCT116 mChPOLR2A Clone 2,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H18,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H20,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H21,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+H22,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I03,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I04,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I06,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I07,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I08,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I09,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I11,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I12,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I14,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I15,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I17,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I18,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I20,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I21,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+I22,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J03,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J04,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J05,HCT116 mChPOLR2A Clone 2,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J06,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J07,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J08,HCT116 mChPOLR2A Clone 2,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J09,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J11,HCT116 mChPOLR2A Clone 2,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J12,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J14,HCT116 mChPOLR2A Clone 2,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J15,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J17,HCT116 mChPOLR2A Clone 2,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J18,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J20,HCT116 mChPOLR2A Clone 2,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J21,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+J22,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K03,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K04,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K05,HCT116 mChPOLR2A Clone 2,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K06,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K07,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K08,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K09,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,30,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K11,HCT116 mChPOLR2A Clone 2,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K12,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K14,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K15,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K17,HCT116 mChPOLR2A Clone 2,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K18,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K20,HCT116 mChPOLR2A Clone 2,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K21,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+K22,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L03,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L04,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L05,HCT116 mChPOLR2A Clone 2,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L06,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L07,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L08,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L09,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,60,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L11,HCT116 mChPOLR2A Clone 2,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L12,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L14,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L15,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,480,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L17,HCT116 mChPOLR2A Clone 2,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L18,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L20,HCT116 mChPOLR2A Clone 2,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L21,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Triptolide 1 µM,240,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+L22,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M03,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M04,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M05,HCT116 mChPOLR2A Clone 2,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M06,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M07,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M08,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M09,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,120,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M11,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M12,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M14,HCT116 mChPOLR2A Clone 2,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M15,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,10 µM 5PhIAA,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M17,HCT116 mChPOLR2A Clone 2,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M18,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M20,HCT116 mChPOLR2A Clone 2,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M21,HCT116 OsTIRF74G mAC-POLR2A-delHyg Clone 5,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+M22,HCT116 OsTIRF74G,Vehicle,1440,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+N03,HCT116 OsTIRF74G,No addition,No addition,No primary,Alexa647 goat anti-mouse
+N04,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+N05,HCT116 OsTIRF74G,No addition,No addition,No primary,Alexa647 goat anti-mouse
+N06,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+N07,HCT116 OsTIRF74G,No addition,No addition,No primary,Alexa647 goat anti-mouse
+N08,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+N09,HCT116 OsTIRF74G,No addition,No addition,No primary,Alexa647 goat anti-mouse
+N10,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+N11,HCT116 OsTIRF74G,No addition,No addition,No primary,Alexa647 goat anti-mouse
+N12,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+N13,HCT116 OsTIRF74G,No addition,No addition,No primary,Alexa647 goat anti-mouse
+N14,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+N15,HCT116 OsTIRF74G,No addition,No addition,No primary,Alexa647 goat anti-mouse
+N16,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+N17,HCT116 OsTIRF74G,No addition,No addition,No primary,Alexa647 goat anti-mouse
+N18,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+N19,HCT116 OsTIRF74G,No addition,No addition,No primary,Alexa647 goat anti-mouse
+N20,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse
+N21,HCT116 OsTIRF74G,No addition,No addition,No primary,Alexa647 goat anti-mouse
+N22,HCT116 OsTIRF74G,No addition,No addition,Santa Cruz mouse anti-RPB1 (F12),Alexa647 goat anti-mouse

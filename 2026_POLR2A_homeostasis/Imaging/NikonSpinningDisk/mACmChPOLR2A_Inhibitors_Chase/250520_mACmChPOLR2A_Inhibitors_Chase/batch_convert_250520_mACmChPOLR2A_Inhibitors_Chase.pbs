@@ -1,0 +1,31 @@
+#!/bin/bash
+
+### Splits nd2 files into standard OME-TIFF format
+
+#PBS -N ConvertND2
+#PBS -l select=1:ncpus=1:mem=128gb
+#PBS -l walltime=04:00:00
+#PBS -o /home/z3536241/src/blana/Alex/PBS/log/
+#PBS -e /home/z3536241/src/blana/Alex/PBS/log/
+#PBS -M None
+#PBS -m ae
+
+### The following parameter is modulated at runtime to specify the
+### batch number on each node. Batches should run from zero to N_BATCHES-1
+### to process all files
+
+#PBS -J 0-199
+
+###---------------------------------------------------------------------------
+
+INPUT_DIR="/srv/scratch/berrylab/z3536241/NikonSpinningDisk/250520_mACmChPOLR2A_Inhibitors_Chase/20250525_190608_221"
+OUTPUT_DIR="/srv/scratch/berrylab/z3536241/NikonSpinningDisk/250520_mACmChPOLR2A_Inhibitors_Chase/20250525_190608_221/OME-TIFF"
+
+source /home/z3536241/.bashrc
+conda activate berrylab-py310
+
+cd $PBS_O_WORKDIR
+
+python /srv/scratch/z3536241/src/blimp/blimp/preprocessing/nd2_to_ome_tiff.py -i "$INPUT_DIR" -o "$OUTPUT_DIR" --batch 200  ${PBS_ARRAY_INDEX} --mip -y down
+
+conda deactivate

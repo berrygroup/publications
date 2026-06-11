@@ -1,0 +1,241 @@
+﻿WELL,CELL,DRUG,PRIMARY,SECONDARY,SEEDING_DENSITY
+C03,HCT116,No treatment,No primary,No primary,500
+C04,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+C05,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+C06,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+C07,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+C08,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+C09,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+C10,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+C11,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+C12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+C13,HCT116,No treatment,No primary,Goat anti-rat Alexa488+,750
+C14,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+C15,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+C16,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+C17,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+C18,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+C19,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+C20,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+C21,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+C22,HCT116,No treatment,No primary,No primary,750
+D03,HCT116,No treatment,No primary,No primary,500
+D04,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+D05,HCT116,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+D06,HCT116,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+D07,HCT116,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+D08,HCT116,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+D09,HCT116,Palbociclib 1 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+D10,HCT116,Roscovitine 10 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+D11,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+D12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+D13,HCT116,No treatment,No primary,Goat anti-rat Alexa488+,750
+D14,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+D15,HCT116,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+D16,HCT116,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+D17,HCT116,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+D18,HCT116,Vehicle,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+D19,HCT116,Palbociclib 1 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+D20,HCT116,Roscovitine 10 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+D21,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+D22,HCT116,No treatment,No primary,No primary,750
+E03,HCT116,No treatment,No primary,No primary,500
+E04,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+E05,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+E06,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+E07,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+E08,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+E09,HCT116 mCherryPOLR2A Clone 2,Vehicle,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+E10,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+E11,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+E12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+E13,HCT116,No treatment,No primary,Goat anti-rat Alexa488+,750
+E14,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+E15,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+E16,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+E17,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+E18,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+E19,HCT116 mCherryPOLR2A Clone 2,Vehicle,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+E20,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+E21,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+E22,HCT116,No treatment,No primary,No primary,750
+F03,HCT116,No treatment,No primary,No primary,500
+F04,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+F05,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+F06,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+F07,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+F08,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+F09,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+F10,HCT116 mCherryPOLR2A Clone 2,Vehicle,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+F11,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+F12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+F13,HCT116,No treatment,No primary,Goat anti-mouse Alexa488+,750
+F14,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+F15,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+F16,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+F17,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+F18,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+F19,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+F20,HCT116 mCherryPOLR2A Clone 2,Vehicle,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+F21,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+F22,HCT116,No treatment,No primary,No primary,750
+G03,HCT116,No treatment,No primary,No primary,500
+G04,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+G05,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+G06,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+G07,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+G08,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+G09,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+G10,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+G11,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+G12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+G13,HCT116,No treatment,No primary,Goat anti-mouse Alexa488+,750
+G14,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+G15,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+G16,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+G17,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+G18,HCT116 mCherryPOLR2A Clone 2,Vehicle,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+G19,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+G20,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+G21,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+G22,HCT116,No treatment,No primary,No primary,750
+H03,HCT116,No treatment,No primary,No primary,500
+H04,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+H05,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+H06,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+H07,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+H08,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+H09,HCT116 mCherryPOLR2A Clone 2,Vehicle,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+H10,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+H11,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+H12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+H13,HCT116,No treatment,No primary,Goat anti-mouse Alexa488+,750
+H14,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+H15,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+H16,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+H17,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+H18,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+H19,HCT116 mCherryPOLR2A Clone 2,Vehicle,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+H20,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+H21,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+H22,HCT116,No treatment,No primary,No primary,750
+I03,HCT116,No treatment,No primary,No primary,500
+I04,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+I05,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+I06,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+I07,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+I08,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+I09,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+I10,HCT116 mCherryPOLR2A Clone 2,Vehicle,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+I11,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+I12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+I13,HCT116,No treatment,No primary,Goat anti-mouse Alexa488+,750
+I14,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+I15,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+I16,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+I17,HCT116 mCherryPOLR2A Clone 2,Vehicle,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+I18,HCT116 mCherryPOLR2A Clone 2,Palbociclib 1 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+I19,HCT116 mCherryPOLR2A Clone 2,Roscovitine 10 µM,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+I20,HCT116 mCherryPOLR2A Clone 2,Vehicle,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+I21,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+I22,HCT116,No treatment,No primary,No primary,750
+J03,HCT116,No treatment,No primary,No primary,500
+J04,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+J05,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+J06,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+J07,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+J08,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+J09,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+J10,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+J11,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+J12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+J13,HCT116,No treatment,No primary,Goat anti-mouse Alexa488+,750
+J14,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+J15,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+J16,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+J17,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+J18,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+J19,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+J20,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+J21,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+J22,HCT116,No treatment,No primary,No primary,750
+K03,HCT116,No treatment,No primary,No primary,500
+K04,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+K05,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+K06,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+K07,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+K08,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+K09,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+K10,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+K11,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+K12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+K13,HCT116,No treatment,No primary,Goat anti-mouse Alexa488+,750
+K14,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+K15,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+K16,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+K17,HCT116 mCherryPOLR2A Clone 2,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+K18,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+K19,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+K20,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+K21,HCT116 mCherryPOLR2A Clone 2,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+K22,HCT116,No treatment,No primary,No primary,750
+L03,HCT116,No treatment,No primary,No primary,500
+L04,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+L05,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+L06,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+L07,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+L08,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+L09,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+L10,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+L11,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+L12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+L13,HCT116,No treatment,No primary,Goat anti-mouse Alexa488+,750
+L14,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+L15,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+L16,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+L17,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+L18,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+L19,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+L20,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+L21,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+L22,HCT116,No treatment,No primary,No primary,750
+M03,HCT116,No treatment,No primary,No primary,500
+M04,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+M05,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+M06,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+M07,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+M08,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+M09,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+M10,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+M11,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+M12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+M13,HCT116,No treatment,No primary,Goat anti-mouse Alexa488+,750
+M14,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+M15,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+M16,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+M17,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+M18,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+M19,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+M20,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+M21,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+M22,HCT116,No treatment,No primary,No primary,750
+N03,HCT116,No treatment,No primary,No primary,500
+N04,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+N05,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+N06,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,500
+N07,HCT116,No treatment,No primary,Goat anti-rat Alexa488+,500
+N08,HCT116,No treatment,No primary,Goat anti-rat Alexa488+,500
+N09,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+N10,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+N11,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+N12,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,500
+N13,HCT116,No treatment,No primary,Goat anti-mouse Alexa488+,750
+N14,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+N15,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+N16,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+N17,HCT116,No treatment,pSer2 Pol II (3E10),Goat anti-rat Alexa488+,750
+N18,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+N19,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+N20,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+N21,HCT116,No treatment,Total Pol II (F12),Goat anti-mouse Alexa488+,750
+N22,HCT116,No treatment,No primary,No primary,750

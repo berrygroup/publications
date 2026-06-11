@@ -1,0 +1,19 @@
+﻿WELL,CELL,ATTO565_PROBE,ATTO633_PROBE,TREATMENT
+Well01,OsTIRF74G,POLR2B odd,POLR2B even,Vehicle
+Well02,mACPOLR2A,POLR2A intron,POLR2A even,Vehicle
+Well03,mACPOLR2A,POLR2A intron,POLR2A even,"5PhIAA, 2 hours"
+Well04,mACPOLR2A,POLR2A intron,POLR2A even,"5PhIAA, 4 hours"
+Well05,mACPOLR2A,POLR2A intron,POLR2A even,"5PhIAA, 24 hours"
+Well06,mACPOLR2A,POLR2C,POLR2B even,"5PhIAA, 24 hours"
+Well07,OsTIRF74G,POLR2A intron,POLR2A even,"5PhIAA, 24 hours"
+Well08,mAC/mChPOLR2A,No probe,POLR2A even,Vehicle
+Well09,mAC/mChPOLR2A,No probe,POLR2A even,"5PhIAA, 2 hours"
+Well10,mAC/mChPOLR2A,No probe,POLR2A even,"5PhIAA, 4 hours"
+Well11,mAC/mChPOLR2A,No probe,POLR2A even,"5PhIAA, 24 hours"
+Well12,mACPOLR2A,POLR2C,POLR2B even,Vehicle
+Well13,OsTIRF74G,POLR2B odd,POLR2A even,Vehicle
+Well14,OsTIRF74G,POLR2B odd,POLR2A even,LMB
+Well15,OsTIRF74G,POLR2B odd,POLR2A even,CB6644
+Well16,mChPOLR2A,No probe,POLR2A even,Vehicle
+Well17,mChPOLR2A,No probe,POLR2A even,LMB
+Well18,mChPOLR2A,No probe,POLR2A even,CB6644

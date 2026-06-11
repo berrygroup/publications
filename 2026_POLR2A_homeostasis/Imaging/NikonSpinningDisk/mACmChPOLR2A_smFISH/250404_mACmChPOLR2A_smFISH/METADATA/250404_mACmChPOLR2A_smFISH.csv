@@ -1,0 +1,19 @@
+﻿WELL,CELL,ATTO565_PROBE,ATTO633_PROBE,TREATMENT
+Well01,OsTIRF74G,mrcB,GAPDH,Vehicle
+Well02,OsTIRF74G,No probe,POLR2A even,Vehicle
+Well03,mChPOLR2A,No probe,POLR2A even,Vehicle
+Well04,mACPOLR2A,No probe,POLR2A even,Vehicle
+Well05,mAC/mChPOLR2A,No probe,POLR2A even,Vehicle
+Well06,OsTIRF74G,GAPDH,mrcB,Vehicle
+Well07,OsTIRF74G,POLR2B even,POLR2B odd,5PhIAA
+Well08,OsTIRF74G,No probe,POLR2A even,5PhIAA
+Well09,mChPOLR2A,No probe,POLR2A even,5PhIAA
+Well10,mACPOLR2A,No probe,POLR2A even,5PhIAA
+Well11,mAC/mChPOLR2A,No probe,POLR2A even,5PhIAA
+Well12,mACPOLR2A,POLR2A intron,POLR2A even,Vehicle
+Well13,OsTIRF74G,No hybridisation,No hybridisation,Vehicle
+Well14,OsTIRF74G,POLR2A intron,POLR2A even,5PhIAA
+Well15,mACPOLR2A,POLR2A even,POLR2B odd,5PhIAA
+Well16,mACPOLR2A,POLR2A even,POLR2B odd,Vehicle
+Well17,mACPOLR2A,POLR2A intron,POLR2A even,5PhIAA
+Well18,OsTIRF74G,No hybridisation,No hybridisation,Vehicle
