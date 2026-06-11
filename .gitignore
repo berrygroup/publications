@@ -164,7 +164,7 @@ cython_debug/
 .DS_Store
 
 # Plotting and outputs
-.svg
-.pdf
-.png
+*.svg
+*.pdf
+*.png
 
