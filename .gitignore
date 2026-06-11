@@ -162,3 +162,9 @@ cython_debug/
 #.idea/
 
 .DS_Store
+
+# Plotting and outputs
+.svg
+.pdf
+.png
+
