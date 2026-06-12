@@ -1,0 +1,33 @@
+#!/bin/bash
+
+### quantify in parallel
+
+#PBS -N batch_run_quantification
+#PBS -l select=1:ncpus=1:mem=16gb
+#PBS -l walltime=1:00:00
+#PBS -o /home/z3536241/src/blana/Alex/PBS/log/
+#PBS -e /home/z3536241/src/blana/Alex/PBS/log/
+#PBS -M a.gillis@unsw.edu.au
+#PBS -m ae
+
+### The following parameter is modulated at runtime to specify the
+### batch number on each node. Batches should run from zero to N_BATCHES-1
+### to process all files
+
+#PBS -J 0-960
+
+###---------------------------------------------------------------------------
+
+source /home/z3536241/.bashrc
+conda activate berrylab-py310
+
+cd $PBS_O_WORKDIR
+
+python /home/z3536241/src/blana/Alex/241102_mACmChPOLR2A_TotalPolII/run_quantification.py \
+  --id ${PBS_ARRAY_INDEX} \
+  --illumination_correction_file /srv/scratch/berrylab/z3536241/NikonSpinningDisk/SpinningDisk_IlluminationCorrection/202409_NikonSpinningDisk_20X_647_488_561_405/ILLUM_CORR_20X_647_488_561_405.pkl \
+  --features_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/241102_mACmChPOLR2A_TotalPolII/20241106_161810_844/OME-TIFF-MIP/QUANTIFICATION \
+  --input_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/241102_mACmChPOLR2A_TotalPolII/20241106_161810_844/OME-TIFF-MIP \
+  --output_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/241102_mACmChPOLR2A_TotalPolII/20241106_161810_844/SEGMENTATION
+
+conda deactivate

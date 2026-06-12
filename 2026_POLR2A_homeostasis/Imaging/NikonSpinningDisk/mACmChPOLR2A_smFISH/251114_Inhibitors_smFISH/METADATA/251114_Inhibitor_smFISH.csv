@@ -1,0 +1,19 @@
+﻿WELL,CELL,ATTO565_PROBE,ATTO633_PROBE,TREATMENT_1,TREATMENT_2
+Well01,OsTIRF74G,POLR2A even,POLR2B odd,Vehicle,Vehicle
+Well02,OsTIRF74G,POLR2A even,POLR2B odd,Vehicle,"ActD, 30 min"
+Well03,OsTIRF74G,POLR2A even,POLR2B odd,Vehicle,"ActD, 60 min"
+Well04,OsTIRF74G,POLR2A even,POLR2B odd,Vehicle,"ActD, 120 min"
+Well05,OsTIRF74G,POLR2A even,POLR2B odd,Vehicle,"ActD, 240 min"
+Well06,OsTIRF74G,POLR2A even,POLR2B odd,Vehicle,Vehicle
+Well07,OsTIRF74G,POLR2A even,POLR2B odd,CB6644,Vehicle
+Well08,OsTIRF74G,POLR2A even,POLR2B odd,CB6644,"ActD, 30 min"
+Well09,OsTIRF74G,POLR2A even,POLR2B odd,CB6644,"ActD, 60 min"
+Well10,OsTIRF74G,POLR2A even,POLR2B odd,CB6644,"ActD, 120 min"
+Well11,OsTIRF74G,POLR2A even,POLR2B odd,CB6644,"ActD, 240 min"
+Well12,OsTIRF74G,POLR2A even,POLR2B odd,CB6644,Vehicle
+Well13,OsTIRF74G,POLR2B even,POLR2B odd,Vehicle,No addition
+Well14,OsTIRF74G,POLR2A even,POLR2B odd,"Triptolide, 100 nM",No addition
+Well15,OsTIRF74G,POLR2A even,POLR2B odd,"Triptolide, 1 µM",No addition
+Well16,OsTIRF74G,POLR2A even,POLR2B odd,"AZD4573, 100 nM",No addition
+Well17,OsTIRF74G,POLR2A even,POLR2B odd,"AZD4573, 1 µM",No addition
+Well18,OsTIRF74G,POLR2A even,POLR2B odd,Vehicle,No addition

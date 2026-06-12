@@ -1,0 +1,241 @@
+﻿WELL,CELL,DRUG_1,DRUG_TIME_MINUTES_1,DRUG_2,DRUG_TIME_MINUTES_2
+C03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C04,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C05,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C06,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C07,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C08,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C09,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C10,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C11,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C12,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C13,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C14,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C15,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C16,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C17,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C18,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C19,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C20,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C21,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+C22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+D03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+D04,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,30
+D05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,30
+D06,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,30
+D07,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,30
+D08,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,30
+D09,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,30
+D10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,30
+D11,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,30
+D12,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,30
+D13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,30
+D14,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,30
+D15,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,30
+D16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,30
+D17,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,30
+D18,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,30
+D19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,30
+D20,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,30
+D21,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,30
+D22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+E03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+E04,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,60
+E05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,60
+E06,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,60
+E07,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,60
+E08,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,60
+E09,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,60
+E10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,60
+E11,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,60
+E12,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,60
+E13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,60
+E14,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,60
+E15,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,60
+E16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,60
+E17,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,60
+E18,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,60
+E19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,60
+E20,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,60
+E21,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,60
+E22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+F03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+F04,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,120
+F05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,120
+F06,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,120
+F07,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,120
+F08,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,120
+F09,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,120
+F10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,120
+F11,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,120
+F12,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,120
+F13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,120
+F14,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,120
+F15,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,120
+F16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,120
+F17,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,120
+F18,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,120
+F19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,120
+F20,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,120
+F21,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,120
+F22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+G03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+G04,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,240
+G05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,240
+G06,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,240
+G07,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,240
+G08,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,240
+G09,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,240
+G10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,240
+G11,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,240
+G12,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,240
+G13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,240
+G14,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,240
+G15,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,240
+G16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,240
+G17,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,240
+G18,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,240
+G19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,240
+G20,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,240
+G21,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,240
+G22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+H03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+H04,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,480
+H05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,480
+H06,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,480
+H07,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,480
+H08,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,480
+H09,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,480
+H10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,480
+H11,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,480
+H12,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,480
+H13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,480
+H14,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,480
+H15,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,480
+H16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,480
+H17,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,480
+H18,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,480
+H19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,480
+H20,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,480
+H21,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,480
+H22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+I03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+I04,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,30
+I05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,30
+I06,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,30
+I07,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,30
+I08,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,30
+I09,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,30
+I10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,30
+I11,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,30
+I12,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,30
+I13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,30
+I14,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,30
+I15,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,30
+I16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,30
+I17,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,30
+I18,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,30
+I19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,30
+I20,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,30
+I21,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,30
+I22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+J03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+J04,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,60
+J05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,60
+J06,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,60
+J07,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,60
+J08,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,60
+J09,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,60
+J10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,60
+J11,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,60
+J12,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,60
+J13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,60
+J14,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,60
+J15,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,60
+J16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,60
+J17,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,60
+J18,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,60
+J19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,60
+J20,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,60
+J21,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,60
+J22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+K03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+K04,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,120
+K05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,120
+K06,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,120
+K07,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,120
+K08,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,120
+K09,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,120
+K10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,120
+K11,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,120
+K12,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,120
+K13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,120
+K14,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,120
+K15,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,120
+K16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,120
+K17,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,120
+K18,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,120
+K19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,120
+K20,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,120
+K21,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,120
+K22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+L03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+L04,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,240
+L05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,240
+L06,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,240
+L07,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,240
+L08,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,240
+L09,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,240
+L10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,240
+L11,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,240
+L12,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,240
+L13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,240
+L14,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,240
+L15,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,240
+L16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,240
+L17,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,240
+L18,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,240
+L19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,240
+L20,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,240
+L21,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,240
+L22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+M03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+M04,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,480
+M05,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,480
+M06,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,480
+M07,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Vehicle,480
+M08,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Leptomycin 10 ng/mL,480
+M09,HCT116 mChPOLR2A Clone 2,Vehicle,1440,Cycloheximide 50 µg/mL,480
+M10,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,480
+M11,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,480
+M12,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,480
+M13,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,480
+M14,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,480
+M15,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,480
+M16,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Vehicle,480
+M17,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Leptomycin 10 ng/mL,480
+M18,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,Vehicle,1440,Cycloheximide 50 µg/mL,480
+M19,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Vehicle,480
+M20,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Leptomycin 10 ng/mL,480
+M21,HCT116 OsTIRF74G mAC/mCh-POLR2A Clone 1,10 µM 5PhIAA,1440,Cycloheximide 50 µg/mL,480
+M22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N03,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N04,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N05,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N06,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N07,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N08,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N09,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N10,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N11,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N12,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N13,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N14,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N15,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N16,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N17,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N18,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N19,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N20,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N21,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition
+N22,HCT116 OsTIRF74G,No addition,No addition,No addition,No addition

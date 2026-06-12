@@ -1,0 +1,241 @@
+﻿WELL,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,EU,PRIMARY,SECONDARY,CLICK
+C03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C04,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C05,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C06,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C07,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C08,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C09,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C10,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C11,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C12,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C13,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C14,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C15,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+C16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+C17,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+C18,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+C19,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+C20,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+C21,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+C22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+D03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D04,HCT116 OsTIRF74G,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D05,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D06,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D07,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D08,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D09,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D10,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D11,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D12,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D13,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D14,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D15,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+D16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+D17,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+D18,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+D19,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+D20,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+D21,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+D22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+E03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E04,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E05,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E06,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E07,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E08,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E09,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E10,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E11,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E12,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E13,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E14,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E15,HCT116 OsTIRF74G,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+E16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+E17,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+E18,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+E19,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+E20,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+E21,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+E22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+F03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F04,HCT116 OsTIRF74G,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F05,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F06,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F07,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F08,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F09,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F10,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F11,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F12,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F13,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F14,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F15,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+F16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+F17,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+F18,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+F19,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+F20,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+F21,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+F22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+G03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G04,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G05,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G06,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G07,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G08,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G09,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G10,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G11,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G12,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G13,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G14,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G15,HCT116 OsTIRF74G,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+G16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+G17,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+G18,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+G19,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+G20,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+G21,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+G22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+H03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H04,HCT116 OsTIRF74G,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H05,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H06,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H07,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H08,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H09,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H10,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H11,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H12,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H13,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H14,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H15,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+H16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+H17,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+H18,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+H19,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+H20,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+H21,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,3,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+H22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+I03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I04,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I05,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I06,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I07,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I08,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I09,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I10,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I11,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I12,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I13,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I14,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I15,HCT116 OsTIRF74G,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+I16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+I17,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+I18,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+I19,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+I20,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+I21,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,10,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+I22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+J03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J04,HCT116 OsTIRF74G,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J05,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J06,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J07,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J08,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J09,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J10,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J11,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J12,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J13,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J14,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J15,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+J16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+J17,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+J18,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+J19,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+J20,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+J21,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,30,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+J22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+K03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K04,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K05,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K06,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K07,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K08,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K09,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K10,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K11,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K12,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K13,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K14,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K15,HCT116 OsTIRF74G,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+K16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+K17,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+K18,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+K19,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+K20,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+K21,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,100,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+K22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+L03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L04,HCT116 OsTIRF74G,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L05,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L06,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L07,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L08,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L09,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L10,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L11,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L12,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L13,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L14,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L15,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+L16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+L17,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+L18,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+L19,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+L20,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+L21,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,300,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+L22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+M03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M04,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M05,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M06,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M07,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M08,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M09,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M10,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M11,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M12,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M13,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M14,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M15,HCT116 OsTIRF74G,5PhIAA,1000,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+M16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+M17,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+M18,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+M19,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+M20,HCT116 OsTIRF74G mAC-POLR2A Clone 5,Vehicle,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+M21,HCT116 OsTIRF74G mAC-POLR2A Clone 5,5PhIAA,1000,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+M22,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+N03,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+N04,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+N05,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+N06,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+N07,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+N08,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+N09,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+N10,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+N11,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+N12,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",Total Pol II (F12),Goat anti-mouse Alexa568,AF647 azide click
+N13,HCT116 OsTIRF74G,Vehicle,0,240,No addition,No primary,Goat anti-mouse Alexa568,AF647 azide click
+N14,HCT116 OsTIRF74G,Vehicle,0,240,"EU 1 mM, 30 mins",No secondary,No secondary,AF647 azide click
+N15,HCT116 OsTIRF74G,Vehicle,0,240,No addition,No primary,Goat anti-mouse Alexa568,AF647 azide click
+N16,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+N17,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+N18,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+N19,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+N20,HCT116 OsTIRF74G,No addition,0,240,No addition,No primary,Goat anti-rabbit Alexa568,No click
+N21,HCT116 OsTIRF74G,No addition,0,240,No addition,Total Pol II (D84LY),Goat anti-rabbit Alexa568,No click
+N22,HCT116 OsTIRF74G,No addition,0,240,No addition,No primary,Goat anti-rabbit Alexa568,No click

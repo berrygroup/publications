@@ -1,0 +1,241 @@
+﻿WELL,CELL,CELL_STAIN,DRUG,DRUG_TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2
+C03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C04,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C05,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C06,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C07,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C08,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C09,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C10,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C11,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C14,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C15,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C16,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C17,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C18,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C19,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C20,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C21,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+C22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+D03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+D04,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+D05,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+D06,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+D07,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+D08,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+D09,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+D10,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+D11,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+D12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+D13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+D14,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+D15,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+D16,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+D17,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+D18,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+D19,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+D20,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+D21,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+D22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+E03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+E04,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+E05,HCT116,Concanavalin A 488,Vehicle,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+E06,HCT116,Concanavalin A 488,Mg132,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+E07,HCT116,Concanavalin A 488,CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+E08,HCT116,Concanavalin A 488,Leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+E09,HCT116,Concanavalin A 488,Mg132 plus CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+E10,HCT116,Concanavalin A 488,Mg132 plus leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+E11,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+E12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+E13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+E14,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+E15,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Vehicle,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+E16,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Mg132,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+E17,HCT116 mChPOLR2A clone 2,Concanavalin A 488,CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+E18,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+E19,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Mg132 plus CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+E20,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Mg132 plus leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+E21,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+E22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+F03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+F04,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+F05,HCT116,Concanavalin A 488,Mg132 plus leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+F06,HCT116,Concanavalin A 488,Vehicle,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+F07,HCT116,Concanavalin A 488,Mg132,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+F08,HCT116,Concanavalin A 488,CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+F09,HCT116,Concanavalin A 488,Leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+F10,HCT116,Concanavalin A 488,Mg132 plus CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+F11,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+F12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+F13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+F14,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+F15,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Mg132 plus leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+F16,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Vehicle,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+F17,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Mg132,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+F18,HCT116 mChPOLR2A clone 2,Concanavalin A 488,CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+F19,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+F20,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Mg132 plus CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+F21,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+F22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+G03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+G04,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+G05,HCT116,Concanavalin A 488,Mg132 plus CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+G06,HCT116,Concanavalin A 488,Mg132 plus leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+G07,HCT116,Concanavalin A 488,Vehicle,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+G08,HCT116,Concanavalin A 488,Mg132,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+G09,HCT116,Concanavalin A 488,CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+G10,HCT116,Concanavalin A 488,Leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+G11,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+G12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+G13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+G14,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+G15,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Mg132 plus CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+G16,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Mg132 plus leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+G17,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Vehicle,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+G18,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Mg132,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+G19,HCT116 mChPOLR2A clone 2,Concanavalin A 488,CB6644,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+G20,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Leptomycin B,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+G21,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+G22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+H03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+H04,HCT116,Concanavalin A 488,Media only,480,No primary,Goat anti-mouse Alexa647,No primary,Goat anti-rabbit Alexa568
+H05,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,No primary,Goat anti-rabbit Alexa568
+H06,HCT116,Concanavalin A 488,Media only,480,No primary,Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+H07,HCT116,Concanavalin A 488,Media only,480,No primary,Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+H08,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+H09,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+H10,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+H11,HCT116,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+H12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+H13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+H14,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,No primary,Goat anti-mouse Alexa647,No primary,Goat anti-rabbit Alexa568
+H15,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,No primary,Goat anti-rabbit Alexa568
+H16,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,No primary,Goat anti-mouse Alexa647,Total Pol II (D8L4Y),Goat anti-rabbit Alexa568
+H17,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,No primary,Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+H18,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+H19,HCT116 mChPOLR2A clone 2,Concanavalin A 488,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+H20,HCT116 mChPOLR2A clone 2,No addition,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+H21,HCT116 mChPOLR2A clone 2,No addition,Media only,480,Total Pol II (F12),Goat anti-mouse Alexa647,mCherry,Goat anti-rabbit Alexa568
+H22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I04,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I05,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I06,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I07,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I08,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I09,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I10,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I11,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I14,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I15,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I16,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I17,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I18,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I19,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I20,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I21,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+I22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J04,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J05,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J06,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J07,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J08,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J09,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J10,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J11,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J14,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J15,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J16,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J17,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J18,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J19,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J20,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J21,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+J22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K04,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K05,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K06,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K07,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K08,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K09,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K10,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K11,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K14,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K15,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K16,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K17,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K18,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K19,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K20,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K21,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+K22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L04,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L05,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L06,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L07,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L08,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L09,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L10,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L11,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L14,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L15,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L16,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L17,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L18,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L19,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L20,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L21,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+L22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M04,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M05,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M06,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M07,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M08,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M09,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M10,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M11,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M14,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M15,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M16,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M17,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M18,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M19,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M20,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M21,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+M22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N03,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N04,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N05,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N06,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N07,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N08,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N09,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N10,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N11,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N12,HCT116,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N13,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N14,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N15,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N16,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N17,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N18,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N19,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N20,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N21,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary
+N22,HCT116 mChPOLR2A clone 2,No addition,No addition,No addition,No primary,No primary,No primary,No primary

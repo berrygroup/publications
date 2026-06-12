@@ -1,0 +1,32 @@
+#!/bin/bash
+
+### quantify in parallel
+
+#PBS -N batch_run_quantification
+#PBS -l select=1:ncpus=1:mem=64gb
+#PBS -l walltime=6:00:00
+#PBS -o /home/z3536241/src/blana/Alex/PBS/log
+#PBS -e /home/z3536241/src/blana/Alex/PBS/log
+
+### The following parameter is modulated at runtime to specify the
+### batch number on each node. Batches should run from zero to N_BATCHES-1
+### to process all files
+
+#PBS -J 0-179
+
+###---------------------------------------------------------------------------
+
+source /home/z3536241/.bashrc
+conda activate berrylab-py310
+
+cd $PBS_O_WORKDIR
+
+python /home/z3536241/src/blana/Alex/250825_mACmChPOLR2A_BleachChase/run_quantification.py \
+  --id ${PBS_ARRAY_INDEX} \
+  --illumination_correction_file /srv/scratch/berrylab/z3536241/NikonSpinningDisk/250324_mACmChPOLR2A_BleachChase/20250324_20X_mCherry_bleach_chase2/20250324_204731_822/ILLUMCORR/ILLUM_CORR_20X_LIVE_561.pkl \
+  --cellpose_model_file /srv/scratch/berrylab/z3536241/model_weights/20X_mCherry-POLR2A_20240209 \
+  --features_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/250825_mACmChPOLR2A_BleachChase/20250828_191708_976/QUANTIFICATION \
+  --input_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/250825_mACmChPOLR2A_BleachChase/20250828_191708_976/OME-TIFF-MIP \
+  --output_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/250825_mACmChPOLR2A_BleachChase/20250828_191708_976/SEGMENTATION
+
+conda deactivate

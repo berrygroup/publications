@@ -1,0 +1,30 @@
+
+#!/bin/bash
+
+#PBS -N batch_quantify_spotcount
+#PBS -l select=1:ncpus=1:mem=64gb
+#PBS -l walltime=8:00:00
+#PBS -o /home/z3536241/src/blana/Alex/PBS/log/
+#PBS -e /home/z3536241/src/blana/Alex/PBS/log/
+
+### The following parameter is modulated at runtime to specify the
+### batch number on each node. Batches should run from zero to N_BATCHES-1
+### to process all files
+
+#PBS -J 0-915
+
+###---------------------------------------------------------------------------
+
+source /home/z3536241/.bashrc
+conda activate berrylab-py310
+
+cd $PBS_O_WORKDIR
+
+python /home/z3536241/src/blana/Alex/250905_mACPOLR2A_Kinetic_pSer2/run_quantification_input_labels.py \
+ --id ${PBS_ARRAY_INDEX} \
+ --input_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/250905_mACPOLR2A_Kinetic_pSer2/20250909_163903_624/OME-TIFF-MIP \
+ --label_image_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/250905_mACPOLR2A_Kinetic_pSer2/20250909_163903_624/SEGMENTATION \
+ --features_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/250905_mACPOLR2A_Kinetic_pSer2/20250909_163903_624/QUANTIFICATION \
+ --illumination_correction_file /srv/scratch/berrylab/z3536241/NikonSpinningDisk/250912_mACPOLR2A_Kinetic_pSer2/20250917_181651_148/ILLCORR/ILLCORR_20X_561_405_XXX_488.pkl
+
+conda deactivate

@@ -1,0 +1,30 @@
+
+#!/bin/bash
+
+### skimage filter in parallel
+
+#PBS -N batch_run_filter
+#PBS -l select=1:ncpus=1:mem=64gb
+#PBS -l walltime=8:00:00
+#PBS -o /home/z3536241/src/blana/Alex/PBS/log/
+#PBS -e /home/z3536241/src/blana/Alex/PBS/log/
+
+### The following parameter is modulated at runtime to specify the
+### batch number on each node. Batches should run from zero to N_BATCHES-1
+### to process all files
+
+#PBS -J 0-512
+###---------------------------------------------------------------------------
+
+source /home/z3536241/.bashrc
+conda activate berrylab-py310
+
+cd $PBS_O_WORKDIR
+
+python /home/z3536241/src/blana/Alex/260119_CytoplasmicPOLR2A_40x/run_segment.py \
+ --id ${PBS_ARRAY_INDEX} \
+ --input_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/260119_CytoplasmicPOLR2A/40x/20260128_175303_338/OME-TIFF-MIP \
+ --illumination_correction_file /srv/scratch/berrylab/z3536241/NikonSpinningDisk/260119_CytoplasmicPOLR2A/40x/ILLCORR/ILLCORR_40x_647_488_561_XXX_XXX_405.pkl \
+ --output_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/260119_CytoplasmicPOLR2A/40x/20260128_175303_338/SEGMENTATION
+
+conda deactivate

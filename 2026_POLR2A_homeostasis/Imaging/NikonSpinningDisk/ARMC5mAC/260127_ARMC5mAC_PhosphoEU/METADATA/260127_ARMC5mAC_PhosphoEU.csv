@@ -1,0 +1,241 @@
+﻿WELL,CELL,EU,DRUG,DRUG TIME HOURS,PRIMARY,SECONDARY
+C03,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C04,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C05,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C06,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C07,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C08,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C09,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C10,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C11,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C12,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C13,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C14,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C15,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C16,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C17,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C18,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C19,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C20,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C21,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+C22,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D03,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D04,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D05,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D06,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D07,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D08,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D09,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D10,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D11,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D12,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D13,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D14,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D15,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D16,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D17,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D18,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D19,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D20,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D21,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+D22,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E03,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E04,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E05,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E06,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E07,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E08,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E09,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E10,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E11,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E12,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E13,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E14,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E15,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E16,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E17,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E18,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E19,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E20,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E21,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+E22,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F03,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F04,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F05,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F06,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F07,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F08,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F09,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F10,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F11,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F12,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F13,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F14,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F15,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F16,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F17,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F18,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F19,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F20,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F21,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+F22,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G03,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G04,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G05,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G06,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G07,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G08,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G09,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G10,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G11,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G12,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G13,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G14,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G15,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G16,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G17,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G18,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G19,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G20,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G21,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+G22,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H03,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H04,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H05,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H06,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H07,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H08,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H09,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H10,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H11,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H12,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H13,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H14,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H15,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H16,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H17,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H18,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H19,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H20,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H21,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+H22,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I03,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I04,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I05,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I06,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I07,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I08,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I09,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I10,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I11,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I12,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I13,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I14,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I15,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I16,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I17,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I18,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I19,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I20,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I21,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,2,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+I22,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J03,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J04,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J05,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J06,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J07,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J08,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J09,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J10,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J11,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J12,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J13,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J14,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J15,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J16,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J17,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J18,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J19,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J20,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J21,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,8,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+J22,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K03,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K04,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K05,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K06,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K07,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K08,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K09,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K10,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K11,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K12,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K13,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K14,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K15,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K16,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K17,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K18,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K19,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K20,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K21,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,24,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+K22,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L03,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L04,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L05,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L06,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L07,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L08,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L09,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L10,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L11,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L12,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L13,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L14,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L15,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L16,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L17,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L18,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L19,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L20,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L21,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+L22,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M03,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M04,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M05,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M06,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M07,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M08,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M09,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M10,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M11,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M12,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M13,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M14,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M15,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M16,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M17,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M18,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",Vehicle,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M19,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M20,HCT116 OsTIRF74G ARMC5mAC Clone 5A1,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M21,HCT116 OsTIRF74G ARMC5mAC Clone 5F9,"EU 1 mM, 30 mins",10 µM 5PhIAA,48,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+M22,HCT116 OsTIRF74G,"EU 1 mM, 30 mins",No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N03,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N04,HCT116 OsTIRF74G,No addition,No addition,No addition,No primary,Goat anti-rat Alexa568
+N05,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N06,HCT116 OsTIRF74G,No addition,No addition,No addition,No primary,Goat anti-rat Alexa568
+N07,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N08,HCT116 OsTIRF74G,No addition,No addition,No addition,No primary,Goat anti-rat Alexa568
+N09,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N10,HCT116 OsTIRF74G,No addition,No addition,No addition,No primary,Goat anti-rat Alexa568
+N11,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N12,HCT116 OsTIRF74G,No addition,No addition,No addition,No primary,Goat anti-rat Alexa568
+N13,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N14,HCT116 OsTIRF74G,No addition,No addition,No addition,No primary,Goat anti-rat Alexa568
+N15,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N16,HCT116 OsTIRF74G,No addition,No addition,No addition,No primary,Goat anti-rat Alexa568
+N17,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N18,HCT116 OsTIRF74G,No addition,No addition,No addition,No primary,Goat anti-rat Alexa568
+N19,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N20,HCT116 OsTIRF74G,No addition,No addition,No addition,No primary,Goat anti-rat Alexa568
+N21,HCT116 OsTIRF74G,No addition,No addition,No addition,pSer5 Pol II 3E8,Goat anti-rat Alexa568
+N22,HCT116 OsTIRF74G,No addition,No addition,No addition,No primary,Goat anti-rat Alexa568
