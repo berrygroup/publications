@@ -3,53 +3,125 @@ title: "validate_fold_changes"
 output: html_document
 ---
 
-```{r}
+```{r IF_ARMC5}
 library(tidyverse)
 library(patchwork)
 
 ARMC5_HEK <- read_csv("../data/Cacioppo_HEK_ARMC5_Baseline_IF_overall_summaries.csv")
+ARMC5_HEK_DRUG <- read_csv("../data/Cacioppo_HEK_ARMC5_drug_IF_overall_summaries.csv")
 
-normalisers <- ARMC5_HEK %>% 
-  filter(Cell=="HEK293 parental") %>%
+normalisers_drug <- ARMC5_HEK_DRUG %>%
+  filter(Cell=="HEK293 parental" & Drug=="Vehicle") %>%
   dplyr::select(Primary,normaliser=mean_Nuclei_intensity_mean_488_plate_normalised)
 
-IF_bar_plot <- ARMC5_HEK %>% 
-  filter(Cell!="HEK293 ARMC5 KO 2B6") %>%
-  filter(Primary=="Total Pol II F12") %>%
-  left_join(normalisers,by = join_by(Primary)) %>%
+IF_bar_plot_drug <- ARMC5_HEK_DRUG %>%
+      filter(Drug %in% c("Vehicle","Triptolide 300 nM")) %>%
+      filter(Cell!="HEK293 ARMC5 KO 2B6") %>%
+      filter(Primary=="pSer5 Pol II 3E8") %>%
+      left_join(normalisers_drug,by = join_by(Primary)) %>%
   mutate(cell_labels = case_when(Cell=="HEK293 parental" ~ "Parental", Cell=="HEK293 ARMC5 KO 1A3" ~ "ARMC5 K.O."),
-         cell_labels = factor(cell_labels,levels = c("Parental","ARMC5 K.O."))) %>%
-  ggplot(aes(x=cell_labels,y=mean_Nuclei_intensity_mean_488_plate_normalised/normaliser,fill=cell_labels)) +
+         cell_labels = factor(cell_labels,levels = c("Parental","ARMC5 K.O.")),
+         normalised_intensity = mean_Nuclei_intensity_mean_488_plate_normalised/normaliser,
+         normalised_intensity_min = (mean_Nuclei_intensity_mean_488_plate_normalised - sd_Nuclei_intensity_mean_488_plate_normalised)/normaliser,
+         normalised_intensity_max = (mean_Nuclei_intensity_mean_488_plate_normalised + sd_Nuclei_intensity_mean_488_plate_normalised)/normaliser,
+         ) %>%
+  filter(!(cell_labels=="ARMC5 K.O." & Drug=="Triptolide 300 nM")) %>%
+  mutate(cell_labels = if_else(Drug=="Triptolide 300 nM","Triptolide",cell_labels)) %>%
+  dplyr::select(cell_labels,normalised_intensity,normalised_intensity_min,normalised_intensity_max) %>%
+  ggplot(aes(x=cell_labels,y=normalised_intensity,fill=cell_labels)) +
   geom_col() +
   geom_errorbar(
     aes(
-      ymin=(mean_Nuclei_intensity_mean_488_plate_normalised - sd_Nuclei_intensity_mean_488_plate_normalised)/normaliser,
-      ymax=(mean_Nuclei_intensity_mean_488_plate_normalised + sd_Nuclei_intensity_mean_488_plate_normalised)/normaliser),
-    width=0.2) +
-  ylab("Mean nuclear intensity\nPOLR2A pSer5 immunofluorescence (3E8)") +
+      ymin=normalised_intensity_min,
+      ymax=normalised_intensity_max),
+    width=0.2,
+    position = position_dodge()) +
+  ylab("Mean nuclear intensity\nPOLR2A pSer5 IF (3E8)") +
   ylim(c(0,1.65)) +
-  theme_bw() +
+  theme_bw(base_size = 8) +
   theme(axis.title.x = element_blank()) +
-  scale_fill_manual(values = c("#939591","#7c2c91"))
+  scale_fill_manual(values = c("#7c2c91","#939591","red"))
 
-# Data are fold-change of summed coverage in TSS region in Pol II ChIP-seq
-genomics_ARMC5 <- tibble(cell_labels=factor(c("Parental","ARMC5 K.O."),levels=c("Parental","ARMC5 K.O.")), TSS_Pol_II = c(1.0,1.45))
+IF_bar_plot_drug
+```
 
-genomics_bar_plot <- genomics_ARMC5 %>% 
-  ggplot(aes(x=cell_labels,y=TSS_Pol_II,fill=cell_labels)) +
+
+
+```{r genomics_ARMC5}
+
+ARMC5_ChIP <- read_tsv("../../ChIPseq/data/ARMC5_S5_Total_dxChIPseq_data_for_boxplots_TPL.csv")
+
+ARMC5_ChIP_summary <- ARMC5_ChIP %>% 
+  group_by(condition,dataset,target,treatment) %>% 
+  summarise(sum_coverage = sum(coverage),
+            n_targets = n(),
+            .groups = 'drop') %>%
+  filter(target=="Total Pol II")
+
+genomics_bar_plot_drug <- ARMC5_ChIP_summary %>%
+  pivot_wider(names_from = c(condition,treatment),values_from = sum_coverage) %>%
+  mutate(`ARMC5 K.O.` = `ARMC5.KO_UNT`/WT_UNT,
+         Triptolide = WT_TPL / WT_UNT,
+         Parental = WT_UNT / WT_UNT) %>%
+  dplyr::select(Region=dataset,Parental,`ARMC5 K.O.`, Triptolide) %>%
+  pivot_longer(c(Parental,`ARMC5 K.O.`,Triptolide)) %>%
+  filter(Region=="TSS") %>%
+  ggplot(aes(x=name,y=value,fill=name)) +
   geom_col() +
   ylim(c(0,1.65)) +
   ylab("dxChIP-seq coverage (TSS)\nTotal POLR2A (D8L4Y)") +
-  theme_bw() +
+  theme_bw(base_size = 8) +
   theme(axis.title.x = element_blank()) +
-  scale_fill_manual(values = c("#939591","#7c2c91"))
+  scale_fill_manual(values = c("#7c2c91","#939591","red"))
+  
+genomics_bar_plot_drug + 
+  IF_bar_plot_drug + 
+  plot_layout(guides ="collect") & 
+  theme(legend.title = element_blank(),
+        legend.key.size = unit(1,"mm"),
+        axis.text.x = element_text(angle = 90,hjust=1,vjust=0.5),
+        panel.grid = element_blank())
 
-genomics_bar_plot + IF_bar_plot + plot_layout(guides ="collect") & theme(legend.title = element_blank())
+ggsave("TSS_vs_Ser5p_ARMC5_triptolide.pdf",width=8,height=5,units="cm")
+
+
 
 ```
 
 
 ```{r}
+degron_ChIP <- read_csv("../../ChIPseq/data/Degron_PolII_merged_cov_boxplot.csv")
+
+
+degron_ChIP %>%
+  group_by(condition,dataset,target) %>% 
+  summarise(sum_coverage = sum(coverage),
+            n_targets = n()) %>%
+  pivot_wider(names_from = condition, values_from = sum_coverage) %>%
+  mutate(fold_change=D8L4Y_90min/D8L4Y_0h)
+
+degron_ChIP_TSS_FC <- degron_ChIP %>%
+  filter(dataset=="TSS") %>%
+  select(gene_id,coverage,condition) %>%
+  pivot_wider(names_from = condition,values_from = coverage) %>%
+  filter(D8L4Y_90min > 0 & D8L4Y_0h > 0) %>%
+  mutate(fold_change = D8L4Y_90min / D8L4Y_0h)
+
+degron_ChIP_GB_FC <- degron_ChIP %>%
+  filter(dataset=="Gene Body") %>%
+  select(gene_id,coverage,condition) %>%
+  pivot_wider(names_from = condition,values_from = coverage) %>%
+  filter(D8L4Y_90min > 0 & D8L4Y_0h > 0) %>%
+  mutate(fold_change = D8L4Y_90min / D8L4Y_0h)
+
+degron_ChIP_TSS_FC %>%
+  mutate(log2_fold_change = log2(fold_change)) %>%
+  summarise(median_log2_fold_change = median(log2_fold_change))
+
+degron_ChIP_GB_FC %>%
+  mutate(log2_fold_change = log2(fold_change)) %>%
+  summarise(median_log2_fold_change = median(log2_fold_change))
+
 
 
 ```

@@ -24,6 +24,71 @@ read_quantification <- function(dir_name) {
 ```
 
 ```{r}
+library(readxl)
+excel_file <- "/Users/z3532965/OneDrive - UNSW/Science/Manuscripts/2025/PolymeraseHomeostasis/MolCellResubmission/Data/20260610_degron_titration.xlsx"
+excel_sheets(excel_file)
+
+wb_data <- read_xlsx(excel_file,sheet = "Degron titration") %>%
+  select(Replicate,concentration=`5-Ph-IAA concentration`,D8L4Y, S2, vinculin) %>%
+  filter(!is.na(Replicate)) %>%
+  mutate(total_D8L4Y = D8L4Y / vinculin,
+         pSer2_3E10 = S2 / vinculin,
+         concentration_numeric = case_when(
+           concentration=="DMSO" ~ 1e-9,
+           concentration=="10 nM" ~ 10e-9,
+           concentration=="100 nM" ~ 100e-9,
+           concentration=="1 µM" ~ 1e-6,
+           concentration=="10 µM" ~ 10e-6,
+           TRUE ~ NA_real_)) 
+wb_data <- wb_data %>%
+  left_join(filter(wb_data,concentration=="DMSO") %>% 
+              select(Replicate,
+                     total_D8L4Y_untreated=total_D8L4Y,
+                     pSer2_3E10_untreated=pSer2_3E10)) %>%
+  mutate(total_D8L4Y_normalised = total_D8L4Y / total_D8L4Y_untreated,
+         pSer2_3E10_normalised = pSer2_3E10 / pSer2_3E10_untreated) 
+
+wb_data_long <- wb_data %>%
+  pivot_longer(cols=c(total_D8L4Y_normalised,pSer2_3E10_normalised),
+               names_to = "antibody",
+               values_to = "intensity")
+
+wb_data_long_summary <- group_by(wb_data_long,antibody,concentration_numeric) %>%
+              summarise(sd_intensity=sd(intensity),
+                        intensity=mean(intensity))
+
+wb_data_long %>%
+  ggplot(aes(x=concentration_numeric,y=intensity,col=antibody)) +
+    geom_point(pch='x') + 
+  scale_x_log10(breaks=c(1e-9,1e-8,1e-7,1e-6,1e-5),
+                labels=c("Vehicle","10 nM","100 nM","1 µM","10 µM")) +
+  geom_line(data=wb_data_long_summary) +
+  geom_point(data=wb_data_long_summary) +
+  geom_errorbar(data=wb_data_long_summary,aes(ymin=intensity-sd_intensity,ymax=intensity+sd_intensity),width=0.1) +
+  scale_y_continuous(limits = c(0,NA)) +
+  theme_bw()
+
+
+wb_data %>%
+  ggplot(aes(x=total_D8L4Y_normalised,pSer2_3E10_normalised,col=log10(concentration_numeric))) +
+  geom_point() +
+  geom_abline() +
+  scale_x_continuous("Total Pol II (D8L4Y western blot)",
+                     breaks=c(0,0.5,1)) +
+  scale_y_continuous("pSer2 Pol II (3E10 western blot)",
+                     breaks=c(0,0.5,1)) +
+  coord_cartesian(xlim=c(0,NA),ylim = c(0,NA)) +
+  theme_bw(base_size = 7) +
+  scale_color_viridis_c(
+    name="5-Ph-IAA\nconcentration",
+    begin=0,
+    end=0.8,
+    breaks=c(-9,-8,-7,-6,-5),
+    labels=c("Vehicle","10 nM","100 nM","1 µM","10 µM")) +
+  theme(panel.grid = element_blank(),
+        aspect.ratio = 1,
+        legend.key.size = unit(0.2,"cm"))
+ggsave(filename = "activity_abundance_plot_WB_Ben.pdf",units="cm",width=8,height=5)
 
 ```
 
