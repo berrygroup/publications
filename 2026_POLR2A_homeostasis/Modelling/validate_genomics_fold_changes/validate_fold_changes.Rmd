@@ -45,8 +45,6 @@ IF_bar_plot_drug <- ARMC5_HEK_DRUG %>%
 IF_bar_plot_drug
 ```
 
-
-
 ```{r genomics_ARMC5}
 
 ARMC5_ChIP <- read_tsv("../../ChIPseq/data/ARMC5_S5_Total_dxChIPseq_data_for_boxplots_TPL.csv")
@@ -69,7 +67,7 @@ genomics_bar_plot_drug <- ARMC5_ChIP_summary %>%
   ggplot(aes(x=name,y=value,fill=name)) +
   geom_col() +
   ylim(c(0,1.65)) +
-  ylab("dxChIP-seq coverage (TSS)\nTotal POLR2A (D8L4Y)") +
+  ylab("dxChIP-seq (TSS)\nTotal POLR2A (D8L4Y)") +
   theme_bw(base_size = 8) +
   theme(axis.title.x = element_blank()) +
   scale_fill_manual(values = c("#7c2c91","#939591","red"))
@@ -77,51 +75,87 @@ genomics_bar_plot_drug <- ARMC5_ChIP_summary %>%
 genomics_bar_plot_drug + 
   IF_bar_plot_drug + 
   plot_layout(guides ="collect") & 
-  theme(legend.title = element_blank(),
-        legend.key.size = unit(1,"mm"),
+  theme(legend.position = "none",
         axis.text.x = element_text(angle = 90,hjust=1,vjust=0.5),
         panel.grid = element_blank())
 
-ggsave("TSS_vs_Ser5p_ARMC5_triptolide.pdf",width=8,height=5,units="cm")
-
-
+ggsave("TSS_vs_Ser5p_ARMC5_triptolide.pdf",width=9,height=5,units="cm")
 
 ```
 
 
 ```{r}
-degron_ChIP <- read_csv("../../ChIPseq/data/Degron_PolII_merged_cov_boxplot.csv")
 
+degron_IF <- read_csv('../data/mACmChPOLR2A_90min_IF_ByExperiment.csv') %>%
+  group_by(CELL,DRUG,`DRUG TIME MINUTES`,PRIMARY,SECONDARY) %>%
+  summarise(mean_intensity = mean(IF_647_Intensity_FC),
+            sd_intensity = sd(IF_647_Intensity_FC)) %>%
+  filter(PRIMARY=="pSer5 3E8") %>%
+  select(DRUG,mean_intensity,sd_intensity) %>%
+  mutate(condition=case_when(DRUG=="Vehicle" ~ "Vehicle",
+                             DRUG=="10 µM 5PhIAA" ~ "5-Ph-IAA (90 min)"),
+         condition=factor(condition,levels = c("Vehicle","5-Ph-IAA (90 min)"))) 
 
-degron_ChIP %>%
-  group_by(condition,dataset,target) %>% 
-  summarise(sum_coverage = sum(coverage),
-            n_targets = n()) %>%
-  pivot_wider(names_from = condition, values_from = sum_coverage) %>%
-  mutate(fold_change=D8L4Y_90min/D8L4Y_0h)
+IF_bar_plot_degron <- degron_IF %>%
+  ggplot(aes(x=condition,y=mean_intensity,fill=condition)) +
+  geom_col() +
+  geom_errorbar(
+    aes(
+      ymin=mean_intensity-sd_intensity,
+      ymax=mean_intensity+sd_intensity),
+    width=0.2) +
+  scale_y_continuous(limits = c(0,1.05),
+                     name="Mean nuclear intensity\nPOLR2A pSer5 IF (3E8)",
+                     breaks=c(0,0.5,1.0)) +
+  theme_bw(base_size = 8) +
+  theme(axis.title.x = element_blank()) +
+  scale_fill_manual(values = c("#939591","#5a90cc"))
 
-degron_ChIP_TSS_FC <- degron_ChIP %>%
-  filter(dataset=="TSS") %>%
-  select(gene_id,coverage,condition) %>%
-  pivot_wider(names_from = condition,values_from = coverage) %>%
-  filter(D8L4Y_90min > 0 & D8L4Y_0h > 0) %>%
-  mutate(fold_change = D8L4Y_90min / D8L4Y_0h)
+degron_ChIP_summary <- read_csv("../../ChIPseq/data/Degron_PolII_merged_cov_boxplot.csv") %>%
+  filter(dataset == "TSS",
+         condition %in% c("D8L4Y_0h", "D8L4Y_90min", "D8L4Y_8h")) %>%
+  group_by(condition) %>%
+  summarise(total_cov = sum(coverage.fold), .groups = "drop") %>%
+  pivot_wider(names_from = condition, values_from = total_cov) %>%
+  mutate(
+    region  = "TSS",
+    Vehicle = D8L4Y_0h / D8L4Y_0h,
+    `5-Ph-IAA (90 min)` = D8L4Y_90min / D8L4Y_0h,
+  )
 
-degron_ChIP_GB_FC <- degron_ChIP %>%
-  filter(dataset=="Gene Body") %>%
-  select(gene_id,coverage,condition) %>%
-  pivot_wider(names_from = condition,values_from = coverage) %>%
-  filter(D8L4Y_90min > 0 & D8L4Y_0h > 0) %>%
-  mutate(fold_change = D8L4Y_90min / D8L4Y_0h)
+degron_genomics_barplot <- degron_ChIP_summary %>%
+  pivot_longer(c(Vehicle,`5-Ph-IAA (90 min)`)) %>%
+  mutate(name=factor(name,levels=c("Vehicle","5-Ph-IAA (90 min)"))) %>%
+  ggplot(aes(x=name,y=value,fill=name)) +
+  geom_col() +
+  scale_y_continuous(limits = c(0,1.05),
+                     name="dxChIP-seq (TSS)\nTotal POLR2A (D8L4Y)",
+                     breaks=c(0,0.5,1.0)) +
+  theme_bw(base_size = 8) +
+  theme(axis.title.x = element_blank()) +
+  scale_fill_manual(values = c("#939591","#5a90cc"))
+  
 
-degron_ChIP_TSS_FC %>%
-  mutate(log2_fold_change = log2(fold_change)) %>%
-  summarise(median_log2_fold_change = median(log2_fold_change))
+degron_genomics_barplot + 
+  IF_bar_plot_degron +
+  plot_layout(guides ="collect") & 
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90,hjust=1,vjust=0.5),
+        panel.grid = element_blank())
 
-degron_ChIP_GB_FC %>%
-  mutate(log2_fold_change = log2(fold_change)) %>%
-  summarise(median_log2_fold_change = median(log2_fold_change))
+ggsave("TSS_vs_Ser5p_half_degron.pdf",width=7.5,height=5,units="cm")
 
+```
+```{r combined_plot}
+genomics_bar_plot_drug + 
+  IF_bar_plot_drug +
+  degron_genomics_barplot + 
+  IF_bar_plot_degron +
+  plot_layout(design = "AB#CD") & 
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90,hjust=1,vjust=0.5,size=8),
+        panel.grid = element_blank())
 
+ggsave("TSS_vs_Ser5p_combined.pdf",width=10,height=6.5,units="cm")
 
 ```
