@@ -1,0 +1,612 @@
+```{r setup_r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+library(tidyverse)
+library(patchwork)
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+```
+
+```{r}
+read_quantification <- function(dir_name) {
+  csv_files <- Sys.glob(file.path(dir_name,"*.csv"))
+  dt_list <- lapply(csv_files, data.table::fread)
+  df <- tibble(path = csv_files,
+               feature_values = dt_list) %>%
+    mutate(dir_name = dir_name,
+           file_name = basename(path),
+           feature_values = purrr::map(feature_values,tibble)) %>%
+    separate(file_name,into = c("nuclei","well_name","ch1","ch2","ch3","ch4","sample","id"),sep="[,_.]", extra = "drop") %>%
+    mutate(well_name = str_replace(well_name, "^Well", ""),
+           field_id = as.integer(id))
+  return(df)
+}
+```
+
+```{r}
+
+```
+
+
+```{r}
+data_dir_images <- "/srv/scratch/berrylab/z3536241/NikonSpinningDisk/260522_mACPOLR2A_Kinetic_pSer2/20260526_181658_086/"
+data_dir_quant <- "/srv/scratch/berrylab/z3536241/NikonSpinningDisk/260522_mACPOLR2A_Kinetic_pSer2/20260526_181658_086/"
+plate_layout_file <- "/srv/scratch/z3532965/src/blana/Alex/260522_mACPOLR2A_Kinetic_pSer2/260522_mACPOLR2A_Kinetic_pSer2.csv"
+
+# Read plate layout
+plate_layout <- read_csv(plate_layout_file, show_col_types = FALSE) %>%
+  rename(well_name=WELL)
+
+# Read and process quantification data
+f <- read_quantification(file.path(data_dir_quant, "QUANTIFICATION")) %>%
+     dplyr::mutate(data_dir = dirname(dirname(path))) %>%
+     dplyr::select(-c(ch1, ch2, ch3, ch4, sample))
+
+dat <- left_join(f,plate_layout,by="well_name") %>%
+  unnest(feature_values) %>%
+  mutate(unique_id = paste(well_name, label, sep = "_"))
+
+# Process metadata
+# m <- tibble(data_dir = data_dir_images) %>%
+#   dplyr::mutate(image_dir = purrr::map_chr(data_dir_images, ~file.path(.,"OME-TIFF-MIP"))) %>%
+#   dplyr::mutate(metadata_file = purrr::map(image_dir, ~list.files(., pattern = "metadata.csv$"))) %>%
+#   unnest(metadata_file) %>%
+#   mutate(dat = purrr::map(file.path(image_dir, metadata_file), ~read_csv(., show_col_types = FALSE))) %>%
+#   separate(metadata_file, into = c("well_name", "ch1", "ch2", "ch3", "ch4", "sample"), sep = "[,_.]", extra = "drop") %>%
+#   unnest(dat) %>%
+#   mutate(well_name = str_replace(well_name, "^Well", ""),
+#          field_id = as.integer(field_id)) %>%
+#   dplyr::select(-c(ch1, ch2, ch3, ch4, sample)) %>%
+#   left_join(plate_layout, by = "well_name")
+
+# Join metadata with quantification data
+# dat <- right_join(m, f, by = join_by(well_name, field_id), suffix = c("_images","_quant")) %>%
+#   unnest(feature_values) %>%
+#   mutate(unique_id = paste(well_name, label, sep = "_"))
+
+```
+
+```{r}
+
+source("/srv/scratch/z3532965/src/blana/Scott/plot_plate_layout.R")
+
+plate_layout %>% group_by(CELL,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  count()
+
+plot_plate_layout(plate_layout, color_by = "CELL", title = "Cell type")
+plot_plate_layout(plate_layout, color_by = "DRUG", title = "Drug")
+plot_plate_layout(plate_layout, color_by = "DRUG_CONCENTRATION", title = "Drug (µM)", log10_scale = TRUE)
+plot_plate_layout(plate_layout, color_by = "TIME_MINUTES", title = "Time (min)")
+plot_plate_layout(plate_layout, color_by = "PRIMARY_1", title = "Primary antibody 1")
+plot_plate_layout(plate_layout, color_by = "SECONDARY_1", title = "Secondary antibody 1")
+plot_plate_layout(plate_layout, color_by = "PRIMARY_2", title = "Primary antibody 2")
+plot_plate_layout(plate_layout, color_by = "SECONDARY_2", title = "Secondary antibody 2")
+
+```
+```{r}
+dat <- dat %>%
+  rename_with(~ str_replace(., "Channel:0:0_", "Nuclei_")) %>%
+  mutate(
+    well_row = str_extract(well_name, "^[A-Z]"),
+    well_col = as.integer(str_extract(well_name, "[0-9]+$"))
+  ) %>%
+  filter(Nuclei_is_border==F)
+
+names(dat)
+
+# EU is Nucleus_intensity_mean_647 or Nucleoplasm_intensity_mean_647_mean
+# Check Nucleoplasm_area_sum / Nucleus_area across conditions
+
+```
+## QC
+
+```{r}
+
+bkgrd_primary_1 <- filter(dat,PRIMARY_1=="No primary") %>%
+  group_by(well_name) %>%
+  summarise(mean_bkgrd_561 = mean(Nuclei_intensity_mean_561)) %>%
+  summarise(mean_bkgrd_561 = mean(mean_bkgrd_561)) %>%
+  pull(mean_bkgrd_561)
+
+dat %>% 
+  filter(DRUG=="Vehicle") %>%
+  group_by(well_name,CELL,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  summarise(across(Nuclei_intensity_mean_561,mean)) %>%
+  ggplot(aes(x=PRIMARY_1,y=Nuclei_intensity_mean_561,col=CELL)) +
+  geom_boxplot() +
+  geom_hline(yintercept=bkgrd_primary_1)
+
+bkgrd_primary_2 <- filter(dat,PRIMARY_2=="No primary") %>%
+  group_by(well_name) %>%
+  summarise(mean_bkgrd_647 = mean(Nuclei_intensity_mean_647)) %>%
+  summarise(mean_bkgrd_647 = mean(mean_bkgrd_647)) %>%
+  pull(mean_bkgrd_647)
+
+dat %>% 
+  filter(DRUG=="Vehicle") %>%
+  group_by(well_name,CELL,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  summarise(across(Nuclei_intensity_mean_647,mean)) %>%
+  ggplot(aes(x=PRIMARY_2,y=Nuclei_intensity_mean_647,col=CELL)) +
+  geom_boxplot() +
+  geom_hline(yintercept=bkgrd_primary_2)
+
+bkgrd_gfp <- filter(dat,CELL=="HCT116 OsTIRF74G") %>%
+  group_by(well_name) %>%
+  summarise(mean_bkgrd_488 = mean(Nuclei_intensity_mean_488)) %>%
+  summarise(mean_bkgrd_488 = mean(mean_bkgrd_488)) %>%
+  pull(mean_bkgrd_488)
+
+dat %>% 
+  #filter(DRUG=="Vehicle") %>%
+  group_by(well_name,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  summarise(across(Nuclei_intensity_mean_488,mean)) %>%
+  ggplot(aes(x=CELL,y=Nuclei_intensity_mean_488,col=interaction(CELL,DRUG))) +
+  geom_boxplot() +
+  geom_jitter() +
+  geom_hline(yintercept=bkgrd_gfp)
+
+```
+```{r}
+
+f12 <- dat %>%
+  filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5" & PRIMARY_1=="Total Pol II (F12)") %>%
+  group_by(well_name,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  summarise(mean_total_F12 = mean(Nuclei_intensity_mean_561),.groups = 'drop') %>%
+  group_by(CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  summarise(mean_total_F12 = mean(mean_total_F12), sd_total_F12 = sd(mean_total_F12),.groups = 'drop') %>%  
+  ggplot(aes(x=TIME_MINUTES,y=mean_total_F12,col=interaction(DRUG,DRUG_CONCENTRATION))) +
+  geom_point() +
+  geom_line() +
+  coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
+  geom_hline(yintercept = bkgrd_primary_1)
+
+gfp <- dat %>%
+  filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5" & PRIMARY_1=="Total Pol II (F12)") %>%
+  group_by(well_name,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  summarise(mean_GFP = mean(Nuclei_intensity_mean_488),.groups = 'drop') %>%
+  group_by(CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  summarise(mean_GFP = mean(mean_GFP), sd_GFP = sd(mean_GFP),.groups = 'drop') %>%  
+  ggplot(aes(x=TIME_MINUTES,y=mean_GFP,col=interaction(DRUG,DRUG_CONCENTRATION))) +
+  geom_point() +
+  geom_line() +
+  coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
+  geom_hline(yintercept = bkgrd_gfp)
+
+f12 + gfp + plot_layout(guides='collect') & theme_bw()
+
+```
+
+```{r}
+f12_vs_gfp_vs_d8l4y <- dat %>%
+  filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5" & PRIMARY_1=="Total Pol II (F12)") %>%
+  group_by(well_name,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  summarise(mean_total_F12 = mean(Nuclei_intensity_mean_561),
+            mean_total_D8L4Y = mean(Nuclei_intensity_mean_647),
+            mean_GFP = mean(Nuclei_intensity_mean_488),
+            .groups = 'drop') %>%
+  group_by(CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  summarise(mean_total_F12 = mean(mean_total_F12),
+            sd_total_F12 = sd(mean_total_F12),
+            mean_total_D8L4Y = mean(mean_total_D8L4Y),
+            sd_total_D8L4Y = sd(mean_total_D8L4Y),
+            mean_GFP = mean(mean_GFP),
+            sd_GFP = sd(mean_GFP),
+            .groups = 'drop')
+
+f12_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y %>%
+  ggplot(aes(x=mean_GFP,y=mean_total_F12,col=interaction(DRUG,DRUG_CONCENTRATION))) +
+  geom_smooth(aes(x=mean_GFP,y=mean_total_F12),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T) +
+  geom_errorbar(aes(ymin=mean_total_F12-sd_total_F12,ymax=mean_total_F12+sd_total_F12)) +
+  geom_errorbarh(aes(xmin=mean_GFP-sd_GFP,xmax=mean_GFP+sd_GFP)) +
+  geom_point() +
+  coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
+  geom_hline(yintercept = bkgrd_primary_1) +
+  geom_vline(xintercept = bkgrd_gfp)
+
+d8l4y_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y %>%
+  ggplot(aes(x=mean_GFP,y=mean_total_D8L4Y,col=interaction(DRUG,DRUG_CONCENTRATION))) +
+  geom_smooth(aes(x=mean_GFP,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T) +
+  geom_errorbar(aes(ymin=mean_total_D8L4Y-sd_total_D8L4Y,ymax=mean_total_D8L4Y+sd_total_D8L4Y)) +
+  geom_errorbarh(aes(xmin=mean_GFP-sd_GFP,xmax=mean_GFP+sd_GFP)) +
+  geom_point() +
+  coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
+  geom_hline(yintercept = bkgrd_primary_2) +
+  geom_vline(xintercept = bkgrd_gfp)
+
+d8l4y_vs_f12_plot <- f12_vs_gfp_vs_d8l4y %>%
+  ggplot(aes(x=mean_total_F12,y=mean_total_D8L4Y,col=interaction(DRUG,DRUG_CONCENTRATION))) +
+  geom_smooth(aes(x=mean_total_F12,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T) +
+  geom_errorbar(aes(ymin=mean_total_D8L4Y-sd_total_D8L4Y,ymax=mean_total_D8L4Y+sd_total_D8L4Y)) +
+  geom_errorbarh(aes(xmin=mean_total_F12-sd_total_F12,xmax=mean_total_F12+sd_total_F12)) +
+  geom_point() +
+  coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
+  geom_hline(yintercept = bkgrd_primary_2) +
+  geom_vline(xintercept = bkgrd_primary_1)
+
+d8l4y_vs_f12_plot
+
+design <-
+"
+A#
+BC
+"
+
+f12_vs_gfp_plot + d8l4y_vs_gfp_plot + d8l4y_vs_f12_plot + plot_layout(design = design) & theme_bw() & theme(legend.position = "none")
+
+```
+
+
+## Single-cell
+
+Let's first look at variability between single-cells in pSer2 and D84LY, in the same cells.
+
+```{r}
+dat_costain_D8L4Y_pSer2 <- filter(dat,well_row=="N") %>%
+  filter(PRIMARY_1 %in% c("pSer2 Pol II (3E10)") & PRIMARY_2 %in% c("Total Pol II (D8L4Y)"))
+
+single_cell_variability_D8L4Y_pSer2 <- dat_costain_D8L4Y_pSer2 %>%
+  mutate(pSer2 = Nuclei_intensity_mean_561 - bkgrd_primary_1,
+         total_D8L4Y = Nuclei_intensity_mean_647 - bkgrd_primary_2) %>%
+  group_by(well_name) %>%
+  summarise(mean_pSer2 = mean(pSer2),
+            sd_pSer2 = sd(pSer2),
+            cv_pSer2 = sd_pSer2 / mean_pSer2,
+            mean_total_D8L4Y = mean(total_D8L4Y),
+            sd_total_D8L4Y = sd(total_D8L4Y),
+            cv_total_D8L4Y = sd_total_D8L4Y / mean_total_D8L4Y) 
+
+single_cell_variability_D8L4Y_pSer2 %>%
+  pivot_longer(cols=c(cv_pSer2,cv_total_D8L4Y),values_to = "CV",names_to = "antibody",names_prefix = "cv_") %>%
+  ggplot(aes(x=antibody,y=CV)) + geom_boxplot() + ylim(0,NA)
+
+```
+
+```{r}
+
+dat_costain_D8L4Y_pSer2_normalised <- dat_costain_D8L4Y_pSer2 %>%
+  mutate(pSer2 = Nuclei_intensity_mean_561 - bkgrd_primary_1,
+         total_D8L4Y = Nuclei_intensity_mean_647 - bkgrd_primary_2) %>%
+  left_join(dplyr::select(single_cell_variability_D8L4Y_pSer2,well_name,mean_pSer2,mean_total_D8L4Y),by = join_by(well_name)) %>%
+  mutate(total_D8L4Y_norm=total_D8L4Y/mean_total_D8L4Y,pSer2_norm=pSer2/mean_pSer2)
+
+dat_costain_D8L4Y_pSer2_normalised %>%
+  dplyr::select(total_D8L4Y_norm,pSer2_norm,well_name) %>%
+  pivot_longer(cols = c(total_D8L4Y_norm,pSer2_norm), values_to = "intensity", names_to = "antibody") %>%
+  ggplot(aes(x=intensity,col=antibody,group = interaction(well_name,antibody))) + geom_density()
+
+perc_limits <- dat_costain_D8L4Y_pSer2_normalised %>%
+  summarise(total_low = quantile(total_D8L4Y_norm,0.01),
+            total_high = quantile(total_D8L4Y_norm,0.99),
+            pSer2_low = quantile(pSer2_norm,0.01),
+            pSer2_high = quantile(pSer2_norm,0.99))
+
+library(ggpointdensity)
+
+dat_costain_D8L4Y_pSer2_normalised %>%
+  filter(Nuclei_centroid_1 > 250 & Nuclei_centroid_0 < 2000 & Nuclei_centroid_1 > 250 & Nuclei_centroid_1 < 2000) %>%
+  ggplot(aes(x=Nuclei_intensity_sum_405,col=well_name)) +
+  geom_density()
+
+dat_costain_D8L4Y_pSer2_normalised %>%
+  filter(Nuclei_centroid_1 > 250 & Nuclei_centroid_0 < 2000 & Nuclei_centroid_1 > 250 & Nuclei_centroid_1 < 2000) %>%
+  ggplot(aes(x=Nuclei_area)) +
+  geom_density() +
+  geom_vline(xintercept = 750) +
+  geom_vline(xintercept = 5000)
+
+dat_costain_D8L4Y_pSer2_normalised_clean <- dat_costain_D8L4Y_pSer2_normalised %>%
+  filter(Nuclei_area > 750 & Nuclei_intensity_sum_405 > 5000) %>%
+  filter(Nuclei_intensity_sum_405 > 2e5 & Nuclei_intensity_sum_405 < 1.2e6) %>%
+  filter(Nuclei_centroid_1 > 250 & Nuclei_centroid_0 < 2000 & Nuclei_centroid_1 > 250 & Nuclei_centroid_1 < 2000)
+
+ dat_costain_D8L4Y_pSer2_normalised_clean %>%
+  ggplot(aes(x = total_D8L4Y_norm, y = pSer2_norm)) + 
+  geom_pointdensity() +
+  scale_color_viridis_c() +
+  geom_abline() + 
+  geom_smooth(data = filter(dat_costain_D8L4Y_pSer2_normalised_clean,
+                            total_D8L4Y_norm > perc_limits$total_low & total_D8L4Y_norm < perc_limits$total_high),
+              colour="red",
+              method = "lm") +
+  coord_fixed()
+
+
+
+
+
+```
+
+```{r}
+dat_costain_D8L4Y_pSer2_normalised %>%
+  ggplot(aes(x=Nuclei_centroid_1,y=Nuclei_centroid_0,col=log10(Nuclei_intensity_mean_647))) + 
+  geom_point() +
+  scale_color_viridis_c()
+
+dat_costain_D8L4Y_pSer2_normalised %>%
+  ggplot(aes(x=Nuclei_centroid_1,y=Nuclei_centroid_0,col=log10(Nuclei_intensity_mean_561))) + 
+  geom_point() +
+  scale_color_viridis_c()
+```
+```{r}
+mac_F12_D8L4Y <- filter(dat, CELL == "HCT116 OsTIRF74G mAC-POLR2A Clone 5" & PRIMARY_1=="Total Pol II (F12)" & DRUG=="Vehicle")
+mac_Ser2_D8L4Y <- filter(dat, CELL == "HCT116 OsTIRF74G mAC-POLR2A Clone 5" & PRIMARY_1=="pSer2 Pol II (3E10)" & DRUG=="Vehicle")
+
+mac_F12_D8L4Y_positive <- mac_F12_D8L4Y %>%
+  mutate(total_F12 = Nuclei_intensity_mean_561 - bkgrd_primary_1,
+         total_D8L4Y = Nuclei_intensity_mean_647 - bkgrd_primary_2,
+         GFP = Nuclei_intensity_mean_488 - bkgrd_gfp) %>%
+  filter(total_F12 > 0 & total_D8L4Y > 0) %>%
+  mutate(log_total_F12 = log(total_F12),
+         log_total_D8L4Y = log(total_D8L4Y),
+         log_GFP = log(GFP))
+
+n_dropped_F12 <- nrow(mac_F12_D8L4Y_positive) - nrow(mac_F12_D8L4Y)
+
+mac_Ser2_D8L4Y_positive <- mac_Ser2_D8L4Y %>%
+  mutate(pSer2 = Nuclei_intensity_mean_561 - bkgrd_primary_1,
+         total_D8L4Y = Nuclei_intensity_mean_647 - bkgrd_primary_2,
+         GFP = Nuclei_intensity_mean_488 - bkgrd_gfp) %>%
+  filter(pSer2 > 0 & total_D8L4Y > 0) %>%
+  mutate(log_pSer2 = log(pSer2),
+         log_total_D8L4Y = log(total_D8L4Y),
+         log_GFP = log(GFP))
+  
+n_dropped_Ser2 <- nrow(mac_Ser2_D8L4Y_positive) - nrow(mac_Ser2_D8L4Y)
+
+```
+
+
+```{r}
+
+tidy_rlm <- function(d) {
+  broom::tidy(MASS::rlm(log_y ~ log_GFP, data = d, method = "MM", maxit = 200))
+}
+tidy_rlm_safe <- purrr::possibly(
+  tidy_rlm,
+  otherwise = tibble::tibble(term = "log_GFP", estimate = NA_real_, std.error = NA_real_)
+)
+
+slopes_Ser2_D8L4Y_vsGFP <- mac_Ser2_D8L4Y_positive %>%
+  group_by(well_name) %>%
+  filter(log_GFP >= quantile(log_GFP, 0.01),
+         log_GFP <= quantile(log_GFP, 0.99)) %>%
+  ungroup() %>%
+  pivot_longer(c(log_pSer2, log_total_D8L4Y),
+               names_to = "readout", values_to = "log_y") %>%
+  group_by(well_name, readout) %>%
+  nest() %>%
+  mutate(
+    n_cells = map_int(data, nrow),
+    coefs   = map(data, tidy_rlm_safe)
+  ) %>%
+  dplyr::select(well_name, readout, n_cells, coefs) %>%
+  unnest(coefs) %>%
+  filter(term == "log_GFP") %>%
+  transmute(well_name, readout, n_cells, slope = estimate, se = std.error) %>%
+  ungroup()
+
+slopes_F12_D8L4Y_vsGFP <- mac_F12_D8L4Y_positive %>%
+  group_by(well_name) %>%
+  filter(log_GFP >= quantile(log_GFP, 0.01),
+         log_GFP <= quantile(log_GFP, 0.99)) %>%
+  ungroup() %>%
+  pivot_longer(c(log_total_F12, log_total_D8L4Y),
+               names_to = "readout", values_to = "log_y") %>%
+  group_by(well_name, readout) %>%
+  nest() %>%
+  mutate(
+    n_cells = map_int(data, nrow),
+    coefs   = map(data, tidy_rlm_safe)
+  ) %>%
+  dplyr::select(well_name, readout, n_cells, coefs) %>%
+  unnest(coefs) %>%
+  filter(term == "log_GFP") %>%
+  transmute(well_name, readout, n_cells, slope = estimate, se = std.error) %>%
+  ungroup()
+
+slopes_Ser2_D8L4Y_wide <- slopes_Ser2_D8L4Y_vsGFP %>%
+  dplyr::select(well_name, readout, slope) %>%
+  pivot_wider(names_from = readout, values_from = slope) %>%
+  mutate(beta = log_pSer2 / log_total_D8L4Y)   # per-well attenuation-corrected elasticity
+
+slopes_F12_D8L4Y_wide <- slopes_F12_D8L4Y_vsGFP %>%
+  dplyr::select(well_name, readout, slope) %>%
+  pivot_wider(names_from = readout, values_from = slope) %>%
+  mutate(beta = log_total_F12 / log_total_D8L4Y)   # per-well attenuation-corrected elasticity
+
+# significance: is the pSer2 slope below the D8L4Y (proportional-total) slope?
+t.test(slopes_Ser2_D8L4Y_wide$log_pSer2, slopes_Ser2_D8L4Y_wide$log_total_D8L4Y, paired = TRUE)
+
+# effect size: the true elasticity, GFP noise cancelled
+mean(slopes_Ser2_D8L4Y_wide$beta)
+
+```
+
+
+```{r}
+
+slope_Ser2_D8L4Y_means <- slopes_Ser2_D8L4Y_vsGFP %>%
+  group_by(readout) %>%
+  summarise(mean_slope = mean(slope), .groups = "drop")
+
+Ser2_slope_plot <- ggplot(slopes_Ser2_D8L4Y_vsGFP, aes(readout, slope, group = well_name)) +
+  geom_hline(yintercept = 1, linetype = "dotted", colour = "grey50") +
+  geom_line(alpha = 0.35) +
+  geom_point(size = 2, alpha = 0.6) +
+  # well-averaged slope for each readout
+  geom_line(data = slope_Ser2_D8L4Y_means, aes(readout, mean_slope, group = 1),
+            inherit.aes = FALSE, colour = "firebrick", linewidth = 1) +
+  geom_point(data = slope_Ser2_D8L4Y_means, aes(readout, mean_slope),
+             inherit.aes = FALSE, colour = "firebrick", size = 4) +
+  scale_x_discrete(limits = c("log_total_D8L4Y", "log_pSer2"),
+                   labels = c(log_total_D8L4Y = "total (D8L4Y)\nvs GFP",
+                              log_pSer2 = "pSer2\nvs GFP")) +
+  scale_y_continuous(limits = c(0,1)) +
+  labs(x = NULL, y = "log-log slope (regressed on GFP)") +
+  theme_minimal() +
+  theme_bw()
+
+slope_F12_D8L4Y_means <- slopes_F12_D8L4Y_vsGFP %>%
+  group_by(readout) %>%
+  summarise(mean_slope = mean(slope), .groups = "drop")
+
+F12_slope_plot <- ggplot(slopes_F12_D8L4Y_vsGFP, aes(readout, slope, group = well_name)) +
+  geom_hline(yintercept = 1, linetype = "dotted", colour = "grey50") +
+  geom_line(alpha = 0.35) +
+  geom_point(size = 2, alpha = 0.6) +
+  # well-averaged slope for each readout
+  geom_line(data = slope_F12_D8L4Y_means, aes(readout, mean_slope, group = 1),
+            inherit.aes = FALSE, colour = "firebrick", linewidth = 1) +
+  geom_point(data = slope_F12_D8L4Y_means, aes(readout, mean_slope),
+             inherit.aes = FALSE, colour = "firebrick", size = 4) +
+  scale_x_discrete(limits = c("log_total_D8L4Y", "log_total_F12"),
+                   labels = c(log_total_D8L4Y = "total (D8L4Y)\nvs GFP",
+                              log_total_F12 = "total (F12)\nvs GFP")) +
+  scale_y_continuous(limits = c(0,1)) +
+  labs(x = NULL, y = "log-log slope (regressed on GFP)") +
+  theme_bw()
+
+library(patchwork)
+F12_slope_plot + Ser2_slope_plot
+
+```
+```{r, fig.height=8,fig.width=8}
+
+
+plot_df_all <- mac_Ser2_D8L4Y_positive %>%
+  pivot_longer(c(log_pSer2, log_total_D8L4Y), names_to = "readout", values_to = "log_y") %>%
+  group_by(well_name) %>%
+  mutate(
+    log_GFP_c = log_GFP - mean(log_GFP),
+    in_range  = dplyr::between(log_GFP,
+                               quantile(log_GFP, 0.01),
+                               quantile(log_GFP, 0.99))
+  ) %>%
+  group_by(well_name, readout) %>%
+  mutate(log_y_c = log_y - mean(log_y)) %>%
+  ungroup()
+
+ggplot(plot_df_all, aes(log_GFP_c, log_y_c, colour = readout)) +
+  geom_point(alpha = 0.05, size = 0.4) +                       # all cells
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted", colour = "grey60") +
+  geom_smooth(data = ~ dplyr::filter(.x, in_range),            # fit central 90% only
+              method = MASS::rlm, method.args = list(method = "MM", maxit = 200),
+              formula = y ~ x, se = FALSE, linewidth = 0.9) +
+  facet_wrap(~ well_name) +
+  scale_colour_manual(values = c(log_total_D8L4Y = "steelblue", log_pSer2 = "firebrick"),
+                      labels = c(log_total_D8L4Y = "total (D8L4Y)", log_pSer2 = "pSer2")) +
+  labs(x = "centred log(GFP)", y = "centred log(readout)",
+       colour = NULL) +
+  coord_cartesian(xlim = c(-1,1),ylim = c(-1,1)) +
+  theme_minimal() +
+  theme(legend.position = "top")
+
+
+```
+
+## Well-average analysis across mAC-POLR2A data
+
+Load data and check for plate effects
+
+```{r}
+F12_D8L4Y_all <- filter(dat, PRIMARY_1=="Total Pol II (F12)")
+Ser2_D8L4Y_all <- filter(dat, PRIMARY_1=="pSer2 Pol II (3E10)")
+
+F12_D8L4Y_all_summary <- F12_D8L4Y_all %>%
+  mutate(total_F12 = Nuclei_intensity_mean_561 - bkgrd_primary_1,
+         total_D8L4Y = Nuclei_intensity_mean_647 - bkgrd_primary_2,
+         GFP = Nuclei_intensity_mean_488 - bkgrd_gfp) %>%
+  group_by(well_name,CELL,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2,well_row,well_col) %>%
+  summarise(across(c(total_F12,total_D8L4Y,GFP),c(mean=~mean(.))),.groups = "drop")
+
+Ser2_D8L4Y_all_summary <- Ser2_D8L4Y_all %>%
+  mutate(pSer2 = Nuclei_intensity_mean_561 - bkgrd_primary_1,
+         total_D8L4Y = Nuclei_intensity_mean_647 - bkgrd_primary_2,
+         GFP = Nuclei_intensity_mean_488 - bkgrd_gfp) %>%
+  group_by(well_name,CELL,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2,well_row,well_col) %>%
+  summarise(across(c(pSer2,total_D8L4Y,GFP),c(mean=~mean(.))),.groups = "drop")
+
+# row effects for F12
+F12_D8L4Y_all_summary %>% 
+  filter(CELL=="HCT116 OsTIRF74G") %>%
+  ggplot(aes(x=well_row,y=total_F12_mean,col=well_col)) + geom_point()
+
+# row effects for D8L4Y (also correct per left/right block of the plate)
+bind_rows(F12_D8L4Y_all_summary,Ser2_D8L4Y_all_summary) %>% 
+  filter(CELL=="HCT116 OsTIRF74G") %>%
+  ggplot(aes(x=well_row,y=total_D8L4Y_mean,col=well_col)) + geom_point()
+
+# row effects for Ser2
+Ser2_D8L4Y_all_summary %>% 
+  filter(CELL=="HCT116 OsTIRF74G") %>%
+  ggplot(aes(x=well_row,y=pSer2_mean,col=well_col)) + geom_point()
+
+# GFP intensity is stable during acquisition
+bind_rows(F12_D8L4Y_all_summary,Ser2_D8L4Y_all_summary) %>% 
+  filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5" & DRUG_CONCENTRATION==0) %>%
+  ggplot(aes(x=well_row,y=GFP_mean,col=well_col)) + 
+  geom_boxplot() +
+  geom_jitter()
+
+```
+```{r}
+# Correct row effects by normalising to the control cells in each row 
+F12_D8L4Y_normalisers <- F12_D8L4Y_all_summary %>%
+  group_by(well_row) %>%
+  summarise(across(c(total_F12_mean,total_D8L4Y_mean),c(row_mean=~mean(.))),.groups = "drop")
+
+F12_D8L4Y_all_summary_normalised <- F12_D8L4Y_all_summary %>% 
+  inner_join(F12_D8L4Y_normalisers,by = join_by(well_row)) %>%
+  mutate(total_F12_mean_normalised = total_F12_mean/total_F12_mean_row_mean,
+         total_D8L4Y_mean_normalised = total_D8L4Y_mean/total_D8L4Y_mean_row_mean)
+
+Ser2_D8L4Y_normalisers <- Ser2_D8L4Y_all_summary %>%
+  group_by(well_row) %>%
+  summarise(across(c(pSer2_mean,total_D8L4Y_mean),c(row_mean=~mean(.))),.groups = "drop")
+
+Ser2_D8L4Y_all_summary_normalised <- Ser2_D8L4Y_all_summary %>% 
+  inner_join(Ser2_D8L4Y_normalisers,by = join_by(well_row)) %>%
+  mutate(pSer2_mean_normalised = pSer2_mean/pSer2_mean_row_mean,
+         total_D8L4Y_mean_normalised = total_D8L4Y_mean/total_D8L4Y_mean_row_mean)
+
+
+```
+
+
+
+```{r}
+
+vehicle_treated <- F12_D8L4Y_all_summary_normalised %>%
+  filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5") %>%
+  filter(DRUG_CONCENTRATION==0) %>%
+  summarise(total_F12_mean_normalised = mean(total_F12_mean_normalised),
+            total_D8L4Y_mean_normalised = mean(total_D8L4Y_mean_normalised),
+            GFP_mean = mean(GFP_mean))
+
+D8L4Y_vs_F12 <- F12_D8L4Y_all_summary_normalised %>%
+  filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5") %>%
+  ggplot(aes(x=total_F12_mean_normalised/vehicle_treated$total_F12_mean_normalised,
+             y=total_D8L4Y_mean_normalised/vehicle_treated$total_D8L4Y_mean_normalised)) + 
+  geom_point() +
+  geom_abline() +
+  coord_cartesian(xlim = c(0,NA),ylim = c(0,NA))
+
+D8L4Y_vs_GFP <- F12_D8L4Y_all_summary_normalised %>%
+  filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5") %>%
+  ggplot(aes(x=GFP_mean/vehicle_treated$GFP_mean,
+             y=total_D8L4Y_mean_normalised/vehicle_treated$total_D8L4Y_mean_normalised)) + 
+  geom_point() +
+  geom_abline() +
+  coord_cartesian(xlim = c(0,NA),ylim = c(0,NA))
+
+F12_vs_GFP <- F12_D8L4Y_all_summary_normalised %>%
+  filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5") %>%
+  ggplot(aes(x=GFP_mean/vehicle_treated$GFP_mean,
+             y=total_F12_mean_normalised/vehicle_treated$total_F12_mean_normalised)) + 
+  geom_point() +
+  geom_abline() +
+  coord_cartesian(xlim = c(0,NA),ylim = c(0,NA))
+
+F12_vs_GFP
+
+```

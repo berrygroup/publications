@@ -1,0 +1,55 @@
+---
+title: "validate_fold_changes"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(patchwork)
+
+ARMC5_HEK <- read_csv("../data/Cacioppo_HEK_ARMC5_Baseline_IF_overall_summaries.csv")
+
+normalisers <- ARMC5_HEK %>% 
+  filter(Cell=="HEK293 parental") %>%
+  dplyr::select(Primary,normaliser=mean_Nuclei_intensity_mean_488_plate_normalised)
+
+IF_bar_plot <- ARMC5_HEK %>% 
+  filter(Cell!="HEK293 ARMC5 KO 2B6") %>%
+  filter(Primary=="Total Pol II F12") %>%
+  left_join(normalisers,by = join_by(Primary)) %>%
+  mutate(cell_labels = case_when(Cell=="HEK293 parental" ~ "Parental", Cell=="HEK293 ARMC5 KO 1A3" ~ "ARMC5 K.O."),
+         cell_labels = factor(cell_labels,levels = c("Parental","ARMC5 K.O."))) %>%
+  ggplot(aes(x=cell_labels,y=mean_Nuclei_intensity_mean_488_plate_normalised/normaliser,fill=cell_labels)) +
+  geom_col() +
+  geom_errorbar(
+    aes(
+      ymin=(mean_Nuclei_intensity_mean_488_plate_normalised - sd_Nuclei_intensity_mean_488_plate_normalised)/normaliser,
+      ymax=(mean_Nuclei_intensity_mean_488_plate_normalised + sd_Nuclei_intensity_mean_488_plate_normalised)/normaliser),
+    width=0.2) +
+  ylab("Mean nuclear intensity\nPOLR2A pSer5 immunofluorescence (3E8)") +
+  ylim(c(0,1.65)) +
+  theme_bw() +
+  theme(axis.title.x = element_blank()) +
+  scale_fill_manual(values = c("#939591","#7c2c91"))
+
+# Data are fold-change of summed coverage in TSS region in Pol II ChIP-seq
+genomics_ARMC5 <- tibble(cell_labels=factor(c("Parental","ARMC5 K.O."),levels=c("Parental","ARMC5 K.O.")), TSS_Pol_II = c(1.0,1.45))
+
+genomics_bar_plot <- genomics_ARMC5 %>% 
+  ggplot(aes(x=cell_labels,y=TSS_Pol_II,fill=cell_labels)) +
+  geom_col() +
+  ylim(c(0,1.65)) +
+  ylab("dxChIP-seq coverage (TSS)\nTotal POLR2A (D8L4Y)") +
+  theme_bw() +
+  theme(axis.title.x = element_blank()) +
+  scale_fill_manual(values = c("#939591","#7c2c91"))
+
+genomics_bar_plot + IF_bar_plot + plot_layout(guides ="collect") & theme(legend.title = element_blank())
+
+```
+
+
+```{r}
+
+
+```
