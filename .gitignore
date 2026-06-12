@@ -168,3 +168,5 @@ cython_debug/
 *.pdf
 *.png
 
+# Summary data CSVs
+SUMMARY/
