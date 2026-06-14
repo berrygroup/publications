@@ -10,11 +10,10 @@ from aicsimageio import AICSImage, readers
 
 from skimage import io, filters, exposure, feature, transform, util, morphology, segmentation, measure
 
-from cellpose import models
-
 from scipy import ndimage
 
 from blimp.preprocessing.illumination_correction import IlluminationCorrection
+from blimp.processing.segment import segment_nuclei_cellpose
 
 def segment_nucleus(input_file,input_dir,output_dir,illumcorr_file):
 
@@ -23,16 +22,8 @@ def segment_nucleus(input_file,input_dir,output_dir,illumcorr_file):
     illumination_correction = IlluminationCorrection(from_file=illumcorr_file)
     Intensity_Image_Corrected = illumination_correction.correct(Intensity_Image)
 
-    Image_Data_DAPI = Intensity_Image_Corrected.get_image_data('YX', C = 1, T=0, Z=0)
-
-
-    model = models.Cellpose(model_type='nuclei')
-    Nuclei_Masks, flows, styles, diams = model.eval(Image_Data_DAPI, diameter=80, channels = (0,0))
-
-    AICSImage(Nuclei_Masks,
-              physical_pixel_sizes=Intensity_Image.physical_pixel_sizes).save(
-        output_dir / Path("labels_" + Path(input_file).name)
-    )
+    nuclei = segment_nuclei_cellpose(Intensity_Image_Corrected, nuclei_channel=1)
+    nuclei.save(output_dir / Path(input_file).name)
 
     return
 

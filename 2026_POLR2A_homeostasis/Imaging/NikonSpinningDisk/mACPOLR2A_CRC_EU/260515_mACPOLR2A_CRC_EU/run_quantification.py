@@ -20,12 +20,12 @@ def process_single_site(input_file,input_dir,label_image_dir,features_dir,illumc
     intensity_image_corrected = illumination_correction.correct(intensity_image)
 
     # load corresponding label image
-    labels = AICSImage(str(label_image_dir) + "/labels_" + str(Path(input_file).name))
+    labels = AICSImage(label_image_dir / input_file)
 
     # quantify
     features = quantify(intensity_image_corrected, labels)
 
-    features[0].to_csv(features_dir / Path("nuclei_" + Path(input_file).stem + ".csv"), index=False)
+    features[0].to_csv(features_dir / Path(Path(input_file).stem + ".csv"), index=False)
 
     return
 
