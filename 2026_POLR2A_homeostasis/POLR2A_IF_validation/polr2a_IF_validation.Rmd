@@ -7,12 +7,12 @@ library(patchwork)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 ```
 
-```{r}
-library(readxl)
-excel_file <- "/Users/z3532965/OneDrive - UNSW/Science/Manuscripts/2025/PolymeraseHomeostasis/MolCellResubmission/Data/20260610_degron_titration.xlsx"
-excel_sheets(excel_file)
+## Compare IF with western blot
 
-wb_data <- read_xlsx(excel_file,sheet = "Degron titration") %>%
+```{r}
+wb_csv <- "data/20260610_degron_titration.csv"
+
+wb_data <- read_csv(wb_csv) %>%
   select(Replicate,concentration=`5-Ph-IAA concentration`,D8L4Y, S2, vinculin) %>%
   filter(!is.na(Replicate)) %>%
   mutate(total_D8L4Y = D8L4Y / vinculin,
@@ -24,6 +24,7 @@ wb_data <- read_xlsx(excel_file,sheet = "Degron titration") %>%
            concentration=="1 µM" ~ 1e-6,
            concentration=="10 µM" ~ 10e-6,
            TRUE ~ NA_real_)) 
+
 wb_data <- wb_data %>%
   left_join(filter(wb_data,concentration=="DMSO") %>% 
               select(Replicate,
@@ -52,7 +53,6 @@ wb_data_long %>%
   scale_y_continuous(limits = c(0,NA)) +
   theme_bw()
 
-
 wb_data %>%
   ggplot(aes(x=total_D8L4Y_normalised,pSer2_3E10_normalised,col=log10(concentration_numeric))) +
   geom_point() +
@@ -76,7 +76,7 @@ ggsave(filename = "activity_abundance_plot_WB_Ben.pdf",units="cm",width=8,height
 
 ```
 
-
+## Compare IF with direct GFP measurements
 
 ```{r}
 read_quantification <- function(dir_name) {
@@ -220,9 +220,10 @@ f12 <- dat %>%
   group_by(well_name,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
   summarise(mean_total_F12 = mean(Nuclei_intensity_mean_561),.groups = 'drop') %>%
   group_by(CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
-  summarise(mean_total_F12 = mean(mean_total_F12), sd_total_F12 = sd(mean_total_F12),.groups = 'drop') %>%  
+  summarise(sd_total_F12 = sd(mean_total_F12),mean_total_F12 = mean(mean_total_F12),.groups = 'drop') %>%  
   ggplot(aes(x=TIME_MINUTES,y=mean_total_F12,col=interaction(DRUG,DRUG_CONCENTRATION))) +
   geom_point() +
+  geom_errorbar(aes(ymin=mean_total_F12-sd_total_F12,ymax=mean_total_F12+sd_total_F12)) +
   geom_line() +
   coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
   geom_hline(yintercept = bkgrd_primary_1)
@@ -232,9 +233,10 @@ gfp <- dat %>%
   group_by(well_name,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
   summarise(mean_GFP = mean(Nuclei_intensity_mean_488),.groups = 'drop') %>%
   group_by(CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
-  summarise(mean_GFP = mean(mean_GFP), sd_GFP = sd(mean_GFP),.groups = 'drop') %>%  
+  summarise(sd_GFP = sd(mean_GFP),mean_GFP = mean(mean_GFP),.groups = 'drop') %>%  
   ggplot(aes(x=TIME_MINUTES,y=mean_GFP,col=interaction(DRUG,DRUG_CONCENTRATION))) +
   geom_point() +
+  geom_errorbar(aes(ymin=mean_GFP-sd_GFP,ymax=mean_GFP+sd_GFP)) +
   geom_line() +
   coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
   geom_hline(yintercept = bkgrd_gfp)
@@ -242,9 +244,24 @@ gfp <- dat %>%
 f12 + gfp + plot_layout(guides='collect') & theme_bw()
 
 ```
+```{r}
+dat %>%
+  filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5" & PRIMARY_1=="Total Pol II (F12)") %>%
+  ggplot(aes(x=Nuclei_intensity_mean_561,col=well_row)) +
+  geom_density() +
+  facet_wrap(~interaction(DRUG,DRUG_CONCENTRATION))
+
+
+```
+
 
 ```{r}
+
+  # scale_x_log10(breaks=c(1e-9,1e-8,1e-7,1e-6,1e-5),
+  #               labels=c("Vehicle","10 nM","100 nM","1 µM","10 µM")) +
+
 f12_vs_gfp_vs_d8l4y <- dat %>%
+  filter(well_row %in% c("D","E","F","G","H")) %>%
   filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5" & PRIMARY_1=="Total Pol II (F12)") %>%
   group_by(well_name,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
   summarise(mean_total_F12 = mean(Nuclei_intensity_mean_561),
@@ -252,43 +269,82 @@ f12_vs_gfp_vs_d8l4y <- dat %>%
             mean_GFP = mean(Nuclei_intensity_mean_488),
             .groups = 'drop') %>%
   group_by(CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
-  summarise(mean_total_F12 = mean(mean_total_F12),
-            sd_total_F12 = sd(mean_total_F12),
-            mean_total_D8L4Y = mean(mean_total_D8L4Y),
+  summarise(sd_total_F12 = sd(mean_total_F12),
             sd_total_D8L4Y = sd(mean_total_D8L4Y),
-            mean_GFP = mean(mean_GFP),
             sd_GFP = sd(mean_GFP),
-            .groups = 'drop')
+            mean_total_F12 = mean(mean_total_F12),
+            mean_total_D8L4Y = mean(mean_total_D8L4Y),
+            mean_GFP = mean(mean_GFP),
+            .groups = 'drop') %>%
+  mutate(DRUG_CONCENTRATION = if_else(DRUG_CONCENTRATION == 0, 1, DRUG_CONCENTRATION))
 
-f12_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y %>%
-  ggplot(aes(x=mean_GFP,y=mean_total_F12,col=interaction(DRUG,DRUG_CONCENTRATION))) +
-  geom_smooth(aes(x=mean_GFP,y=mean_total_F12),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T) +
+f12_vs_gfp_vs_d8l4y_norm <- f12_vs_gfp_vs_d8l4y %>%
+  filter(DRUG=="Vehicle") %>%
+  summarise(normaliser_total_F12 = mean(mean_total_F12),
+            normaliser_total_D8L4Y = mean(mean_total_D8L4Y),
+            normaliser_GFP = mean(mean_GFP)) %>%
+  bind_cols(f12_vs_gfp_vs_d8l4y) %>%
+  mutate(mean_total_F12 = mean_total_F12 / normaliser_total_F12,
+         sd_total_F12 = sd_total_F12 / normaliser_total_F12,
+         mean_total_D8L4Y = mean_total_D8L4Y / normaliser_total_D8L4Y,
+         sd_total_D8L4Y = sd_total_D8L4Y / normaliser_total_D8L4Y,
+         mean_GFP = mean_GFP / normaliser_GFP,
+         sd_GFP = sd_GFP / normaliser_GFP)
+
+f12_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
+  ggplot(aes(x=mean_GFP,y=mean_total_F12,col=log10(DRUG_CONCENTRATION))) +
+  geom_smooth(aes(x=mean_GFP,y=mean_total_F12),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T,  linetype="dashed") +
   geom_errorbar(aes(ymin=mean_total_F12-sd_total_F12,ymax=mean_total_F12+sd_total_F12)) +
   geom_errorbarh(aes(xmin=mean_GFP-sd_GFP,xmax=mean_GFP+sd_GFP)) +
   geom_point() +
   coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
-  geom_hline(yintercept = bkgrd_primary_1) +
-  geom_vline(xintercept = bkgrd_gfp)
+  geom_hline(yintercept = bkgrd_primary_1/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_F12) +
+  geom_vline(xintercept = bkgrd_gfp/f12_vs_gfp_vs_d8l4y_norm$normaliser_GFP) +
+  scale_color_viridis_c(
+    name="5-Ph-IAA\nconcentration",
+    begin=0,
+    end=0.8,
+    breaks=c(0,1,2,3,4),
+    labels=c("Vehicle","10 nM","100 nM","1 µM","10 µM")) +
+  scale_x_continuous(limits = c(0,1.25),breaks=c(0,0.5,1.0)) +
+  scale_x_continuous(name="POLR2A (mClover)",limits = c(0,1.1),breaks=c(0,0.5,1.0)) +
+  scale_y_continuous(name="POLR2A IF (F12)",limits = c(0,1.1),breaks=c(0,0.5,1.0))
 
-d8l4y_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y %>%
-  ggplot(aes(x=mean_GFP,y=mean_total_D8L4Y,col=interaction(DRUG,DRUG_CONCENTRATION))) +
-  geom_smooth(aes(x=mean_GFP,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T) +
+d8l4y_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
+  ggplot(aes(x=mean_GFP,y=mean_total_D8L4Y,col=log10(DRUG_CONCENTRATION))) +
+  geom_smooth(aes(x=mean_GFP,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T,  linetype="dashed") +
   geom_errorbar(aes(ymin=mean_total_D8L4Y-sd_total_D8L4Y,ymax=mean_total_D8L4Y+sd_total_D8L4Y)) +
   geom_errorbarh(aes(xmin=mean_GFP-sd_GFP,xmax=mean_GFP+sd_GFP)) +
   geom_point() +
   coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
-  geom_hline(yintercept = bkgrd_primary_2) +
-  geom_vline(xintercept = bkgrd_gfp)
+  geom_hline(yintercept = bkgrd_primary_2/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_D8L4Y) +
+  geom_vline(xintercept = bkgrd_gfp/f12_vs_gfp_vs_d8l4y_norm$normaliser_GFP) +
+  scale_color_viridis_c(
+    name="5-Ph-IAA\nconcentration",
+    begin=0,
+    end=0.8,
+    breaks=c(0,1,2,3,4),
+    labels=c("Vehicle","10 nM","100 nM","1 µM","10 µM")) +
+  scale_x_continuous(name="POLR2A (mClover)",limits = c(0,1.1),breaks=c(0,0.5,1.0)) +
+  scale_y_continuous(name="POLR2A IF (D8L4Y)",limits = c(0,1.1),breaks=c(0,0.5,1.0))
 
-d8l4y_vs_f12_plot <- f12_vs_gfp_vs_d8l4y %>%
-  ggplot(aes(x=mean_total_F12,y=mean_total_D8L4Y,col=interaction(DRUG,DRUG_CONCENTRATION))) +
-  geom_smooth(aes(x=mean_total_F12,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T) +
+d8l4y_vs_f12_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
+  ggplot(aes(x=mean_total_F12,y=mean_total_D8L4Y,col=log10(DRUG_CONCENTRATION))) +
+  geom_smooth( aes(x=mean_total_F12,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T, linetype="dashed") +
   geom_errorbar(aes(ymin=mean_total_D8L4Y-sd_total_D8L4Y,ymax=mean_total_D8L4Y+sd_total_D8L4Y)) +
   geom_errorbarh(aes(xmin=mean_total_F12-sd_total_F12,xmax=mean_total_F12+sd_total_F12)) +
   geom_point() +
   coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
-  geom_hline(yintercept = bkgrd_primary_2) +
-  geom_vline(xintercept = bkgrd_primary_1)
+  geom_hline(yintercept = bkgrd_primary_2/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_D8L4Y) +
+  geom_vline(xintercept = bkgrd_primary_1/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_F12) +
+  scale_color_viridis_c(
+    name="5-Ph-IAA\nconcentration",
+    begin=0,
+    end=0.8,
+    breaks=c(0,1,2,3,4),
+    labels=c("Vehicle","10 nM","100 nM","1 µM","10 µM")) +
+  scale_x_continuous(name="POLR2A IF (F12)",limits = c(0,1.1),breaks=c(0,0.5,1.0)) +
+  scale_y_continuous(name="POLR2A IF (D8L4Y)",limits = c(0,1.1),breaks=c(0,0.5,1.0))
 
 d8l4y_vs_f12_plot
 
@@ -298,7 +354,12 @@ A#
 BC
 "
 
-f12_vs_gfp_plot + d8l4y_vs_gfp_plot + d8l4y_vs_f12_plot + plot_layout(design = design) & theme_bw() & theme(legend.position = "none")
+f12_vs_gfp_plot + d8l4y_vs_gfp_plot + d8l4y_vs_f12_plot + plot_layout(design = design) & 
+  theme_bw(base_size = 8) & 
+  theme(legend.position = "none",
+        panel.grid = element_blank())
+
+ggsave("f12_vs_gfp_vs_d8l4y.pdf",width=10,height=8,units="cm")
 
 ```
 
