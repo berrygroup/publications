@@ -7,6 +7,8 @@ library(patchwork)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 ```
 
+# Population-averaged
+
 ## Visualise pSer2 vs total from western blot
 
 mAC-POLR2A cells treated for 4 h with 5-Ph-IAA at different doses (or vehicle). Visualise changes over dose and correspondence between total and pSer2 from western blot data.
@@ -425,12 +427,15 @@ ggsave("if_vs_wb_d8l4y.pdf",width=8,height=5,units="cm")
 ```
 
 
-## Single-cell
+# Single-cell
 
-Let's look at variability between single-cells in pSer2 and D84LY, in the same cells.
+## pSer2 vs D84LY
 
-```{r}
-dat_costain_D8L4Y_pSer2 <- filter(dat,well_row=="N") %>%
+No difference in variability within cell populations indicating that technical variability may dominate.
+
+```{r, fig.width=2,fig.height=3}
+dat_costain_D8L4Y_pSer2 <- filter(dat,DRUG=="Vehicle") %>%
+  filter(well_row %in% c("I","D")) %>%
   filter(PRIMARY_1 %in% c("pSer2 Pol II (3E10)") & PRIMARY_2 %in% c("Total Pol II (D8L4Y)"))
 
 single_cell_variability_D8L4Y_pSer2 <- dat_costain_D8L4Y_pSer2 %>%
@@ -449,6 +454,37 @@ single_cell_variability_D8L4Y_pSer2 %>%
   ggplot(aes(x=antibody,y=CV)) + geom_boxplot() + ylim(0,NA)
 
 ```
+
+```{r}
+
+dat_costain_D8L4Y_pSer2 %>%
+  group_by(well_name,well_row,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
+  summarise(across(Nuclei_intensity_mean_488,mean)) %>%
+  ggplot(aes(x=CELL,y=Nuclei_intensity_mean_488,col=interaction(CELL,DRUG,DRUG_CONCENTRATION,well_row))) +
+  geom_boxplot() +
+  geom_jitter(position = position_jitterdodge()) +
+  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
+
+# compute GFP background on a well_row-specific basis
+gfp_background <- dat_costain_D8L4Y_pSer2 %>%
+  filter(CELL=="HCT116 OsTIRF74G") %>%
+  group_by(well_row,well_name) %>%
+  summarise(value = mean(Nuclei_intensity_mean_488)) %>%
+  group_by(well_row) %>%
+  summarise(gfp_background_value = mean(value),.groups = 'drop')
+
+dat_costain_D8L4Y_pSer2_bkgrd_sub <- dat_costain_D8L4Y_pSer2 %>%
+  filter(CELL!="HCT116 OsTIRF74G") %>%
+  left_join(gfp_background,by = join_by(well_row)) %>%
+  mutate(pSer2_mean_minus_bkgrd = Nuclei_intensity_mean_561 - bkgrd_primary_1,
+         D8L4Y_mean_minus_bkgrd = Nuclei_intensity_mean_647 - bkgrd_primary_2,
+         GFP_mean_minus_bkgrd = Nuclei_intensity_mean_488 - gfp_background_value,
+         DAPI_mean_minus_bkgrd = Nuclei_intensity_mean_405 - 110)
+write_csv(dat_costain_D8L4Y_pSer2_bkgrd_sub,"gfp_pSer2_D84LY_costain_data.csv")
+
+```
+
+
 
 ```{r}
 
