@@ -38,7 +38,7 @@ def process_single_site(
 
     # load corresponding label image
     labels = AICSImage(
-        str(label_image_input_dir) + "/labels_" + str(Path(input_file).name)
+        label_image_input_dir / str(Path(input_file).name)
     )
 
     # load nucleoplasm probability image
@@ -59,16 +59,14 @@ def process_single_site(
     # first channel of labels = nucleus label image (YX), preserving label IDs
     nucleus_labels = labels.get_image_data("YX", C=0)
 
-    selem = disk(1)
-
     # erode the nucleus (per-label, so touching nuclei separate at the shared seam)
-    eroded_nuclei = erode_labels(nucleus_labels, selem)
+    eroded_nuclei = erode_labels(nucleus_labels, disk(2))
 
     # mask the eroded nucleus by the nucleoplasm mask
     nucleoplasm_labels = np.where(nucleoplasm_mask, eroded_nuclei, 0)
 
     # erode again to ensure no overlap with nucleolus
-    nucleoplasm_labels = erode_labels(nucleoplasm_labels, selem)
+    nucleoplasm_labels = erode_labels(nucleoplasm_labels, disk(1))
 
     # convert to AICSImage
     all_labels = AICSImage(

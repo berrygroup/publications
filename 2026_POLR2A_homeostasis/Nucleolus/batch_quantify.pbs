@@ -5,8 +5,10 @@
 #PBS -N batch_quantify_spotcount
 #PBS -l select=1:ncpus=1:mem=64gb
 #PBS -l walltime=0:30:00
-#PBS -o /home/z3536241/log
-#PBS -e /home/z3536241/log
+#PBS -o /srv/scratch/berrylab/z3532965/log
+#PBS -e /srv/scratch/berrylab/z3532965/log
+#PBS -M scott.berry@unsw.edu.au
+#PBS -m ae
 
 ### The following parameter is modulated at runtime to specify the
 ### batch number on each node. Batches should run from zero to N_BATCHES-1
@@ -22,12 +24,12 @@ conda activate berrylab-py310
 cd $PBS_O_WORKDIR
 
 python /srv/scratch/z3532965/src/publications/2026_POLR2A_homeostasis/Nucleolus/run_quantification.py \
- --id ${PBS_ARRAY_INDEX} \
  --input_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/260515_mACPOLR2A_CRC_EU/20260519_171947_338/OME-TIFF-MIP \
- --label_image_input_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/260515_mACPOLR2A_CRC_EU/20260519_171947_338/SEGMENTATION \
+ --label_image_input_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/260515_mACPOLR2A_CRC_EU/20260519_171947_338/SEGMENTATION \
  --label_image_output_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/260515_mACPOLR2A_CRC_EU/20260519_171947_338/SEGMENTATION \
- --features_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/260515_mACPOLR2A_CRC_EU/20260519_171947_338/QUANTIFICATION \
+ --features_dir /srv/scratch/berrylab/z3532965/NikonSpinningDisk/260515_mACPOLR2A_CRC_EU/20260519_171947_338/QUANTIFICATION_NUCLEOPLASM \
  --probmap_dir /srv/scratch/berrylab/z3532965/tmp \
- --illumination_correction_file /srv/scratch/berrylab/z3536241/NikonSpinningDisk/260515_mACPOLR2A_CRC_EU/20260519_171947_338/ILLCORR/ILLCORR_20x_647_405_561_XXX.pkl
+ --illumination_correction_file /srv/scratch/berrylab/z3532965/NikonSpinningDisk/260515_mACPOLR2A_CRC_EU/20260519_171947_338/ILLCORR/ILLCORR_20x_647_405_561_XXX.pkl \
+ --id ${PBS_ARRAY_INDEX}
 
 conda deactivate
