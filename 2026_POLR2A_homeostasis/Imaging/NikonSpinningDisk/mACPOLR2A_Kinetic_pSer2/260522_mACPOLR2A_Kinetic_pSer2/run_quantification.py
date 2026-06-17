@@ -20,10 +20,15 @@ def process_single_site(input_file,input_dir,label_image_dir,features_dir,illumc
     intensity_image_corrected = illumination_correction.correct(intensity_image)
 
     # load corresponding label image
-    labels = AICSImage(str(label_image_dir) + "/labels_" + str(Path(input_file).name))
+    labels = AICSImage(label_image_dir / str(Path(input_file).name))
 
     # quantify
-    features = quantify(intensity_image_corrected, labels)
+    features = quantify(
+        intensity_image=intensity_image_corrected,
+        label_image=labels,
+        texture_channels=3,
+        texture_objects="Nuclei"
+    )
 
     features[0].to_csv(features_dir / Path("nuclei_" + Path(input_file).stem + ".csv"), index=False)
 
@@ -40,7 +45,7 @@ def select_input_file(input_dir,index,extension="tiff"):
 if __name__ == "__main__":
     from argparse import ArgumentParser
     
-    parser = ArgumentParser(prog="run_quantification_spots")
+    parser = ArgumentParser(prog="run_quantification")
 
     parser.add_argument(
         "--id",
