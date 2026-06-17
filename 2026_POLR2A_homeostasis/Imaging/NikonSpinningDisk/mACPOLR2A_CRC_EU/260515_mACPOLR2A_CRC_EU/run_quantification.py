@@ -13,25 +13,29 @@ from skimage import measure
 def process_single_site(input_file,input_dir,label_image_dir,features_dir,illumcorr_file):
 
     # load intensity image
-    intensity_image = AICSImage(input_dir / input_file)
+    print(f"load intensity image {str(input_dir / Path(input_file).name)}")
+    intensity_image = AICSImage(input_dir / Path(input_file).name)
     illumination_correction = IlluminationCorrection(
         from_file=illumcorr_file
     )
+    print("correct intensity image")
     intensity_image_corrected = illumination_correction.correct(intensity_image)
 
     # load corresponding label image
-    labels = AICSImage(label_image_dir / input_file)
+    labels = AICSImage(label_image_dir / Path(input_file).name)
 
     # quantify
+    print("quantify")
     features = quantify(intensity_image_corrected, labels)
 
+    print(f"write features file {features_dir / Path(Path(input_file).stem + '.csv')}")
     features[0].to_csv(features_dir / Path(Path(input_file).stem + ".csv"), index=False)
 
     return
 
 
 def select_input_file(input_dir,index,extension="tiff"):
-    input_files = glob(str(input_dir / ("*." + extension)))
+    input_files = glob(str(input_dir / ("Well*." + extension)))
     input_files.sort()
     print(input_files[index])
     return(input_files[index])
