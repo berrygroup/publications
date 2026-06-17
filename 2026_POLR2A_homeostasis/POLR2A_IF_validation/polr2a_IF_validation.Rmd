@@ -61,12 +61,12 @@ wb_data %>%
   ggplot(aes(x=total_D8L4Y_normalised,pSer2_3E10_normalised,col=log10(concentration_numeric))) +
   geom_point() +
   geom_abline() +
-  scale_x_continuous("Total Pol II (D8L4Y western blot)",
+  scale_x_continuous("POLR2A western\nblot (D8L4Y )",
                      breaks=c(0,0.5,1)) +
-  scale_y_continuous("pSer2 Pol II (3E10 western blot)",
+  scale_y_continuous("pSer2-POLR2A\nwestern blot (3E10)",
                      breaks=c(0,0.5,1)) +
   coord_cartesian(xlim=c(0,NA),ylim = c(0,NA)) +
-  theme_bw(base_size = 7) +
+  theme_bw(base_size = 8) +
   scale_color_viridis_c(
     name="5-Ph-IAA\nconcentration",
     begin=0,
@@ -76,7 +76,7 @@ wb_data %>%
   theme(panel.grid = element_blank(),
         aspect.ratio = 1,
         legend.key.size = unit(0.2,"cm"))
-ggsave(filename = "activity_abundance_plot_WB_Ben.pdf",units="cm",width=8,height=5)
+ggsave(filename = "activity_abundance_plot_WB_Ben.pdf",units="cm",width=6,height=4)
 
 ```
 
@@ -422,13 +422,19 @@ plot_data %>%
         panel.grid = element_blank(),
         aspect.ratio = 1) +
   scale_colour_manual(values = c("#0072B2", "#D55E00"))
-ggsave("if_vs_wb_d8l4y.pdf",width=8,height=5,units="cm")
+ggsave("if_vs_wb_d8l4y.pdf",width=6,height=4,units="cm")
 
 ```
 
-# Write single-cell data for analysis elsewhere
 
-```{r single_cell}
+# Single-cell
+
+## Write pSer2 vs D84LY data in mAC-POLR2A cells
+
+```{r, single_cell}
+dat_costain_D8L4Y_pSer2 <- filter(dat,DRUG=="Vehicle") %>%
+  filter(well_row %in% c("I","D")) %>%
+  filter(PRIMARY_1 %in% c("pSer2 Pol II (3E10)") & PRIMARY_2 %in% c("Total Pol II (D8L4Y)"))
 
 dat_costain_D8L4Y_pSer2 %>%
   group_by(well_name,well_row,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
@@ -452,7 +458,7 @@ dat_costain_D8L4Y_pSer2_bkgrd_sub <- dat_costain_D8L4Y_pSer2 %>%
   mutate(pSer2_mean_minus_bkgrd = Nuclei_intensity_mean_561 - bkgrd_primary_1,
          D8L4Y_mean_minus_bkgrd = Nuclei_intensity_mean_647 - bkgrd_primary_2,
          GFP_mean_minus_bkgrd = Nuclei_intensity_mean_488 - gfp_background_value,
-         DAPI_mean_minus_bkgrd = Nuclei_intensity_mean_405 - 165)
+         DAPI_mean_minus_bkgrd = Nuclei_intensity_mean_405 - 170)
 write_csv(dat_costain_D8L4Y_pSer2_bkgrd_sub,"gfp_pSer2_D84LY_costain_data.csv")
 
 ```
