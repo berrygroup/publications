@@ -105,7 +105,7 @@ read_quantification <- function(dir_name) {
 
 ```{r}
 data_dir_images <- "/srv/scratch/berrylab/z3536241/NikonSpinningDisk/260522_mACPOLR2A_Kinetic_pSer2/20260526_181658_086/"
-data_dir_quant <- "/srv/scratch/berrylab/z3536241/NikonSpinningDisk/260522_mACPOLR2A_Kinetic_pSer2/20260526_181658_086/"
+data_dir_quant <- "/srv/scratch/berrylab/z3532965/NikonSpinningDisk/260522_mACPOLR2A_Kinetic_pSer2/20260526_181658_086/"
 plate_layout_file <- "/srv/scratch/z3532965/src/blana/Alex/260522_mACPOLR2A_Kinetic_pSer2/260522_mACPOLR2A_Kinetic_pSer2.csv"
 
 # Read plate layout

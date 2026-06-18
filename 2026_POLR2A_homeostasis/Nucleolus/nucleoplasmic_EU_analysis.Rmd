@@ -24,11 +24,6 @@ read_quantification <- function(dir_name) {
 ```
 
 ```{r}
-
-```
-
-
-```{r}
 data_dir_images <- "/srv/scratch/berrylab/z3536241/NikonSpinningDisk/260515_mACPOLR2A_CRC_EU/20260519_171947_338/"
 data_dir_quant <- "/srv/scratch/berrylab/z3532965/NikonSpinningDisk/260515_mACPOLR2A_CRC_EU/20260519_171947_338/"
 plate_layout_file <- "/srv/scratch/z3532965/src/blana/Alex/260515_mACPOLR2A_CRC_EU/260515_mACPOLR2A_CRC_EU.csv"
@@ -38,7 +33,7 @@ plate_layout <- read_csv(plate_layout_file, show_col_types = FALSE) %>%
   rename(well_name=WELL)
 
 # Read and process quantification data
-f <- read_quantification(file.path(data_dir_quant, "QUANTIFICATION")) %>%
+f <- read_quantification(file.path(data_dir_quant, "QUANTIFICATION_NUCLEOPLASM")) %>%
      dplyr::mutate(data_dir = dirname(dirname(path))) %>%
      dplyr::select(-c(ch1, ch2, ch3, ch4, sample))
 
@@ -138,29 +133,70 @@ dat_subset %>%
             mean_nucleus_EU = mean(ErodedNucleus_intensity_mean_647_mean - bkgrd_summary$mean_EU_bkgrd)) %>%
   group_by(DRUG,DRUG_CONCENTRATION) %>%
   summarise(across(c(mean_nucleoplasm_EU,mean_nucleus_EU),c(sd=~sd(.),mean=~mean(.)))) %>%
-  ggplot(aes(x=mean_nucleus_EU_mean,y=mean_nucleoplasm_EU_mean,colour=interaction(DRUG,DRUG_CONCENTRATION))) + 
+  mutate(LOG_DRUG_CONCENTRATION=if_else(DRUG_CONCENTRATION==0,-1,log10(DRUG_CONCENTRATION))) %>%
+  ggplot(aes(x=mean_nucleus_EU_mean,y=mean_nucleoplasm_EU_mean,colour=LOG_DRUG_CONCENTRATION)) + 
+    geom_abline() +
   geom_point() + 
-  geom_errorbar(aes(ymin=mean_nucleoplasm_EU_mean-mean_nucleoplasm_EU_sd,ymax=mean_nucleoplasm_EU_mean+mean_nucleoplasm_EU_sd)) +
-  geom_errorbarh(aes(xmin=mean_nucleus_EU_mean-mean_nucleus_EU_sd,xmax=mean_nucleus_EU_mean+mean_nucleus_EU_sd)) +
+  geom_errorbar(aes(ymin=mean_nucleoplasm_EU_mean-mean_nucleoplasm_EU_sd,ymax=mean_nucleoplasm_EU_mean+mean_nucleoplasm_EU_sd),width=4) +
+  geom_errorbarh(aes(xmin=mean_nucleus_EU_mean-mean_nucleus_EU_sd,xmax=mean_nucleus_EU_mean+mean_nucleus_EU_sd),width=4) +
   coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
-  geom_abline()
 
-ggsave
+  scale_x_continuous(name="5-EU incorporation\n(Nucleus, A.U.)",breaks=c(0,50,100)) +
+  scale_y_continuous(name="5-EU incorporation\n(Nucleoplasm, A.U.)",breaks=c(0,50,100)) +
+  scale_color_viridis_c(
+    name="5-Ph-IAA\nconcentration",
+    begin=0,
+    end=0.8,
+    breaks=c(-1,0,1,2,3),
+    labels=c("Vehicle","1 nM","10 nM","100 nM","1 µM")) +
+  theme_bw(base_size = 8) + 
+  theme(panel.grid=element_blank(),
+        aspect.ratio=1,
+        legend.key.width = unit(3,"mm"),
+        legend.key.height = unit(2,"mm"))
+
+ggsave("Nucleoplasm_vs_Nucleus_EU.pdf",width=6,height = 4,units="cm")
 
 ```
 ```{r}
-dat_subset %>% 
+dat_plot <- dat_subset %>% 
   group_by(well_name,DRUG,DRUG_CONCENTRATION) %>%
   filter(!is.na(Nucleoplasm_intensity_mean_647_mean)) %>%
   summarise(mean_nucleoplasm_EU = mean(Nucleoplasm_intensity_mean_647_mean - bkgrd_summary$mean_EU_bkgrd),
-            mean_nucleus_POLR2A = mean(ErodedNucleus_intensity_mean_561_mean - bkgrd_summary$mean_secondary_background)) %>%
+            mean_nucleus_POLR2A = mean(ErodedNucleus_intensity_mean_561_mean - bkgrd_summary$mean_secondary_background),.groups='drop') %>%
   group_by(DRUG,DRUG_CONCENTRATION) %>%
-  summarise(across(c(mean_nucleus_POLR2A,mean_nucleoplasm_EU),c(sd=~sd(.),mean=~mean(.)))) %>%
-  ggplot(aes(x=mean_nucleus_POLR2A_mean,y=mean_nucleoplasm_EU_mean,colour=interaction(DRUG,DRUG_CONCENTRATION))) + 
+  summarise(across(c(mean_nucleus_POLR2A,mean_nucleoplasm_EU),c(sd=~sd(.),mean=~mean(.))),.groups='drop') %>%
+  mutate(LOG_DRUG_CONCENTRATION=if_else(DRUG_CONCENTRATION==0,-1,log10(DRUG_CONCENTRATION)))
+
+normalisers <- dat_plot %>%
+  filter(DRUG_CONCENTRATION==0) %>%
+  select(mean_nucleoplasm_EU_normaliser=mean_nucleoplasm_EU_mean,
+         mean_nucleus_POLR2A_normaliser=mean_nucleus_POLR2A_mean)
+
+bind_cols(dat_plot,normalisers) %>%
+  mutate(mean_nucleus_POLR2A_mean=mean_nucleus_POLR2A_mean/mean_nucleus_POLR2A_normaliser,
+         mean_nucleus_POLR2A_sd=mean_nucleus_POLR2A_sd/mean_nucleus_POLR2A_normaliser,
+         mean_nucleoplasm_EU_mean=mean_nucleoplasm_EU_mean/mean_nucleoplasm_EU_normaliser,
+         mean_nucleoplasm_EU_sd=mean_nucleoplasm_EU_sd/mean_nucleoplasm_EU_normaliser) %>%
+ggplot(aes(x=mean_nucleus_POLR2A_mean,y=mean_nucleoplasm_EU_mean,colour=LOG_DRUG_CONCENTRATION)) + 
+  geom_abline() +
   geom_point() + 
-  geom_errorbar(aes(ymin=mean_nucleoplasm_EU_mean-mean_nucleoplasm_EU_sd,ymax=mean_nucleoplasm_EU_mean+mean_nucleoplasm_EU_sd)) +
-  geom_errorbarh(aes(xmin=mean_nucleus_POLR2A_mean-mean_nucleus_POLR2A_sd,xmax=mean_nucleus_POLR2A_mean+mean_nucleus_POLR2A_sd)) +
-  coord_cartesian(xlim=c(0,NA),ylim=c(0,NA))
+  scale_color_viridis_c(
+    name="5-Ph-IAA\nconcentration",
+    begin=0,
+    end=0.8,
+    breaks=c(-1,0,1,2,3),
+    labels=c("Vehicle","1 nM","10 nM","100 nM","1 µM")) +
+  geom_errorbar(aes(ymin=mean_nucleoplasm_EU_mean-mean_nucleoplasm_EU_sd,ymax=mean_nucleoplasm_EU_mean+mean_nucleoplasm_EU_sd),width=0.04) +
+  geom_errorbarh(aes(xmin=mean_nucleus_POLR2A_mean-mean_nucleus_POLR2A_sd,xmax=mean_nucleus_POLR2A_mean+mean_nucleus_POLR2A_sd),width=0.04) +
+  scale_x_continuous(name="POLR2A immunofluorescence (F12)", limits=c(0,1.15),breaks=c(0,0.5,1)) +
+  scale_y_continuous(name="5-EU incorporation\n(Nucleoplasm)", limits=c(0,1.15),breaks=c(0,0.5,1)) +
+  theme_bw(base_size = 8) + 
+  theme(panel.grid=element_blank(),
+        aspect.ratio=1,
+        legend.key.width = unit(3,"mm"),
+        legend.key.height = unit(2,"mm"))
+ggsave("Nucleoplasm_EU_vs_Nucleus_POLR2A.pdf",width=6,height = 4,units="cm")
 ```
 
 
