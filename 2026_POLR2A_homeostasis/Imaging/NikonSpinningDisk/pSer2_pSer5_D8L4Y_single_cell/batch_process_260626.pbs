@@ -1,0 +1,27 @@
+
+#!/bin/bash
+
+#PBS -N batch_process_260626
+#PBS -l select=1:ncpus=1:mem=64gb
+#PBS -l walltime=1:30:00
+#PBS -o /srv/scratch/berrylab/z3532965/log
+#PBS -e /srv/scratch/berrylab/z3532965/log
+#PBS -M scott.berry@unsw.edu.au
+#PBS -m ae
+
+### The following parameter is modulated at runtime to specify the
+### batch number on each node. Batches should run from zero to N_BATCHES-1
+### to process all files
+
+#PBS -J 0-1295
+###---------------------------------------------------------------------------
+
+source /home/z3532965/.bashrc
+conda activate cellpose4-env-minimal
+
+cd $PBS_O_WORKDIR
+
+python /srv/scratch/z3532965/src/blana/Scott/20260626_POLR2A_heterogeneity/run_segment_and_quantify.py \
+ --id ${PBS_ARRAY_INDEX} -vv
+
+conda deactivate

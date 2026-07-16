@@ -1,0 +1,1906 @@
+---
+title: "Buffering of POLR2A variation on pSer2 in unperturbed cells"
+subtitle: "Single-cell immunofluorescence, using direct protein detection to correct for measurement noise"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+    df_print: paged
+date: "`r format(Sys.Date())`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list=ls())
+library(tidyverse)
+library(patchwork)
+library(caret)
+library(ranger)
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+PLOTS_DIR <- "PLOTS"
+dir.create(PLOTS_DIR, showWarnings = FALSE, recursive = TRUE)
+
+read_quantification <- function(dir_name) {
+  csv_files <- Sys.glob(file.path(dir_name,"*.csv"))
+  dt_list <- lapply(csv_files, data.table::fread)
+  df <- tibble(path = csv_files,
+               feature_values = dt_list) %>%
+    mutate(dir_name = dir_name,
+           file_name = basename(path),
+           feature_values = purrr::map(feature_values,tibble)) %>%
+    separate(file_name,into = c("well_name","ch1","ch2","ch3","ch4","ch5","ch6","sample","id"),sep="[,_.]", extra = "drop") %>%
+    mutate(well_name = str_replace(well_name, "^Well", ""),
+           field_id = as.integer(id))
+  return(df)
+}
+
+```
+
+## Question and experimental design
+
+### Summary
+
+Having observed limited changes in pSer2 (CTD Ser2 phosphorylation) at the level
+of cell populations when total POLR2A levels are perturbed, we now ask whether
+such buffering is observed at the level of single cells to prevent propagation
+of natural cell-to-cell variability in POLR2A abundance to transcription.
+
+### Experiment and analysis approach
+
+We measured nuclear pSer2 via immunofluorescence with monoclonal 3E10 antibody
+and two readouts of total Pol II: one direct, using a mClover-POLR2A fusion, and
+secondly with a monoclonal D8L4Y POLR2A antibody, all in the same cells as we
+visualised pSer2. These experiments were repeated in mCherry-POLR2A cells and
+using different combinations of secondary channels for detecting the Rat and
+Rabbit primary antibodies (secondary switch).
+
+Buffering is quantified as the slope, $\beta$, of $\log(\text{pSer2})$ on
+$\log(\text{total Pol II})$. $\beta=1$ is proportional (constant phosphorylated
+fraction), $\beta<1$ is buffering, $\beta=0$ is perfect homeostasis.
+
+The difficulty in determining this slope is measurement noise, which biases the
+slope in two opposing ways. Noise in the quantity on the x-axis (total Pol II)
+flattens any fitted slope toward zero (regression-dilution), which may
+appear as buffering. In the other direction, a per-cell imaging factor
+(confounding factor) shared by some or all fluorescence channels
+(immunofluorescence artifact, segmentation inaccuracy, nuclear thickness)
+inflates the apparent slope, $\beta$, toward 1 and so tends to mask true
+buffering.
+
+To investigat (and correct for) these issues, we make use of the
+mClover-POLR2A and mCherry-POLR2A fusions. Because fluorescent proteins carry
+no antibody noise, we can use these as a reference to remove correlated
+immunofluorescence noise from
+the slope, removing the regression-dilution bias. The shared-imaging inflation
+is not fully removed, but it only pushes the slope upward, so any slope we find
+below 1 is a conservative statement of buffering.
+
+## Load, verify, and clean up data
+
+### Load data
+
+Load data from csvs. Nuclei segmented with cellpose 4 and quantified using 
+``blimp``.
+
+```{r}
+data_dir_images <- "/srv/scratch/berrylab/z3532965/systems_Ti2/20260626_POLR2A_heterogeneity/20260629_134305_894/OME-TIFF-MIP"
+data_dir_quant <- "/srv/scratch/berrylab/z3532965/systems_Ti2/20260626_POLR2A_heterogeneity/20260629_134305_894/QUANTIFICATION"
+plate_layout_file <- "METADATA/20260626_single_cell_POLR2A_plate_layout.csv"
+
+# Read plate layout
+plate_layout <- read_csv(plate_layout_file, show_col_types = FALSE) %>%
+  rename(well_name=well)
+
+# Read and process quantification data
+f <- read_quantification(data_dir_quant) %>%
+  dplyr::mutate(data_dir = dirname(dirname(path))) %>%
+  dplyr::select(-c(ch1, ch2, ch3, ch4, ch5, ch6, sample))
+
+dat <- left_join(f,plate_layout,by="well_name") %>%
+  unnest(feature_values) %>%
+  mutate(unique_id = paste(well_name, label, sep = "_")) %>%
+  mutate(well_row=substr(well_name,1,1),
+         well_col=substr(well_name,2,3)) %>%
+  ungroup()
+
+```
+
+### Plot plate layouts
+
+Plot plate layouts to verify and get an overview of the experiment.
+
+```{r}
+
+source("/srv/scratch/z3532965/src/blana/Scott/plot_plate_layout.R")
+
+plate_layout %>% group_by(CELLS,PRIMARY_RAT,PRIMARY_RABBIT,SECONDARY_488,SECONDARY_568,SECONDARY_647,DAPI) %>%
+  count()
+
+plot_plate_layout(plate_layout, color_by = "CELLS", title = "Cell type")
+plot_plate_layout(plate_layout, color_by = "PRIMARY_RAT", title = "Primary (Rat)")
+plot_plate_layout(plate_layout, color_by = "PRIMARY_RABBIT", title = "Primary (Rabbit)")
+plot_plate_layout(plate_layout, color_by = "SECONDARY_488", title = "Secondary (488)")
+plot_plate_layout(plate_layout, color_by = "SECONDARY_568", title = "Secondary (568)")
+plot_plate_layout(plate_layout, color_by = "SECONDARY_647", title = "Secondary (647)")
+
+```
+### Clean up data
+
+Training data has been manually annotated for several fields of view to identify
+mitotic cells and oversegmented cells. We focus on properly segmented interphase
+cells (where transcription is ongoing and properly quantified) and therefore
+remove these cells.
+
+```{r machine_learning_cleanup}
+
+# define helpers
+normalise_stem <- function(x) x %>% str_replace_all(",", "_") %>% str_replace("\\.ome$", "_ome")
+path_to_stem   <- function(p) basename(p) %>% str_remove("\\.csv$") %>% normalise_stem()
+
+read_annotations <- function(anno_dir) {
+  list.files(anno_dir, pattern = "_annotation\\.csv$", full.names = TRUE) %>%
+    set_names() %>%
+    map_dfr(~ read_csv(.x, show_col_types = FALSE,
+                       col_select = c(label, annotations, annotation_names)),
+            .id = "file") %>%
+    filter(!is.na(annotation_names)) %>%
+    transmute(file,
+              stem  = normalise_stem(str_remove(basename(file), "_annotation\\.csv$")),
+              label, class = annotation_names)
+}
+
+zscore_405 <- function(df, well_col_id = "well_name") {
+  cols_405 <- names(df) %>% str_subset("^Nuclei_intensity_.*_405$")
+  df %>%
+    select(-matches("^Nuclei_intensity_.*_405_z$")) %>%
+    group_by(across(all_of(well_col_id))) %>%
+    mutate(across(all_of(cols_405), ~ as.numeric(scale(.x)), .names = "{.col}_z")) %>%
+    ungroup()
+}
+
+fit_classifier <- function(df, anno_dir, feature_cols, positive_class, name,
+                           well_col_id = "well_name", corr_cutoff = 0.9, seed = 1) {
+  
+  df <- zscore_405(df, well_col_id = well_col_id)
+  
+  # swap any raw 405 intensity features for their z-scored versions
+  feature_cols <- feature_cols %>%
+    map_chr(\(nm) if (str_detect(nm, "^Nuclei_intensity_.*_405$")) paste0(nm, "_z") else nm) %>%
+    intersect(names(df))
+  
+  missing <- setdiff(feature_cols, names(df))
+  if (length(missing)) warning("features not found: ", paste(missing, collapse = ", "))
+  
+  anno   <- read_annotations(anno_dir)
+  joined <- anno %>% left_join(mutate(df, stem = path_to_stem(path)),
+                               by = c("stem", "label"))
+  n_bad <- sum(is.na(joined$path))
+  if (n_bad) warning(sprintf("[%s] %d/%d annotations didn't match df — check keys.",
+                             name, n_bad, nrow(anno)))
+  
+  train <- joined %>%
+    transmute(class = factor(class), across(all_of(feature_cols))) %>%
+    drop_na()
+  stopifnot(nlevels(train$class) >= 2, positive_class %in% levels(train$class))
+  train$class <- relevel(train$class, ref = positive_class)
+  
+  x <- as.data.frame(train[, feature_cols, drop = FALSE])
+  y <- train$class
+  w <- as.numeric(1 / table(y)[y]); w <- w / mean(w)
+  
+  grid <- expand.grid(mtry = c(2, 3, 4, 5), splitrule = "gini", min.node.size = c(5, 10))
+  
+  set.seed(seed)
+  fit <- train(
+    x = x, y = y, weights = w,
+    method = "ranger", metric = "ROC",
+    preProcess = c("nzv", "corr"),
+    trControl = trainControl(method = "cv", number = 5,
+                             classProbs = TRUE, summaryFunction = twoClassSummary,
+                             preProcOptions = list(cutoff = corr_cutoff)),
+    tuneGrid = grid, num.trees = 1000, importance = "impurity"
+  )
+  
+  # performance from the final model's OOB predictions
+  oob_prob <- fit$finalModel$predictions[, positive_class]
+  oob_pred <- factor(ifelse(oob_prob > 0.5, positive_class,
+                            setdiff(levels(y), positive_class)), levels = levels(y))
+  cm  <- confusionMatrix(oob_pred, y, positive = positive_class)
+  pos <- oob_prob[y == positive_class]; neg <- oob_prob[y != positive_class]
+  auc <- mean(outer(pos, neg, ">") + 0.5 * outer(pos, neg, "=="))
+  
+  # which features survived the nzv/corr reduction
+  kept    <- fit$finalModel$xNames
+  omitted <- setdiff(feature_cols, kept)
+  
+  # assemble summary objects for the notebook to render 
+  class_counts <- as_tibble(table(class = y))
+  
+  metrics <- tibble(
+    positive     = positive_class,
+    n            = length(y),
+    n_pos        = sum(y == positive_class),
+    n_feat_in    = length(feature_cols),
+    n_feat_kept  = length(kept),
+    AUC          = auc,
+    Precision    = unname(cm$byClass["Precision"]),
+    Recall       = unname(cm$byClass["Recall"]),
+    F1           = unname(cm$byClass["F1"]),
+    best_mtry    = fit$bestTune$mtry,
+    best_node    = fit$bestTune$min.node.size,
+    corr_cutoff  = corr_cutoff
+  )
+  
+  confusion <- as.data.frame.matrix(cm$table)
+  
+  importance <- fit$finalModel$variable.importance %>%
+    enframe("feature", "importance") %>%
+    arrange(desc(importance))
+  
+  features <- tibble(
+    feature = feature_cols,
+    kept    = feature_cols %in% kept
+  )
+  
+  list(model = fit, feature_cols = kept, positive_class = positive_class,
+       name = name, well_col_id = well_col_id, anno_dir = anno_dir,
+       class_counts = class_counts, metrics = metrics, confusion = confusion,
+       importance = importance, features = features, dropped = omitted)
+}
+
+apply_classifier <- function(df, bundle, threshold = 0.5) {
+  scored <- zscore_405(df, well_col_id = bundle$well_col_id)
+  fc <- bundle$feature_cols
+  ok <- complete.cases(scored[, fc])
+  prob <- rep(NA_real_, nrow(scored))
+  prob[ok] <- predict(bundle$model, scored[ok, fc, drop = FALSE],
+                      type = "prob")[[bundle$positive_class]]
+  df[[paste0(bundle$name, "_prob")]] <- prob
+  df[[bundle$name]] <- prob > threshold
+  df
+}
+
+write_image_predictions <- function(df, bundle, out_dir = NULL) {
+  name      <- bundle$name
+  prob_col  <- paste0(name, "_prob")
+  stopifnot(prob_col %in% names(df))
+  
+  # map each training image's stem back to its annotation file path
+  anno <- read_annotations(bundle$anno_dir)
+  file_by_stem <- anno %>% distinct(stem, file)
+  
+  # ground-truth labels (only exist for annotated cells)
+  truth <- anno %>% select(stem, label, annotated_class = class)
+  
+  df %>%
+    mutate(stem = path_to_stem(path)) %>%
+    inner_join(file_by_stem, by = "stem") %>%
+    left_join(truth, by = c("stem", "label")) %>%
+    select(file, stem, label,
+           any_of(c("well_name")),
+           annotated_class,
+           !!prob_col := all_of(prob_col),
+           !!name     := all_of(name)) %>%
+    group_by(file) %>%
+    group_walk(~ {
+      out_name <- str_replace(basename(.y$file), "_annotation\\.csv$", "_predictions.csv")
+      dir_out  <- out_dir %||% dirname(.y$file)
+      write_csv(.x, file.path(dir_out, out_name))
+    })
+  invisible(df)
+}
+
+```
+
+We select features to pass to the classifiers, train and apply classifiers, and
+write predictions back to file for manual verification together with images. 
+
+```{r fit_classifiers}
+feature_cols <- c(
+  paste0("Nuclei_", c("area","area_convex","axis_major_length","axis_minor_length",
+                      "eccentricity","extent","feret_diameter_max","solidity",
+                      "perimeter","perimeter_crofton","euler_number")),
+  names(dat) %>% str_subset("^Nuclei_intensity_.*_405$"),
+  names(dat) %>% str_subset("^Nuclei_405_Haralick")
+)
+feature_cols <- intersect(feature_cols, names(dat))
+
+mito <- fit_classifier(dat, "ANNOTATIONS/MITOTIC", feature_cols, "Mitotic",
+                       name = "MITOTIC", well_col_id = "well_name",
+                       corr_cutoff = 0.975)
+
+knitr::kable(t(mito$metrics), digits = 3, caption = "MITOTIC: OOB performance & best tune")
+knitr::kable(mito$confusion, caption = "Confusion matrix (rows = predicted, cols = actual)")
+knitr::kable(head(mito$importance, 10), digits = 3, caption = "Top 10 features (after reduction)")
+
+dat <- apply_classifier(dat, mito)
+write_image_predictions(dat, mito)
+
+oversegmented <- fit_classifier(dat, "ANNOTATIONS/OVERSEGMENTED", feature_cols, "Oversegmented",
+                                name = "OVERSEGMENTED", well_col_id = "well_name",
+                                corr_cutoff = 0.975)
+
+knitr::kable(t(oversegmented$metrics), digits = 3, caption = "OVERSEGMENTED: OOB performance & best tune")
+knitr::kable(oversegmented$confusion, caption = "Confusion matrix (rows = predicted, cols = actual)")
+knitr::kable(head(oversegmented$importance, 10), digits = 3, caption = "Top 10 features (after reduction)")
+
+dat <- apply_classifier(dat, oversegmented)
+write_image_predictions(dat, oversegmented)
+```
+
+Confirmed visual inspection of classifier predictions looks appropriate.
+
+We now these classifications, and conventional filtering steps to cleanup the 
+single-cell data.
+
+```{r cleanup}
+
+# remove border cells
+filtered_dat <- filter(dat,Nuclei_is_border==FALSE) %>%
+  filter(DAPI=="DAPI")
+
+area_lower_limit <- 400
+area_upper_limit <- 10000
+
+filtered_dat %>%
+  ggplot(aes(x=Nuclei_area,group=well_name)) + 
+  facet_wrap(~CELLS,ncol=1) + 
+  geom_density() +
+  coord_cartesian(xlim=c(0,5000)) +
+  geom_vline(xintercept=area_lower_limit) +
+  geom_vline(xintercept=area_upper_limit)
+
+filtered_dat <- filter(filtered_dat,
+                       Nuclei_area > area_lower_limit & 
+                         Nuclei_area < area_upper_limit)
+
+# apply classifiers based on DAPI
+DAPI_bkgrd <- 200
+
+# subtract background and z-score
+filtered_dat <- filtered_dat %>%
+  group_by(well_name) %>%
+  mutate(DAPI_sum = Nuclei_area*(Nuclei_intensity_mean_405-DAPI_bkgrd),
+         DAPI_sum_zscore = as.numeric(scale(DAPI_sum,center = T, scale=T))) %>%
+  ungroup()
+
+# count fraction positive
+filtered_dat %>% group_by(CELLS,well_name) %>% 
+  count(MITOTIC) %>% 
+  group_by(CELLS,well_name) %>% 
+  mutate(fraction_mitotic = n/sum(n)) %>%
+  filter(MITOTIC==TRUE) %>%
+  select(-MITOTIC) %>%
+  ggplot(aes(y=fraction_mitotic,x=CELLS)) + geom_boxplot() 
+
+# count fraction positive (after removing MITOTIC)
+filtered_dat %>% group_by(CELLS,well_name) %>% 
+  filter(!MITOTIC) %>%
+  count(OVERSEGMENTED) %>% 
+  group_by(CELLS,well_name) %>% 
+  mutate(fraction_oversegmented = n/sum(n)) %>%
+  filter(OVERSEGMENTED==TRUE) %>%
+  select(-OVERSEGMENTED) %>%
+  ggplot(aes(y=fraction_oversegmented,x=CELLS)) + geom_boxplot()
+
+# check DAPI histograms for MITOTIC classifier
+filtered_dat %>%
+  ggplot(aes(x=DAPI_sum_zscore,colour=MITOTIC)) +
+  facet_wrap(~CELLS,ncol=1) + 
+  geom_density()
+
+# check DAPI histograms for OVERSEGMENTED classifier
+filtered_dat %>%
+  ggplot(aes(x=DAPI_sum_zscore,colour=OVERSEGMENTED)) +
+  facet_wrap(~CELLS,ncol=1) + 
+  geom_density()
+
+# remove cells labelled as OVERSEGMENTED or MITOTIC
+cells_before_classifiers <- filtered_dat %>% group_by(well_name) %>% count(name = "before")
+filtered_dat <- filter(filtered_dat,!MITOTIC & !OVERSEGMENTED)
+#filtered_dat <- filter(filtered_dat,!MITOTIC)
+cells_after_classifiers <- filtered_dat %>% group_by(well_name) %>% count(name = "after")
+
+# repeat subtract background and z-score after this filtering
+filtered_dat <- filtered_dat %>%
+  select(-DAPI_sum,-DAPI_sum_zscore) %>%
+  group_by(well_name) %>%
+  mutate(DAPI_sum = Nuclei_area*(Nuclei_intensity_mean_405-DAPI_bkgrd),
+         DAPI_sum_zscore = scale(DAPI_sum,center = T, scale=T)) %>%
+  ungroup()
+
+dapi_sum_zscore_lower_limit <- -2
+dapi_sum_zscore_upper_limit <- 4
+
+filtered_dat %>%
+  ggplot(aes(x=DAPI_sum,group=well_name,col=well_row)) +
+  facet_wrap(~CELLS,ncol=1) + 
+  coord_cartesian(xlim=c(0,2e7)) +
+  geom_density()
+
+filtered_dat %>%
+  ggplot(aes(x=DAPI_sum_zscore,group=well_name,col=well_row)) +
+  facet_wrap(~CELLS,ncol=1) + 
+  coord_cartesian(xlim=c(-5,5)) +
+  geom_density() +
+  geom_vline(xintercept=dapi_sum_zscore_lower_limit) +
+  geom_vline(xintercept=dapi_sum_zscore_upper_limit)
+
+filtered_dat <- filter(filtered_dat,
+                       DAPI_sum_zscore > dapi_sum_zscore_lower_limit & 
+                         DAPI_sum_zscore < dapi_sum_zscore_upper_limit)
+
+```
+### Background calculation
+
+GFP and mCherry background come from cells imaged alongside that do not carry these fluorescent proteins and are not stained with secondary antibodies. 
+
+```{r qc_FP}
+
+GFP_bkgrd <- filter(filtered_dat,CELLS=="OsTIR(F74G)" & SECONDARY_488=="None" & SECONDARY_568=="None" & SECONDARY_647=="None") %>%
+  ungroup() %>%
+  group_by(well_name) %>%
+  summarise(bkgrd = median(Nuclei_intensity_mean_488),.groups = 'drop') %>%
+  summarise(bkgrd = min(bkgrd)) %>%
+  pull(bkgrd)
+
+# GFP intensities
+filtered_dat %>%
+  filter(CELLS=="mAC-POLR2A" | (CELLS=="OsTIR(F74G)" & SECONDARY_488=="None" & SECONDARY_568=="None" & SECONDARY_647=="None")) %>%
+  ggplot(aes(x=Nuclei_intensity_mean_488,group=well_name,col=CELLS)) + 
+  geom_density() + 
+  geom_vline(xintercept = GFP_bkgrd) +
+  facet_wrap(~CELLS,ncol=1,scale="free_y") +
+  coord_cartesian(xlim=c(0,800))
+
+mCherry_bkgrd <- filter(filtered_dat,CELLS=="OsTIR(F74G)" & SECONDARY_488=="None" & SECONDARY_568=="None" & SECONDARY_647=="None") %>%
+  ungroup() %>%
+  group_by(well_name) %>%
+  summarise(bkgrd = median(Nuclei_intensity_mean_561),.groups = 'drop') %>%
+  summarise(bkgrd = min(bkgrd)) %>%
+  pull(bkgrd)
+
+# mCherry intensities
+filtered_dat %>%
+  filter(CELLS=="mCherry-POLR2A" | (CELLS=="OsTIR(F74G)" & SECONDARY_488=="None" & SECONDARY_568=="None" & SECONDARY_647=="None")) %>%
+  ggplot(aes(x=Nuclei_intensity_mean_561,group=well_name,col=CELLS)) + 
+  geom_density() + 
+  geom_vline(xintercept = mCherry_bkgrd) +
+  facet_wrap(~CELLS,ncol=1,scale="free_y") +
+  coord_cartesian(xlim=c(0,500))
+```
+
+IF background comes from cells stained with secondary antibodies but without primary antibodies. There are several secondary antibodies used that need to be examined separately.
+
+```{r qc_IF}
+bkgrd_488 <- filtered_dat %>% 
+  filter(CELLS!="mAC-POLR2A") %>%
+  filter(PRIMARY_RABBIT=="None" & PRIMARY_RAT=="None") %>%
+  group_by(SECONDARY_488,well_name,CELLS) %>%
+  summarise(bkgrd=median(Nuclei_intensity_mean_488)) %>%
+  group_by(SECONDARY_488,CELLS) %>%
+  summarise(bkgrd_488=mean(bkgrd)) %>%
+  ungroup()
+
+bkgrd_568 <- filtered_dat %>% 
+  filter(CELLS!="mCherry-POLR2A") %>%
+  filter(PRIMARY_RABBIT=="None" & PRIMARY_RAT=="None") %>%
+  group_by(SECONDARY_568,well_name,CELLS) %>%
+  summarise(bkgrd=median(Nuclei_intensity_mean_561)) %>%
+  group_by(SECONDARY_568,CELLS) %>%
+  summarise(bkgrd_561=mean(bkgrd)) %>%
+  ungroup()
+
+bkgrd_647 <- filtered_dat %>% 
+  filter(PRIMARY_RABBIT=="None" & PRIMARY_RAT=="None") %>%
+  group_by(SECONDARY_647,well_name,CELLS) %>%
+  summarise(bkgrd=median(Nuclei_intensity_mean_647)) %>%
+  group_by(SECONDARY_647,CELLS) %>%
+  summarise(bkgrd_647=mean(bkgrd)) %>%
+  ungroup()
+
+# IF over secondary (Rat 488)
+filtered_dat %>%
+  filter(CELLS!="mAC-POLR2A") %>%
+  filter(SECONDARY_488=="Rat" | SECONDARY_488=="None") %>% 
+  ggplot(aes(x=SECONDARY_488,y=Nuclei_intensity_mean_488,group=well_name,col=PRIMARY_RAT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  facet_wrap(~CELLS,labeller=label_both) + 
+  coord_cartesian(ylim=c(0,10000)) +
+  geom_hline(yintercept=filter(bkgrd_488,SECONDARY_488=="Rat") %>% pull(bkgrd_488)) +
+  ggtitle("Rat 488")
+
+# IF over secondary (Rabbit 488)
+filtered_dat %>%
+  filter(CELLS!="mAC-POLR2A") %>%
+  filter(SECONDARY_488=="Rabbit" | SECONDARY_488=="None") %>% 
+  ggplot(aes(x=SECONDARY_488,y=Nuclei_intensity_mean_488,group=well_name,col=PRIMARY_RABBIT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  facet_wrap(~CELLS,labeller=label_both) + 
+  coord_cartesian(ylim=c(0,5000)) +
+  geom_hline(yintercept=filter(bkgrd_488,SECONDARY_488=="Rabbit") %>% pull(bkgrd_488)) +
+  ggtitle("Rabbit 488")
+
+# IF over secondary (Rat 568)
+filtered_dat %>%
+  filter(CELLS!="mCherry-POLR2A") %>%
+  filter(SECONDARY_568=="Rat" | SECONDARY_568=="None") %>% 
+  ggplot(aes(x=SECONDARY_568,y=Nuclei_intensity_mean_561,group=well_name,col=PRIMARY_RAT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  facet_wrap(~CELLS,labeller=label_both) + 
+  coord_cartesian(ylim=c(0,10000)) +
+  geom_hline(yintercept=filter(bkgrd_568,SECONDARY_568=="Rat") %>% pull(bkgrd_561)) +
+  ggtitle("Rat 568")
+
+# IF over secondary (Rat 568)
+filtered_dat %>%
+  filter(CELLS!="mCherry-POLR2A") %>%
+  filter(SECONDARY_568=="Rabbit" | SECONDARY_568=="None") %>% 
+  ggplot(aes(x=SECONDARY_568,y=Nuclei_intensity_mean_561,group=well_name,col=PRIMARY_RABBIT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  facet_wrap(~CELLS,labeller=label_both) + 
+  coord_cartesian(ylim=c(0,5000)) +
+  geom_hline(yintercept=filter(bkgrd_568,SECONDARY_568=="Rabbit") %>% pull(bkgrd_561)) +
+  ggtitle("Rabbit 568")
+
+# IF over secondary (Rat 647)
+filtered_dat %>%
+  filter(SECONDARY_647=="Rat" | SECONDARY_647=="None") %>% 
+  ggplot(aes(x=SECONDARY_647,y=Nuclei_intensity_mean_647,group=well_name,col=PRIMARY_RAT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  facet_wrap(~CELLS,labeller=label_both) + 
+  coord_cartesian(ylim=c(0,3000)) +
+  geom_hline(yintercept=filter(bkgrd_647,SECONDARY_647=="Rat") %>% pull(bkgrd_647)) +
+  ggtitle("Rat 647")
+
+# IF over secondary (Rabbit 647)
+filtered_dat %>%
+  filter(SECONDARY_647=="Rabbit" | SECONDARY_647=="None") %>% 
+  ggplot(aes(x=SECONDARY_647,y=Nuclei_intensity_mean_647,group=well_name,col=PRIMARY_RABBIT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  facet_wrap(~CELLS,labeller=label_both) + 
+  coord_cartesian(ylim=c(0,3000)) +
+  geom_hline(yintercept=filter(bkgrd_647,SECONDARY_647=="Rabbit") %>% pull(bkgrd_647)) +
+  ggtitle("Rabbit 647")
+
+
+```
+### Bleed-through
+
+#### mCherry
+
+mCherry and mClover are much weaker than immunofluorescence stains and DAPI. We check bleed-through (channel crosstalk) into these channels by comparing mCherry intensity in the presence and absence of stains in other channels.
+
+```{r mCherry_bleed_through}
+
+# mCherry
+mCherry_bleed_rat_488 <- filtered_dat %>%
+  filter(CELLS=="mCherry-POLR2A" & SECONDARY_488=="Rat") %>%
+  ggplot(aes(x=SECONDARY_488,y=Nuclei_intensity_mean_561,col=PRIMARY_RAT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  coord_cartesian(ylim=c(0,500)) +
+  ggtitle("Check Rat-488 bleed into mCherry") +
+  theme(legend.position = "bottom") +
+  geom_hline(yintercept=mCherry_bkgrd)
+
+mCherry_bleed_rabbit_488 <- filtered_dat %>%
+  filter(CELLS=="mCherry-POLR2A" & SECONDARY_488=="Rabbit") %>%
+  ggplot(aes(x=SECONDARY_488,y=Nuclei_intensity_mean_561,col=PRIMARY_RABBIT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  coord_cartesian(ylim=c(0,500)) +
+  ggtitle("Check Rabbit-488 bleed into mCherry") +
+  theme(legend.position = "bottom") +
+  geom_hline(yintercept=mCherry_bkgrd)
+
+mCherry_bleed_rat_488 + mCherry_bleed_rabbit_488
+
+mCherry_bleed_rat_647 <- filtered_dat %>%
+  filter(CELLS=="mCherry-POLR2A" & SECONDARY_647=="Rat") %>%
+  ggplot(aes(x=SECONDARY_647,y=Nuclei_intensity_mean_561,col=PRIMARY_RAT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  facet_wrap(~CELLS,labeller=label_both) +
+  coord_cartesian(ylim=c(0,500)) +
+  ggtitle("Check Rat-647 bleed into mCherry") +
+  theme(legend.position = "bottom") +
+  geom_hline(yintercept=mCherry_bkgrd)
+
+mCherry_bleed_rabbit_647 <- filtered_dat %>%
+  filter(CELLS=="mCherry-POLR2A" & SECONDARY_647=="Rabbit") %>%
+  ggplot(aes(x=SECONDARY_647,y=Nuclei_intensity_mean_561,col=PRIMARY_RABBIT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  facet_wrap(~CELLS,labeller=label_both) +
+  coord_cartesian(ylim=c(0,500)) +
+  ggtitle("Check Rabbit-647 bleed into mCherry") +
+  theme(legend.position = "bottom") +
+  geom_hline(yintercept=mCherry_bkgrd)
+
+mCherry_bleed_rat_647 + mCherry_bleed_rabbit_647
+```
+
+Can see a small amount of bleed-through into mCherry from 647 channel. Quantify this as a fraction of signal.
+
+```{r fraction_bleed}
+# calculate percentage bleed-through from rat in 647 channel into mCherry
+filtered_dat %>%
+  filter(CELLS=="mCherry-POLR2A" & SECONDARY_647=="Rat") %>%
+  group_by(well_name,PRIMARY_RAT) %>%
+  summarise(Nuclei_intensity_mean_561_well_median = median(Nuclei_intensity_mean_561),.groups = 'drop') %>%
+  mutate(Nuclei_intensity_mean_561_well_median_minus_bkgrd = Nuclei_intensity_mean_561_well_median - mCherry_bkgrd) %>%
+  group_by(PRIMARY_RAT) %>%
+  summarise(m = mean(Nuclei_intensity_mean_561_well_median_minus_bkgrd)) %>%
+  pivot_wider(names_from = "PRIMARY_RAT", values_from = "m") %>%
+  mutate(fraction_3E8_bleed = (`3E8`-None)/None,
+         fraction_3E10_bleed = (`3E10`-None)/None)
+
+# calculate percentage bleed-through from rabbit in 647 channel into mCherry
+filtered_dat %>%
+  filter(CELLS=="mCherry-POLR2A" & SECONDARY_647=="Rabbit") %>%
+  group_by(well_name,PRIMARY_RABBIT) %>%
+  summarise(Nuclei_intensity_mean_561_well_median = median(Nuclei_intensity_mean_561),.groups = 'drop') %>%
+  mutate(Nuclei_intensity_mean_561_well_median_minus_bkgrd = Nuclei_intensity_mean_561_well_median - mCherry_bkgrd) %>%
+  group_by(PRIMARY_RABBIT) %>%
+  summarise(m = mean(Nuclei_intensity_mean_561_well_median_minus_bkgrd)) %>%
+  pivot_wider(names_from = "PRIMARY_RABBIT", values_from = "m") %>%
+  mutate(fraction_D8L4Y_bleed = (`D8L4Y`-None)/None)
+
+```
+
+Negligible for D8L4Y. <5% for 3E10 but almost 10% for 3E8 (the strongest stain). Prefer Rat-488 / Rabbit-647 only for mCherry comparisons.
+
+#### mClover
+
+```{r mClover_bleed_through}
+
+# mClover
+mClover_bleed_rat_568 <- filtered_dat %>%
+  filter(CELLS=="mAC-POLR2A" & SECONDARY_568=="Rat") %>%
+  ggplot(aes(x=SECONDARY_568,y=Nuclei_intensity_mean_488,col=PRIMARY_RAT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  coord_cartesian(ylim=c(0,500)) +
+  ggtitle("Check Rat-568 bleed into mClover") +
+  theme(legend.position = "bottom") +
+  geom_hline(yintercept=GFP_bkgrd)
+
+mClover_bleed_rabbit_568 <- filtered_dat %>%
+  filter(CELLS=="mAC-POLR2A" & SECONDARY_568=="Rabbit") %>%
+  ggplot(aes(x=SECONDARY_568,y=Nuclei_intensity_mean_488,col=PRIMARY_RABBIT)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  coord_cartesian(ylim=c(0,500)) +
+  ggtitle("Check Rabbit-568 bleed into mClover") +
+  theme(legend.position = "bottom") +
+  geom_hline(yintercept=GFP_bkgrd)
+
+mClover_bleed_rat_568 + mClover_bleed_rabbit_568
+
+```
+
+No bleed-through into mClover.
+
+### Check for antibody cross-reactivity
+
+We also check that rat and rabbit antibodies do not cross-react.
+
+```{r cross_reactivity}
+
+# columns 3 and 16 have combinations without one of the two primary antibodies, compare these to secondary only.
+no_primary_cross_reactivity_controls <- filter(filtered_dat,well_col %in% c("03","16")) %>% 
+  ungroup() %>%
+  distinct(PRIMARY_RAT,PRIMARY_RABBIT,SECONDARY_488,SECONDARY_568,SECONDARY_647) %>%
+  filter(!(PRIMARY_RAT=="None" & PRIMARY_RABBIT=="None")) %>%
+  inner_join(filtered_dat) %>%
+  mutate(primary_combination = paste("Rat",PRIMARY_RAT,"Rabbit",PRIMARY_RABBIT,sep="_")) %>%
+  mutate(secondary_combination = paste("488",SECONDARY_488,"568",SECONDARY_568,"647",SECONDARY_647,sep="_"))
+
+secondary_only <- filter(filtered_dat,PRIMARY_RAT=="None" & PRIMARY_RABBIT=="None") %>%
+  inner_join(distinct(no_primary_cross_reactivity_controls,SECONDARY_488,SECONDARY_568,SECONDARY_647)) %>%
+  mutate(primary_combination = "None") %>%
+  mutate(secondary_combination = paste("488",SECONDARY_488,"568",SECONDARY_568,"647",SECONDARY_647,sep="_"))
+
+
+# 568 rat secondary = same (background) signal when D8L4Y is present or not
+# 568 rabbit scondary = same (background) signal when 3E10 or 3E8 is present or not
+bind_rows(no_primary_cross_reactivity_controls,secondary_only) %>%
+  filter(SECONDARY_568!="None") %>%
+  filter(!(SECONDARY_568=="Rat" & PRIMARY_RAT %in% c("3E10","3E8"))) %>%
+  filter(!(SECONDARY_568=="Rabbit" & PRIMARY_RABBIT %in% c("D8L4Y"))) %>%
+  ggplot(aes(x=secondary_combination,y=Nuclei_intensity_mean_561,col=primary_combination)) +
+  geom_boxplot() +
+  coord_cartesian(ylim=c(0,300)) +
+  theme(axis.text.x=element_text(angle=90,hjust=0.5,vjust=0.5))
+
+# 647 rat secondary = same (background) signal when D8L4Y is present or not
+# 647 rabbit scondary = same (background) signal when 3E10 or 3E8 is present or not
+bind_rows(no_primary_cross_reactivity_controls,secondary_only) %>%
+  filter(SECONDARY_647!="None" & SECONDARY_568=="None") %>%
+  filter(!(SECONDARY_647=="Rat" & PRIMARY_RAT %in% c("3E10","3E8"))) %>%
+  filter(!(SECONDARY_647=="Rabbit" & PRIMARY_RABBIT %in% c("D8L4Y"))) %>%
+  ggplot(aes(x=secondary_combination,y=Nuclei_intensity_mean_647,col=primary_combination)) +
+  geom_boxplot() +
+  coord_cartesian(ylim=c(0,300)) +
+  theme(axis.text.x=element_text(angle=90,hjust=0.5,vjust=0.5))
+
+```
+
+## Covariance analysis
+
+With clean single-cell data, we proceed to co-variance analysis to estimate
+$\beta$.
+
+### Data prep
+
+Separate into sub-experiments with different detection channels and cell lines, and rename variables.
+
+```{r slope_data_prep}
+
+bkgrd_488_mClover <- tibble(CELLS="mAC-POLR2A",bkgrd_488=GFP_bkgrd,SECONDARY_488="None")
+bkgrd_568_mCherry <- tibble(CELLS="mCherry-POLR2A",bkgrd_561=mCherry_bkgrd,SECONDARY_568="None")
+
+dat_subset <- filtered_dat %>%
+  select(-contains("haralick")) %>% 
+  left_join(bind_rows(bkgrd_488,bkgrd_488_mClover)) %>%
+  left_join(bind_rows(bkgrd_568,bkgrd_568_mCherry)) %>%
+  left_join(bkgrd_647) %>%
+  mutate(intensity_488=Nuclei_intensity_mean_488-bkgrd_488,
+         intensity_561=Nuclei_intensity_mean_561-bkgrd_561,
+         intensity_647=Nuclei_intensity_mean_647-bkgrd_647,
+         intensity_dapi=Nuclei_intensity_mean_405-DAPI_bkgrd)
+
+# Separate into 4 x pSer2 vs total experiments in the two cell lines with antibody channels switched
+
+dat_mAC_pSer2_561_total_647 <- dat_subset %>%
+  filter(CELLS=="mAC-POLR2A" & PRIMARY_RAT=="3E10" & PRIMARY_RABBIT=="D8L4Y" & SECONDARY_568=="Rat" & SECONDARY_647=="Rabbit") %>%
+  select(well_name,
+         FP=intensity_488,
+         pSer2=intensity_561,
+         D8L4Y=intensity_647,
+         Nuclei_area,
+         DAPI=intensity_dapi) %>%
+  filter(FP > 0,
+         pSer2 > 0,
+         D8L4Y > 0,
+         DAPI > 0,
+         Nuclei_area > 0) %>%
+  mutate(
+    lFP      = log(FP),
+    lpSer2   = log(pSer2),
+    lD8L4Y   = log(D8L4Y),
+    lArea    = log(Nuclei_area),
+    lDAPI    = log(DAPI * Nuclei_area),
+    well     = factor(well_name)
+  )
+
+dat_mAC_pSer2_647_total_561 <- dat_subset %>%
+  filter(CELLS=="mAC-POLR2A" & PRIMARY_RAT=="3E10" & PRIMARY_RABBIT=="D8L4Y" & SECONDARY_568=="Rabbit" & SECONDARY_647=="Rat") %>%
+  select(well_name,
+         FP=intensity_488,
+         pSer2=intensity_647,
+         D8L4Y=intensity_561,
+         Nuclei_area,
+         DAPI=intensity_dapi) %>%
+  filter(FP > 0,
+         pSer2 > 0,
+         D8L4Y > 0,
+         DAPI > 0,
+         Nuclei_area > 0) %>%
+  mutate(
+    lFP      = log(FP),
+    lpSer2   = log(pSer2),
+    lD8L4Y   = log(D8L4Y),
+    lArea    = log(Nuclei_area),
+    lDAPI    = log(DAPI * Nuclei_area),
+    well     = factor(well_name)
+  )
+
+dat_mCh_pSer2_488_total_647 <- dat_subset %>%
+  filter(CELLS=="mCherry-POLR2A" & PRIMARY_RAT=="3E10" & PRIMARY_RABBIT=="D8L4Y" & SECONDARY_488=="Rat" & SECONDARY_647=="Rabbit") %>%
+  select(well_name,
+         FP=intensity_561,
+         pSer2=intensity_488,
+         D8L4Y=intensity_647,
+         Nuclei_area,
+         DAPI=intensity_dapi) %>%
+  filter(FP > 0,
+         pSer2 > 0,
+         D8L4Y > 0,
+         DAPI > 0,
+         Nuclei_area > 0) %>%
+  mutate(
+    lFP      = log(FP),
+    lpSer2   = log(pSer2),
+    lD8L4Y   = log(D8L4Y),
+    lArea    = log(Nuclei_area),
+    lDAPI    = log(DAPI * Nuclei_area),
+    well     = factor(well_name)
+  )
+
+dat_mCh_pSer2_647_total_488 <- dat_subset %>%
+  filter(CELLS=="mCherry-POLR2A" & PRIMARY_RAT=="3E10" & PRIMARY_RABBIT=="D8L4Y" & SECONDARY_488=="Rabbit" & SECONDARY_647=="Rat") %>%
+  select(well_name,
+         FP=intensity_561,
+         pSer2=intensity_647,
+         D8L4Y=intensity_488,
+         Nuclei_area,
+         DAPI=intensity_dapi) %>%
+  filter(FP > 0,
+         pSer2 > 0,
+         D8L4Y > 0,
+         DAPI > 0,
+         Nuclei_area > 0) %>%
+  mutate(
+    lFP      = log(FP),
+    lpSer2   = log(pSer2),
+    lD8L4Y   = log(D8L4Y),
+    lArea    = log(Nuclei_area),
+    lDAPI    = log(DAPI * Nuclei_area),
+    well     = factor(well_name)
+  )
+
+# Separate into 4 x pSer5 vs total experiments in the two cell lines with antibody channels switched
+
+dat_mAC_pSer5_561_total_647 <- dat_subset %>%
+  filter(CELLS=="mAC-POLR2A" & PRIMARY_RAT=="3E8" & PRIMARY_RABBIT=="D8L4Y" & SECONDARY_568=="Rat" & SECONDARY_647=="Rabbit") %>%
+  select(well_name,
+         FP=intensity_488,
+         pSer5=intensity_561,
+         D8L4Y=intensity_647,
+         Nuclei_area,
+         DAPI=intensity_dapi) %>%
+  filter(FP > 0,
+         pSer5 > 0,
+         D8L4Y > 0,
+         DAPI > 0,
+         Nuclei_area > 0) %>%
+  mutate(
+    lFP      = log(FP),
+    lpSer5   = log(pSer5),
+    lD8L4Y   = log(D8L4Y),
+    lArea    = log(Nuclei_area),
+    lDAPI    = log(DAPI * Nuclei_area),
+    well     = factor(well_name)
+  )
+
+dat_mAC_pSer5_647_total_561 <- dat_subset %>%
+  filter(CELLS=="mAC-POLR2A" & PRIMARY_RAT=="3E8" & PRIMARY_RABBIT=="D8L4Y" & SECONDARY_568=="Rabbit" & SECONDARY_647=="Rat") %>%
+  select(well_name,
+         FP=intensity_488,
+         pSer5=intensity_647,
+         D8L4Y=intensity_561,
+         Nuclei_area,
+         DAPI=intensity_dapi) %>%
+  filter(FP > 0,
+         pSer5 > 0,
+         D8L4Y > 0,
+         DAPI > 0,
+         Nuclei_area > 0) %>%
+  mutate(
+    lFP      = log(FP),
+    lpSer5   = log(pSer5),
+    lD8L4Y   = log(D8L4Y),
+    lArea    = log(Nuclei_area),
+    lDAPI    = log(DAPI * Nuclei_area),
+    well     = factor(well_name)
+  )
+
+dat_mCh_pSer5_488_total_647 <- dat_subset %>%
+  filter(CELLS=="mCherry-POLR2A" & PRIMARY_RAT=="3E8" & PRIMARY_RABBIT=="D8L4Y" & SECONDARY_488=="Rat" & SECONDARY_647=="Rabbit") %>%
+  select(well_name,
+         FP=intensity_561,
+         pSer5=intensity_488,
+         D8L4Y=intensity_647,
+         Nuclei_area,
+         DAPI=intensity_dapi) %>%
+  filter(FP > 0,
+         pSer5 > 0,
+         D8L4Y > 0,
+         DAPI > 0,
+         Nuclei_area > 0) %>%
+  mutate(
+    lFP      = log(FP),
+    lpSer5   = log(pSer5),
+    lD8L4Y   = log(D8L4Y),
+    lArea    = log(Nuclei_area),
+    lDAPI    = log(DAPI * Nuclei_area),
+    well     = factor(well_name)
+  )
+
+dat_mCh_pSer5_647_total_488 <- dat_subset %>%
+  filter(CELLS=="mCherry-POLR2A" & PRIMARY_RAT=="3E8" & PRIMARY_RABBIT=="D8L4Y" & SECONDARY_488=="Rabbit" & SECONDARY_647=="Rat") %>%
+  select(well_name,
+         FP=intensity_561,
+         pSer5=intensity_647,
+         D8L4Y=intensity_488,
+         Nuclei_area,
+         DAPI=intensity_dapi) %>%
+  filter(FP > 0,
+         pSer5 > 0,
+         D8L4Y > 0,
+         DAPI > 0,
+         Nuclei_area > 0) %>%
+  mutate(
+    lFP      = log(FP),
+    lpSer5   = log(pSer5),
+    lD8L4Y   = log(D8L4Y),
+    lArea    = log(Nuclei_area),
+    lDAPI    = log(DAPI * Nuclei_area),
+    well     = factor(well_name)
+  )
+
+```
+
+## Preliminary analysis
+
+Before getting too deep into this, we plot the data to look for evidence of
+buffering. Specifically, we bin cells by total Pol II level (using the 
+antibody-free FP readout, with each cell expressed relative to its own well
+median to remove well effects) and plot the average pSer2 and total Pol II
+antibody (D8L4Y) in each bin.
+
+If pSer2 tracks total Pol II (no buffering) it would rise proportionally with
+D8L4Y, along the dashed line, but it actually rises more slowly, suggesting
+buffering. 
+
+```{r slope_analysis}
+
+adj_well <- function(y,d) exp(resid(lm(reformulate("well", y), data = d)))
+
+plot_IF_vs_FP <- function(df, title, readout_var = "pSer2") {
+  
+  intro <- tibble(
+    FP = adj_well("lFP", df),
+    !!readout_var := adj_well(paste0("l", readout_var), df),
+    D8L4Y = adj_well("lD8L4Y", df)
+  ) %>%
+    mutate(bin = ntile(FP, 18)) %>%
+    pivot_longer(all_of(c(readout_var, "D8L4Y")), names_to = "readout", values_to = "y") %>%
+    group_by(readout, bin) %>%
+    summarise(x  = exp(mean(log(FP))),
+              ym = exp(mean(log(y))),
+              lo = exp(mean(log(y)) - sd(log(y))),
+              hi = exp(mean(log(y)) + sd(log(y))),
+              .groups = "drop") %>%
+    mutate(readout = factor(readout, levels = c("D8L4Y", readout_var)))
+  
+  if (readout_var=="pSer5") {
+    colour_map <- setNames(c("#306fb7", "#5bba47"), c("D8L4Y", readout_var))
+  } else {
+     colour_map <- setNames(c("#306fb7", "#cf3827"), c("D8L4Y", readout_var))
+  }
+
+  p <- ggplot(intro, aes(x, ym, colour = readout, fill = readout)) +
+    geom_abline(slope = 1, intercept = 0, linetype = 2, colour = "grey50") +
+    geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.1, colour = NA) +
+    geom_line() + geom_point(size = 1.8) +
+    scale_x_log10(breaks = c(0.7, 1, 1.5)) + 
+    scale_y_log10(breaks = c(0.7, 1, 1.5)) +
+    scale_colour_manual(values = colour_map) +
+    scale_fill_manual(values   = colour_map) +
+    coord_cartesian(xlim=c(-0.5,1.7), ylim=c(-0.5,1.7)) +
+    labs(x = "total Pol II per cell (FP, relative to well median)",
+         y = "signal (relative to well median)", colour = NULL, fill = NULL) +
+    theme_bw() + theme(aspect.ratio = 1, panel.grid.minor = element_blank()) +
+    ggtitle(title)
+  
+  return(p)
+}
+
+plot_IF_vs_FP(dat_mAC_pSer2_647_total_561,"mAC-POLR2A, pSer2 (647), D8L4Y (561)", readout_var = "pSer2")
+plot_IF_vs_FP(dat_mAC_pSer2_561_total_647,"mAC-POLR2A, pSer2 (561), D8L4Y (647)", readout_var = "pSer2")
+plot_IF_vs_FP(dat_mCh_pSer2_647_total_488,"mCherry-POLR2A, pSer2 (647), D8L4Y (488)", readout_var = "pSer2")
+plot_IF_vs_FP(dat_mCh_pSer2_488_total_647,"mCherry-POLR2A, pSer2 (488), D8L4Y (647)", readout_var = "pSer2")
+
+plot_IF_vs_FP(dat_mAC_pSer5_647_total_561,"mAC-POLR2A, pSer5 (647), D8L4Y (561)", readout_var = "pSer5")
+plot_IF_vs_FP(dat_mAC_pSer5_561_total_647,"mAC-POLR2A, pSer5 (561), D8L4Y (647)", readout_var = "pSer5")
+plot_IF_vs_FP(dat_mCh_pSer5_647_total_488,"mCherry-POLR2A, pSer5 (647), D8L4Y (488)", readout_var = "pSer5")
+plot_IF_vs_FP(dat_mCh_pSer5_488_total_647,"mCherry-POLR2A, pSer5 (488), D8L4Y (647)", readout_var = "pSer5")
+
+
+```
+
+### Publication plot
+
+Make plots of this for the main and supplementary data.
+
+```{r pub_plots,fig.width=5,fig.height=2}
+
+colour_map <- setNames(c("#cf3827", "#306fb7"), c("Total", "pSer2"))
+df <- dat_mAC_pSer2_561_total_647
+
+intro_mAC <- tibble(
+  FP = adj_well("lFP", df),
+  pSer2 = adj_well("lpSer2", df),
+  Total = adj_well("lD8L4Y", df)
+) %>%
+  mutate(bin = ntile(FP, 20)) %>%
+  pivot_longer(all_of(c("pSer2", "Total")), names_to = "readout", values_to = "y") %>%
+  group_by(readout, bin) %>%
+  summarise(x  = exp(mean(log(FP))),
+            ym = exp(mean(log(y))),
+            lo = exp(mean(log(y)) - sd(log(y))),
+            hi = exp(mean(log(y)) + sd(log(y))),
+            .groups = "drop") %>%
+  mutate(readout = factor(readout, levels = c("Total", "pSer2"))) %>%
+  mutate(cell_line="mAC-POLR2A")
+
+tibble(
+  FP = adj_well("lFP", df)) %>%
+  mutate(bin = ntile(FP, 20)) %>%
+  group_by(bin) %>%
+  count() %>%
+  ungroup() %>%
+  slice_max(n,with_ties = F)
+
+p_mClover <- ggplot(intro_mAC, aes(x, ym, colour = readout, fill = readout)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2, colour = "grey50") +
+  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.1, colour = NA) +
+  geom_line() + 
+  geom_point(size = 1.0) +
+  scale_x_log10(breaks = c(0.5,1,2)) + 
+  scale_y_log10(breaks = c(0.5,1,2)) +
+  scale_colour_manual(values = colour_map, breaks=c("Total", "pSer2"), labels=c("Total\n(D8L4Y)", "pSer2\n(3E10)")) +
+  scale_fill_manual(values   = colour_map, breaks=c("Total", "pSer2"), labels=c("Total\n(D8L4Y)", "pSer2\n(3E10)")) +
+  coord_cartesian(xlim=c(0.5,2), ylim=c(0.5,2)) +
+  labs(x = "mClover intensity",
+       y = "IF intensity", colour = NULL, fill = NULL) +
+  theme_bw(base_size = 8) + 
+  theme(aspect.ratio = 1,
+        panel.grid.minor = element_blank(),
+        axis.text=element_text(size=8),
+        axis.title=element_text(size=8),
+        legend.key.size = unit(4,"mm"),
+        legend.key.spacing.y = unit(2,"mm"))
+
+p_mClover
+ggsave(file.path(PLOTS_DIR, "pSer2_and_Total_vs_FP_mAC.pdf"),width=8,height=3.5,units="cm")
+
+
+df <- dat_mCh_pSer2_488_total_647
+
+intro_mCh <- tibble(
+  FP = adj_well("lFP", df),
+  pSer2 = adj_well("lpSer2", df),
+  Total = adj_well("lD8L4Y", df)
+) %>%
+  mutate(bin = ntile(FP, 20)) %>%
+  pivot_longer(all_of(c("pSer2", "Total")), names_to = "readout", values_to = "y") %>%
+  group_by(readout, bin) %>%
+  summarise(x  = exp(mean(log(FP))),
+            ym = exp(mean(log(y))),
+            lo = exp(mean(log(y)) - sd(log(y))),
+            hi = exp(mean(log(y)) + sd(log(y))),
+            .groups = "drop") %>%
+  mutate(readout = factor(readout, levels = c("Total", "pSer2"))) %>%
+  mutate(cell_line="mCherry-POLR2A")
+
+tibble(
+  FP = adj_well("lFP", df)) %>%
+  mutate(bin = ntile(FP, 20)) %>%
+  group_by(bin) %>%
+  count() %>%
+  ungroup() %>%
+  slice_max(n,with_ties = F)
+
+p_mCherry <- ggplot(intro_mCh, aes(x, ym, colour = readout, fill = readout)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2, colour = "grey50") +
+  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.1, colour = NA) +
+  geom_line() + 
+  geom_point(size = 1.0) +
+  scale_x_log10(breaks = c(0.5,1,2)) + 
+  scale_y_log10(breaks = c(0.5,1,2)) +
+  scale_colour_manual(values = colour_map, breaks=c("Total", "pSer2"), labels=c("Total\n(D8L4Y)", "pSer2\n(3E10)")) +
+  scale_fill_manual(values   = colour_map, breaks=c("Total", "pSer2"), labels=c("Total\n(D8L4Y)", "pSer2\n(3E10)")) +
+  coord_cartesian(xlim=c(0.5,2), ylim=c(0.5,2)) +
+  labs(x = "mCherry intensity",
+       y = "IF intensity", colour = NULL, fill = NULL) +
+  theme_bw(base_size = 8) + 
+  theme(aspect.ratio = 1,
+        panel.grid.minor = element_blank(),
+        axis.text=element_text(size=8),
+        axis.title=element_text(size=8),
+        legend.key.size = unit(4,"mm"),
+        legend.key.spacing.y = unit(2,"mm"))
+
+p_mCherry
+ggsave(file.path(PLOTS_DIR, "pSer2_and_Total_vs_FP_mCherry.pdf"),width=8,height=3.5,units="cm")
+
+p_combined <- bind_rows(intro_mCh,intro_mAC) %>%
+  mutate(cell_line = fct_relevel(cell_line, "mCherry-POLR2A", "mAC-POLR2A")) %>%   
+  ggplot(aes(x, ym, colour = readout, fill = readout)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2, colour = "grey50") +
+  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.1, colour = NA) +
+  geom_line() + 
+  geom_point(size = 1.0) +
+  scale_x_log10(breaks = c(0.5,1,2)) + 
+  scale_y_log10(breaks = c(0.5,1,2)) +
+  scale_colour_manual(values = colour_map, breaks=c("Total", "pSer2"), labels=c("Total\n(D8L4Y)", "pSer2\n(3E10)")) +
+  scale_fill_manual(values   = colour_map, breaks=c("Total", "pSer2"), labels=c("Total\n(D8L4Y)", "pSer2\n(3E10)")) +
+  coord_cartesian(xlim=c(0.5,2), ylim=c(0.5,2)) +
+  labs(x = "Fluorescent protein intensity",
+       y = "IF intensity", colour = NULL, fill = NULL) +
+  facet_wrap(~cell_line) +
+  theme_bw(base_size = 8) + 
+  theme(aspect.ratio = 1,
+        panel.grid.minor = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_text(size=8),
+        legend.key.size = unit(4,"mm"),
+        legend.key.spacing.y = unit(2,"mm"))
+
+p_combined
+ggsave(file.path(PLOTS_DIR, "pSer2_and_Total_vs_FP.pdf"),width=11,height=5,units="cm")
+
+cell_counts <- bind_rows(
+  mutate(dat_mCh_pSer2_488_total_647,cell_line="mCherry-POLR2A"),
+  mutate(dat_mAC_pSer2_561_total_647,cell_line="mAC-POLR2A")) %>%
+  group_by(cell_line,well_name) %>%
+  count()
+
+cell_counts %>%
+  group_by(cell_line) %>%
+  summarise(sum(n))
+
+cell_counts %>%
+  distinct(well_name) %>%
+  group_by(cell_line) %>%
+  count()
+
+```
+
+
+## Estimating the pSer2-POLR2A vs POLR2A slope from single-cell data
+
+We use mClover or mCherry measured in the same cell as a reference POLR2A level, to
+correct for the shared co-variation between the two antibody measurements.
+
+We first correct for well-to-well variability from each log-transformed measurement: 
+$P=\log\text{pSer2}$, $T=\log\text{D8L4Y}$, $C=\log\text{mClover}$ (or $\log\text{mCherry}$). We want the 
+buffering slope $\beta = \mathrm{d}P/\mathrm{d}\hat T$ taken along genuine
+changes in total Pol II ($\hat T$), with the antibody measurement noise removed.
+
+We then regress $T$ on $C$ and keep the (noise-free) part,
+
+$$\hat T = aC, \qquad a=\frac{\operatorname{cov}(T,C)}{\operatorname{var}(C)}.$$
+
+The slope of $P$ on this cleaned axis, $\hat T$, is then an ordinary regression
+slope:
+
+$$
+\beta=\frac{\operatorname{cov}(P,\hat T)}{\operatorname{var}(\hat T)} =\frac{\operatorname{cov}(P,aC)}{\operatorname{var}(aC)}=\frac{a\,\operatorname{cov}(P,C)}{a^{2}\,\operatorname{var}(C)}.
+$$
+
+Substituting in $a$ from above $\operatorname{var}(C)$ cancels, leaving the ratio of two covariances.
+
+$$
+\beta=\frac{\operatorname{cov}(P,C)}{\operatorname{cov}(T,C)}
+$$
+
+Equivalently, since $\hat T$ can be expressed as a function of $C$, we can use the chain rule,
+
+$$
+\beta=\frac{\mathrm{d}P}{\mathrm{d}\hat T}
+=\frac{\mathrm{d}P/\mathrm{d}C}{\mathrm{d}\hat T/\mathrm{d}C}
+=\frac{\operatorname{cov}(P,C)/\operatorname{var}(C)}{\operatorname{cov}(T,C)/\operatorname{var}(C)}
+=\frac{\operatorname{cov}(P,C)}{\operatorname{cov}(T,C)} ,
+$$
+
+Our approach to finding $\beta$ is therefore to correct $P$ and $T$ for
+well-to-well variation and then calculate the ratio
+of their covariances.
+
+```{r estimator}
+
+adj   <- function(d, y, rhs) resid(lm(as.formula(paste(y, "~", rhs)), data = d))
+betas <- function(d, rhs, var="lpSer2") {
+  
+  # adjust Pol II intensity values
+  adjP <- adj(d, var, rhs)
+  adjC <- adj(d, "lFP", rhs)
+  adjT <- adj(d, "lD8L4Y", rhs)
+  
+  # get covariances for adjusted variables
+  covPC <- cov(adjP, adjC)
+  covPT <- cov(adjP, adjT)
+  covCT <- cov(adjC, adjT)
+  
+  # return the ratio of covariances
+  c(beta_FP = covPC / covCT,       # var slope, fluorescent protein as the reference (antibody-free)
+    beta_D8L4Y  = covPT / covCT,   # var slope, D8L4Y as reference (shares IF noise with var)
+    beta_naive = covPT / var(adjT),  # var slope from naive linear regression using D8L4Y
+    covPC = covPC,
+    covCT = covCT,
+    covPT = covPT,
+    excess = covPT - covPC,
+    rel_D8L4Y = covCT / var(adjT),
+    rel_FP = covCT / var(adjC))
+}
+
+current_data <- dat_mCh_pSer2_488_total_647 
+
+RHS_MIN <- "well"
+res  <- betas(current_data, RHS_MIN, var="lpSer2")
+
+```
+
+### What each of these slopes estimates
+
+`betas()` returns three slopes that differ in how they treat measurement noise.
+
+The **naive slope** (`beta_naive`, $\operatorname{cov}(P,T)/\operatorname{var}(T)$)
+is an ordinary regression of pSer2 on the D8L4Y antibody. It carries two biases
+that act in opposite directions: antibody noise on the $x$-axis dilutes it
+downward (regression dilution), while the artefact that D8L4Y and pSer2 share as
+co-stained antibodies inflates $\operatorname{cov}(P,T)$ upward. Because these
+may partly cancel, `beta_naive` (`r sprintf("%.2f", res["beta_naive"])`) may not be
+obviously wrong.
+
+The **antibody-referenced slope** (`beta_D8L4Y`,
+$\operatorname{cov}(P,T)/\operatorname{cov}(T,C)$) uses the FP only to remove the
+regression dilution from the denominator, so it is the dilution-corrected slope
+of pSer2 on D8L4Y. It still contains the shared antibody artefact in its
+numerator, which is why it is the largest of the three
+(`r sprintf("%.2f", res["beta_D8L4Y"])`).
+
+The **FP-referenced slope** (`beta_FP`,
+$\operatorname{cov}(P,C)/\operatorname{cov}(T,C)$) is the one reported. Because
+the FP requires no antibody, it carries none of the antibody-borne artefact
+shared by the two immunofluorescence channels, so the numerator
+$\operatorname{cov}(P,C)$ is free of that artefact; and because the private noise
+of the two total-Pol II readouts is uncorrelated, the denominator
+$\operatorname{cov}(T,C)$ is free of regression-dilution.
+Each channel therefore de-noises the other, and `beta_FP`
+(`r sprintf("%.2f", res["beta_FP"])`) is the slope with both antibody-noise
+problems removed. It is not free of the per-cell imaging factor common to all
+fluorescence channels, which is treated separately below.
+It is our estimate of $\beta$, the buffering slope defined
+above; we report `beta_FP` throughout and refer to the quantity it estimates as
+$\beta$. The gap between `beta_D8L4Y` and
+`beta_FP` is the shared antibody artefact, and it corresponds to the *excess* covariance scaled by $\operatorname{cov}(T,C)$
+ in the validation table below.
+
+`rel_FP` and `rel_D8L4Y` are not slopes but the reproducible fractions
+$R_C$ and $R_T$ of the two total readouts, defined in the reproducible-fraction
+section below.
+
+### Check correspondence of fluorescent protein and D8L4Y
+
+On the log scale, a constant difference in absolute intensity
+between the two channels is absorbed into the intercept and leaves the
+slope unchanged. We therefore don't need to normalise intensities across
+channels before calculating $\beta$.
+
+A within-well robust regression of `lD8L4Y` on `lFP` gives slope
+`r {lin <- MASS::rlm(lD8L4Y ~ lFP + well, data = current_data, method = "MM", maxit = 200); sprintf("%.3f", coef(lin)["lFP"])}`.
+This is not a test of whether the two channels load equally on true Pol II:
+regressing one noisy readout on another attenuates the slope by the noise in the
+predictor, and this value is essentially $R_C$ (below). It shows only that the
+two totals track each other closely and monotonically on the log scale. Equal
+loading is not required in any case, because a constant loading factor cancels
+from the ratio of covariances.
+
+```{r proportionality}
+ggplot(current_data, aes(lFP, lD8L4Y)) +
+  geom_hex(bins = 70) +
+  geom_smooth(method = MASS::rlm, method.args = list(method = "MM", maxit = 200), colour = "red") +
+  labs(x = "log FP-POLR2A", y = "log D8L4Y (IF)") + theme_minimal()
+```
+
+### Validate that D8L4Y shares extra correlated measurement noise with pSer2
+
+```{r diag-table, echo=FALSE}
+tibble(
+  quantity = c("slope (FP as reference)", "slope (D8L4Y as reference)",
+               "slope (naive fit)", "excess D8L4Y-pSer2 covariance (shared noise)"),
+  value = c(res["beta_FP"], res["beta_D8L4Y"], res["beta_naive"],
+            res["excess"])
+) %>% knitr::kable(digits = 3)
+```
+
+
+If the two antibodies shared no artefact, pSer2 should co-vary equally with FP
+and with D8L4Y. As expected, D8L4Y shares extra covariance with pSer2 (greater
+slope). This *excess* (`r sprintf("%.3f", res["excess"])`) accounts for
+`r sprintf("%.0f%%", 100*res["excess"]/res["covPT"])` of the observed covariance
+between pSer2 and D8L4Y (`r sprintf("%.3f", res["covPT"])`), likely because
+D8L4Y and pSer2 are both POLR2A antibodies stained on the same fixed cells and
+therefore share IF artefacts.
+
+### Reproducible fraction of each total-Pol II readout
+
+We can model the two readouts (fluorescent protein and immunofluorescence) as the
+same shared signal $S$ (true total Pol II, common to both) plus noise specific to
+each measurement channel, $e_C, e_T$,
+
+$$
+C = S + e_C,\qquad T = S + e_T,
+\qquad e_C \perp e_T,\quad e_C,e_T \perp S .
+$$
+
+Independence is only required between the two total readouts, and it holds
+because the FP is not measured using an antibody: $e_T$ still contains the antibody artefact
+shared with pSer2 quantified above, but that confounding artefact is absent from $C$.
+
+The *reproducible fraction* of a readout is the share of its variance
+that is real shared signal, e.g. $R_C = \operatorname{var}(S)/\operatorname{var}(C)$.
+
+Because the measurement noises are (by definition) independent, they disappear
+from the covariance, while each variance keeps its own noise,
+
+$$
+\operatorname{cov}(C,T)=\operatorname{var}(S),\qquad
+\operatorname{var}(C)=\operatorname{var}(S)+\operatorname{var}(e_C),\qquad
+\operatorname{var}(T)=\operatorname{var}(S)+\operatorname{var}(e_T).
+$$
+
+Substituting gives the estimator used above,
+
+$$
+R_C=\frac{\operatorname{var}(S)}{\operatorname{var}(C)}=\frac{\operatorname{cov}(C,T)}{\operatorname{var}(C)},
+\qquad
+R_T=\frac{\operatorname{cov}(C,T)}{\operatorname{var}(T)} .
+$$
+
+The numerator is the same shared signal for both so the readout carrying less
+channel-specific noise has the larger reproducible fraction.
+
+In these data, $R_C =$ `r sprintf("%.3f", res["rel_FP"])` versus
+$R_T =$ `r sprintf("%.3f", res["rel_D8L4Y"])`: `r sprintf("%.0f%%", 100*res["rel_FP"])`
+of the FP's variance is the component it shares with D8L4Y, versus
+`r sprintf("%.0f%%", 100*res["rel_D8L4Y"])` for D8L4Y. The FP is therefore the
+cleaner of the two readouts, though only modestly so in this cell line. Neither
+fraction affects $\beta$ — channel-private noise cancels from the covariances —
+so these are reported as a measure of readout quality, not as a correction.
+
+Because $S$ combines the shared imaging factor in with true Pol II, $R$ measures
+reproducibility relative to that common signal, not the underlying biological
+differences between cells.
+
+### Confidence interval for $\beta$
+
+We already estimated $\beta = \mathrm{d}P / \mathrm{d}\hat T$ above, and now use
+bootstrapping to estimate a confidence interval.We sample all wells with
+replacement and take the 2.5% - 97.5% range as a 95% confidence interval for 
+$\beta$. We then examine whether $\beta$ estimates are reproducible across all
+wells.
+
+```{r boot}
+bootstrap_reps <- 500
+set.seed(1)
+wells <- levels(current_data$well)
+boot <- replicate(bootstrap_reps, {
+  samp <- sample(wells, size = length(wells), replace = TRUE)
+  d <- imap_dfr(samp, ~ filter(current_data, well == .x) %>%
+                  mutate(well = factor(paste0(.x, "_", .y))))
+  betas(d, RHS_MIN)["beta_FP"]
+})
+ci <- quantile(boot, c(.025, .975))
+```
+
+The buffering slope, corrected for antibody measurement noise using the FP
+reference is
+
+$$\hat\beta = `r sprintf("%.2f", res["beta_FP"])`
+\quad (\text{95% CI } `r sprintf("%.2f", ci[1])`\text{–}`r sprintf("%.2f", ci[2])`,
+\text{ well-cluster bootstrap}).$$
+
+Because this slope is below 1, pSer2 is buffered against total Pol II variation
+in unperturbed cells. Importantly, because the residual shared-imaging factor
+biases this estimate upward, this is an upper bound.
+
+### Decomposing $\beta$
+
+Even with measurement noise removed, $\beta$ is not a single
+mechanistic constant. Cell-to-cell variation in total Pol II has an *intrinsic*
+component (fluctuations in Pol II abundance with the rest of the cell held
+fixed) and an *extrinsic* component (e.g. cell size, cycle stage, global biosynthetic
+capacity). pSer2 measures only the total, so the measured slope is a variance-weighted average of the
+two responses,
+
+$$\beta = w\,\beta_{\text{int}} + (1-w)\,\beta_{\text{ext}},$$
+
+where $w$ is the fraction of true (non-measurement) Pol II variance that is
+intrinsic. Extrinsic variation tends to be close to proportional
+($\beta_{\text{ext}}\approx 1$, because everything scales together), so it pulls
+$\beta$ upward and a sub-1 slope is a conservative reading of the
+intrinsic buffering.
+
+```{r conditioning}
+# add cell size (log area) and cell cycle (log integrated DAPI) to the well adjustment
+res_conditioned <- betas(current_data, "well + lArea + lDAPI", var = "lpSer2")
+
+# Paired well-cluster bootstrap for the DIFFERENCE between the two slopes.
+# Both are computed on the same resampled cells, so well-to-well variation
+# common to the two models cancels and the difference is paired. 
+set.seed(2)
+bootstrap_reps <- 500
+wells_c   <- levels(current_data$well)
+
+dboot <- replicate(bootstrap_reps, {
+  samp <- sample(wells_c, size = length(wells_c), replace = TRUE)
+  d <- imap_dfr(samp, ~ filter(current_data, well == .x) %>%
+                  mutate(well = factor(paste0(.x, "_", .y))))
+  unname(betas(d, RHS_MIN)["beta_FP"] -
+         betas(d, "well + lArea + lDAPI")["beta_FP"])
+})
+
+diff_hat <- unname(res["beta_FP"] - res_conditioned["beta_FP"])
+ci_diff  <- quantile(dboot, c(.025, .975))
+
+c(well_only       = unname(res["beta_FP"]),
+  plus_size_cycle = unname(res_conditioned["beta_FP"]),
+  difference      = diff_hat,
+  diff_lo         = unname(ci_diff[1]),
+  diff_hi         = unname(ci_diff[2]))
+```
+
+To test whether the sub-proportionality is this extrinsic scaling, we add cell
+size ($\log$ area) and cell cycle ($\log$ integrated DAPI) to the adjustment
+alongside `well`, bootstrapping both slopes on the same well resamples so that
+the difference is paired.
+
+Conditioning lowered the slope from `r sprintf("%.2f", res["beta_FP"])` to
+`r sprintf("%.2f", res_conditioned["beta_FP"])` (difference
+`r sprintf("%.3f", diff_hat)`, 95% CI `r sprintf("%.3f", ci_diff[1])`–`r sprintf("%.3f", ci_diff[2])`,
+paired well bootstrap). The slope remains far below 1, so the buffering is not an
+artefact of larger or cycling cells dragging both channels up together.
+
+We do not interpret the size of the shift: we do not know how much of the
+extrinsic variance these two proxies capture, and $\log$ DAPI is not a pure
+extrinsic proxy, because POLR2A expression is itself cell-cycle-dependent, so
+conditioning on DNA content also removes genuine Pol II variation.
+
+
+### Robustness across wells, cell lines, and imaging setups
+
+We can check on a per-well basis whether $\beta$ is consistently below 1 for the different imaging setups.
+
+```{r per_well,fig.height=3,fig.width=6}
+
+per_well_pSer2 <- bind_rows(
+  mutate(dat_mAC_pSer2_647_total_561,cell_line="mAC-POLR2A",detection_channel="Far red"),
+  mutate(dat_mAC_pSer2_561_total_647,cell_line="mAC-POLR2A",detection_channel="Red"),
+  mutate(dat_mCh_pSer2_647_total_488,cell_line="mCherry-POLR2A",detection_channel="Far red"),
+  mutate(dat_mCh_pSer2_488_total_647,cell_line="mCherry-POLR2A",detection_channel="Green")) %>%
+  group_by(well,cell_line,detection_channel) %>%
+  summarise(beta_pSer2 = betas(pick(everything()), "1", var="lpSer2")["beta_FP"],
+            n = n(), .groups = "drop") 
+per_well_pSer2 %>% knitr::kable(digits = 3)
+
+per_well_pSer2 %>%
+  ggplot(aes(x=cell_line,y=beta_pSer2,col=detection_channel)) +
+  geom_boxplot() + 
+  geom_jitter(position = position_jitterdodge()) + 
+  geom_hline(yintercept = 1, linetype = 2) +
+  scale_y_continuous(name = expression(beta), limits = c(0, 1.2), breaks = c(0, 0.5, 1)) +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank(),
+        axis.title.x = element_blank())
+
+per_well_pSer5 <- bind_rows(
+  mutate(dat_mAC_pSer5_647_total_561,cell_line="mAC-POLR2A",detection_channel="Far red"),
+  mutate(dat_mAC_pSer5_561_total_647,cell_line="mAC-POLR2A",detection_channel="Red"),
+  mutate(dat_mCh_pSer5_647_total_488,cell_line="mCherry-POLR2A",detection_channel="Far red"),
+  mutate(dat_mCh_pSer5_488_total_647,cell_line="mCherry-POLR2A",detection_channel="Green")) %>%
+  group_by(well,cell_line,detection_channel) %>%
+  summarise(beta_pSer5 = betas(pick(everything()), "1", var="lpSer5")["beta_FP"],
+            n = n(), .groups = "drop") 
+per_well_pSer5 %>% knitr::kable(digits = 3)
+
+per_well_pSer5 %>%
+  ggplot(aes(x=cell_line,y=beta_pSer5,col=detection_channel)) +
+  geom_boxplot() + 
+  geom_jitter(position = position_jitterdodge()) + 
+  geom_hline(yintercept = 1, linetype = 2) +
+  scale_y_continuous(name = expression(beta), limits = c(0, 1.2), breaks = c(0, 0.5, 1)) +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank(),
+        axis.title.x = element_blank())
+
+# Final plot omitting Far-Red 3E10 and 3E8 due to bleedthrough
+
+pSer2_plot <- per_well_pSer2 %>%
+  filter(!(cell_line=="mCherry-POLR2A" & detection_channel=="Far red")) %>%
+  mutate(cell_line = fct_relevel(cell_line, "mCherry-POLR2A","mAC-POLR2A")) %>%
+  ggplot(aes(x=cell_line,y=beta_pSer2)) +
+  geom_boxplot(alpha=0.2,col="#306fb7",fill="#306fb7",linewidth=0.25, whisker.linewidth = 0.5,width=0.6) + 
+  #geom_jitter(width=0.2,alpha=0.5,size=1,colour="#306fb7") + 
+  geom_hline(yintercept = 1, linetype = 2) +
+  scale_x_discrete(breaks=c("mCherry-POLR2A","mAC-POLR2A"),labels=c("mCherry-\nPOLR2A","mAC-\nPOLR2A")) +
+  scale_y_continuous(name = expression(beta), limits = c(0, 1.1), breaks = c(0, 0.5, 1)) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.major.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_text(size=7),
+        axis.text.x = element_text(size=7,angle=90,hjust=1,vjust=0.5),
+        legend.position = "none")
+
+pSer2_plot
+ggsave(file.path(PLOTS_DIR, "beta_pSer2_by_well.pdf"),width=2.5,height=3.5,units="cm")
+
+
+pSer5_pSer2_plot <- bind_rows(
+  per_well_pSer5 %>% rename(beta=beta_pSer5) %>% mutate(antibody="pSer5"),
+  per_well_pSer2 %>% rename(beta=beta_pSer2) %>% mutate(antibody="pSer2")) %>%
+  mutate(antibody=factor(antibody,levels=c("pSer5","pSer2"))) %>%
+  filter(!(cell_line=="mCherry-POLR2A" & detection_channel=="Far red")) %>%
+  mutate(cell_line = fct_relevel(cell_line, "mCherry-POLR2A","mAC-POLR2A")) %>%
+  ggplot(aes(x=cell_line,y=beta,fill=antibody,col=antibody)) +
+  geom_boxplot(alpha=0.2,linewidth=0.25, whisker.linewidth = 0.5,width=0.6) + 
+  #geom_jitter(width=0.2,alpha=0.5,size=0.5) + 
+  geom_hline(yintercept = 1, linetype = 2) +
+  scale_fill_manual(values=c("#5bba47","#306fb7")) +
+  scale_colour_manual(values=c("#5bba47","#306fb7")) +
+  scale_x_discrete(breaks=c("mAC-POLR2A","mCherry-POLR2A"),labels=c("mAC-\nPOLR2A","mCherry-\nPOLR2A")) +
+  scale_y_continuous(name = expression(beta), limits = c(0, 1.1), breaks = c(0, 0.5, 1)) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.major.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_text(size=7),
+        axis.text.x = element_text(size=7,angle=90,hjust=1,vjust=0.5),
+        legend.title=element_blank(),
+        legend.key.size=unit(3,"mm"),
+        legend.key.spacing=unit(1,"mm"))
+
+pSer5_pSer2_plot
+ggsave(file.path(PLOTS_DIR, "beta_pSer2_pSer5_by_well.pdf"),width=5.0,height=3.5,units="cm")
+
+pSer5_pSer2_plot_alt <- bind_rows(
+  per_well_pSer5 %>% rename(beta=beta_pSer5) %>% mutate(antibody="pSer5"),
+  per_well_pSer2 %>% rename(beta=beta_pSer2) %>% mutate(antibody="pSer2")) %>%
+  mutate(antibody=factor(antibody,levels=c("pSer5","pSer2"))) %>%
+  filter(!(cell_line=="mCherry-POLR2A" & detection_channel=="Far red")) %>%
+  mutate(config = case_when(cell_line=="mAC-POLR2A" & detection_channel=="Red" ~ "mAC-POLR2A_total_647_phospho_568",
+                            cell_line=="mAC-POLR2A" & detection_channel=="Far red" ~ "mAC-POLR2A_total_568_phospho_647",
+                            cell_line=="mCherry-POLR2A" & detection_channel=="Green" ~ "mCherry-POLR2A_total_647_phospho_488",
+                            TRUE ~ NA)) %>%
+  mutate(config = fct_relevel(config, "mCherry-POLR2A_total_647_phospho_488",
+                              "mAC-POLR2A_total_647_phospho_568",
+                              "mAC-POLR2A_total_568_phospho_647")) %>%
+  ggplot(aes(x=config,y=beta,fill=antibody,col=antibody)) +
+  geom_boxplot(alpha=0.2,linewidth=0.25, whisker.linewidth = 0.5,width=0.6) + 
+  geom_hline(yintercept = 1, linetype = 2) +
+  scale_fill_manual(values=c("#5bba47","#306fb7")) +
+  scale_colour_manual(values=c("#5bba47","#306fb7")) +
+  scale_x_discrete(breaks=c("mCherry-POLR2A_total_647_phospho_488",
+                            "mAC-POLR2A_total_647_phospho_568",
+                            "mAC-POLR2A_total_568_phospho_647"),
+                   labels=c("mCherry-POLR2A\n(total = Alexa647,\nphospho = Alexa488)",
+                            "mAC-POLR2A\n(total = Alexa647,\nphospho = Alexa568)",
+                            "mAC-POLR2A\n(total = Alexa568,\nphospho = Alexa647)")) +
+  scale_y_continuous(name = expression(beta), limits = c(0, 1.1), breaks = c(0, 0.5, 1)) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.major.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_text(size=7),
+        axis.text.x = element_text(size=7,angle=90,hjust=1,vjust=0.5),
+        legend.title=element_blank(),
+        legend.key.size=unit(3,"mm"),
+        legend.key.spacing=unit(1,"mm"))
+
+pSer5_pSer2_plot_alt
+ggsave(file.path(PLOTS_DIR, "beta_pSer2_pSer5_by_well_by_config.pdf"),width=6.5,height=5,units="cm")
+
+```
+
+All wells fall below 1 range (`r sprintf("%.2f", min(per_well_pSer2[per_well_pSer2$detection_channel!="Far red",]$beta_pSer2))`–`r sprintf("%.2f", max(per_well_pSer2[per_well_pSer2$detection_channel!="Far red",]$beta_pSer2))`), so the result is reproducible across replicates and cell lines.
+
+### Validate difference between pSer2 and pSer5
+
+```{r beta_by_mark, message=FALSE}
+
+mark_reps <- 500
+
+beta_boot <- function(d, var, reps = mark_reps, seed = 1) {
+  wells <- levels(droplevels(factor(d$well)))
+  set.seed(seed)
+  replicate(reps, {
+    samp <- sample(wells, length(wells), replace = TRUE)
+    dd <- imap_dfr(samp, ~ filter(d, well == .x) %>%
+                     mutate(well = factor(paste0(.x, "_", .y))))
+    unname(betas(dd, RHS_MIN, var = var)["beta_FP"])
+  })
+}
+
+main_cfg <- list(
+  `mCherry-POLR2A` = list(pSer2 = dat_mCh_pSer2_488_total_647,
+                          pSer5 = dat_mCh_pSer5_488_total_647),
+  `mAC-POLR2A`     = list(pSer2 = dat_mAC_pSer2_561_total_647,
+                          pSer5 = dat_mAC_pSer5_561_total_647)
+)
+
+# pSer2 and pSer5 are stained in separate wells, so the two bootstraps are
+# independent and their draws can be differenced directly to give a CI on
+# beta_pSer5 - beta_pSer2.
+beta_marks <- imap_dfr(main_cfg, function(cfg, line) {
+  est2 <- unname(betas(cfg$pSer2, RHS_MIN, var = "lpSer2")["beta_FP"])
+  est5 <- unname(betas(cfg$pSer5, RHS_MIN, var = "lpSer5")["beta_FP"])
+  b2   <- beta_boot(cfg$pSer2, "lpSer2", seed = 1)
+  b5   <- beta_boot(cfg$pSer5, "lpSer5", seed = 2)
+  dd   <- b5 - b2
+  tibble(
+    cell_line  = line,
+    beta_pSer2 = est2,
+    pSer2_lo   = unname(quantile(b2, .025)), pSer2_hi = unname(quantile(b2, .975)),
+    beta_pSer5 = est5,
+    pSer5_lo   = unname(quantile(b5, .025)), pSer5_hi = unname(quantile(b5, .975)),
+    difference = est5 - est2,
+    diff_lo    = unname(quantile(dd, .025)), diff_hi = unname(quantile(dd, .975)),
+    p_boot     = mean(dd <= 0)
+  )
+})
+
+beta_marks %>% knitr::kable(digits = 3)
+```
+
+## Cell-to-cell variability
+
+We have a look at raw cell-to-cell variability to see if this can be easily visualised as "buffering" in the sense of reducing variance.
+
+```{r variability}
+
+library(rstatix)
+
+paired_long <- function(df, source_label, chans = c("D8L4Y", "pSer2")) {
+  out <- df %>%
+    group_by(well) %>%
+    summarise(across(all_of(chans),
+                     c(gcv = function(x) sqrt(exp(sd(log(x))^2) - 1))),
+              .groups = "drop") %>%
+    rename_with(~ sub("_gcv$", "", .x), ends_with("_gcv")) %>%
+    drop_na(all_of(chans)) %>%                 # keep only wells with BOTH channels
+    mutate(source = source_label)
+
+  message(source_label, ": ", nrow(out), " wells with complete pairs")
+
+  out %>%
+    pivot_longer(cols = all_of(chans), names_to = "channel", values_to = "gcv") %>%
+    arrange(source, channel, well)
+}
+
+gcv_all <- bind_rows(
+  paired_long(dat_mCh_pSer2_488_total_647, "mCh_pSer2_488_total_647"),
+  paired_long(dat_mAC_pSer2_647_total_561, "mAC_pSer2_647_total_561"),
+  paired_long(dat_mAC_pSer2_561_total_647, "mAC_pSer2_561_total_647")
+) %>%
+  mutate(channel = factor(
+    case_match(channel, "D8L4Y" ~ "Total", "pSer2" ~ "pSer2"),
+    levels=c("Total","pSer2")))
+
+# within each source, both channels must have identical well sets
+stopifnot(
+  gcv_all %>%
+    group_by(source, channel) %>%
+    summarise(wells = list(sort(well)), .groups = "drop") %>%
+    group_by(source) %>%
+    summarise(ok = n_distinct(wells) == 1, .groups = "drop") %>%
+    pull(ok) %>% all()
+)
+
+# stats: D8L4Y vs pSer2 within each dataset
+wilcox_res <- gcv_all %>%
+  group_by(source) %>%
+  pairwise_wilcox_test(gcv ~ channel, paired = TRUE)
+
+ttest_res <- gcv_all %>%
+  group_by(source) %>%
+  pairwise_t_test(gcv ~ channel, paired = TRUE) %>%
+  select(source, group1, group2, n1, n2, statistic, df, p)
+
+effect_res <- gcv_all %>%
+  group_by(source) %>%
+  cohens_d(gcv ~ channel, paired = TRUE) %>%
+  select(source, effsize, magnitude)
+
+# combined summary: one row per dataset (t-test + effect size) 
+summary_tbl <- left_join(ttest_res, effect_res, by = "source")
+
+wilcox_res
+summary_tbl
+library(ggpubr)
+
+colour_map <- setNames(c("#cf3827", "#306fb7"), c("Total", "pSer2"))
+
+# Combined (all three, faceted)
+gcv_stat <- gcv_all %>%
+  group_by(source) %>%
+  pairwise_wilcox_test(gcv ~ channel, paired = TRUE) %>%
+  add_significance("p") %>%
+  add_xy_position(x = "channel")
+
+gcv_plot <- gcv_all %>%
+  ggplot(aes(x = channel, y = gcv)) +
+  geom_boxplot(aes(fill = channel), alpha = 0.2, colour = "black",
+               width = 0.5, outlier.shape = NA) +
+  geom_line(aes(group = well), colour = "grey70", linewidth = 0.3) +
+  geom_point(aes(colour = channel), alpha = 0.7, size = 1) +
+  stat_pvalue_manual(gcv_stat,
+                     label = "p.signif",
+                     tip.length = 0.01,
+                     bracket.size = 0.4,
+                     label.size = 3) +
+  scale_fill_manual(values = colour_map) +
+  scale_colour_manual(values = colour_map) +
+  facet_wrap(~ source, labeller = as_labeller(c(
+    "mCh_pSer2_488_total_647" = "mCherry-POLR2A",
+    "mAC_pSer2_647_total_561" = "mAC-POLR2A 2",
+    "mAC_pSer2_561_total_647" = "mAC-POLR2A 1"))) +
+  scale_y_continuous(name = "Geometric CV",
+                     expand = expansion(mult = c(0.03, 0.10))) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.title.x = element_blank(),
+        legend.position = "none")
+gcv_plot
+ggsave(file.path(PLOTS_DIR, "gcv_plot_all.pdf"),width=6,height=4,units="cm")
+
+# mCherry only (single panel, no facet)
+mch_dat <- gcv_all %>% filter(source == "mCh_pSer2_488_total_647")
+
+mch_stat <- mch_dat %>%
+  pairwise_wilcox_test(gcv ~ channel, paired = TRUE) %>%
+  add_significance("p") %>%
+  add_xy_position(x = "channel")
+
+gcv_plot_mCherry <- mch_dat %>%
+  ggplot(aes(x = channel, y = gcv)) +
+  geom_boxplot(aes(fill = channel), alpha = 0.2, colour = "black",
+               width = 0.5, outlier.shape = NA) +
+  geom_line(aes(group = well), colour = "grey70", linewidth = 0.3) +
+  geom_point(aes(colour = channel), alpha = 0.7, size = 1) +
+  stat_pvalue_manual(mch_stat,
+                     label = "p.signif",
+                     tip.length = 0.01,
+                     bracket.size = 0.4,
+                     label.size = 3) +
+  scale_fill_manual(values = colour_map) +
+  scale_colour_manual(values = colour_map) +
+  scale_y_continuous(name = "Geometric C.V.",
+                     expand = expansion(mult = c(0.1, 0.10))) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text = element_text(size=8),
+        legend.position = "none")
+gcv_plot_mCherry
+
+ggsave(file.path(PLOTS_DIR, "gcv_plot_mCherry.pdf"),width=3,height=3.15,units="cm")
+
+# mAC only (two panels, faceted) 
+mac_dat <- gcv_all %>% filter(str_starts(source, "mAC"))
+
+mac_stat <- mac_dat %>%
+  group_by(source) %>%
+  pairwise_wilcox_test(gcv ~ channel, paired = TRUE) %>%
+  add_significance("p") %>%
+  add_xy_position(x = "channel")
+
+gcv_plot_mAC <- mac_dat %>%
+  ggplot(aes(x = channel, y = gcv)) +
+  geom_boxplot(aes(fill = channel), alpha = 0.2, colour = "black",
+               width = 0.5, outlier.shape = NA) +
+  geom_line(aes(group = well), colour = "grey70", linewidth = 0.3) +
+  geom_point(aes(colour = channel), alpha = 0.7, size = 1) +
+  stat_pvalue_manual(mac_stat,
+                     label = "p.signif",
+                     tip.length = 0.01,
+                     bracket.size = 0.4,
+                     label.size = 3) +
+  scale_fill_manual(values = colour_map) +
+  scale_colour_manual(values = colour_map) +
+  facet_wrap(~ source, labeller = as_labeller(c(
+    "mAC_pSer2_647_total_561" = "mAC-POLR2A 2",
+    "mAC_pSer2_561_total_647" = "mAC-POLR2A 1"))) +
+  scale_y_continuous(name = "Geometric C.V.",
+                     expand = expansion(mult = c(0.03, 0.10))) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.title.x = element_blank(),
+        legend.position = "none")
+gcv_plot_mAC
+ggsave(file.path(PLOTS_DIR, "gcv_plot_mAC.pdf"),width=5,height=4,units="cm")
+
+
+```
+
+Choose a representative well and plot the distribution
+
+```{r check_distribution}
+
+gcv_all %>%
+  filter(channel %in% c("Total", "pSer2")) %>%
+  group_by(source, channel) %>%
+  mutate(channel_median = median(gcv),
+         channel_mad = mad(gcv)) %>%
+  ungroup() %>%
+  mutate(z = abs(gcv - channel_median) / channel_mad) %>%
+  select(well, source, channel, z) %>%
+  pivot_wider(names_from = channel, values_from = z, names_prefix = "z_") %>%
+  filter(!is.na(z_Total), !is.na(z_pSer2)) %>%
+  mutate(combined_dev = z_Total + z_pSer2) %>%
+  group_by(source) %>%
+  slice_min(combined_dev, n = 1) %>%
+  ungroup()
+
+highlight_well <- "L07" 
+
+mch_dat %>%
+  ggplot(aes(x = channel, y = gcv)) +
+  geom_boxplot(aes(fill = channel), alpha = 0.2, colour = "black",
+               width = 0.5, outlier.shape = NA) +
+  geom_line(aes(group = well), colour = "grey70", linewidth = 0.3) +
+  geom_point(aes(colour = channel), alpha = 0.7, size = 1) +
+  # highlighted well on top
+  geom_line(data = mch_dat %>% filter(well == highlight_well),
+            aes(group = well), colour = "black", linewidth = 0.8) +
+  geom_point(data = mch_dat %>% filter(well == highlight_well),
+             aes(colour = channel), size = 2.2, shape = 21, fill = "white", stroke = 1) +
+  stat_pvalue_manual(mch_stat,
+                     label = "p.signif",
+                     tip.length = 0.01,
+                     bracket.size = 0.4,
+                     label.size = 3) +
+  scale_fill_manual(values = colour_map) +
+  scale_colour_manual(values = colour_map) +
+  scale_y_continuous(name = "Geometric C.V.",
+                     expand = expansion(mult = c(0.1, 0.10))) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.title.x = element_blank(),
+        legend.position = "none")
+
+
+p <- dat_mCh_pSer2_488_total_647 %>%
+  group_by(well_name) %>%
+  mutate(pSer2 = pSer2/median(pSer2), Total = D8L4Y/median(D8L4Y)) %>%
+  select(well_name, pSer2, Total) %>%
+  pivot_longer(-well_name) %>%
+  ggplot(aes(x = value, fill = name, color = name)) +
+  geom_histogram(bins = 300, alpha = 0.4, position = "identity", color = NA) +
+  geom_step(stat = "bin", bins = 300, position = "identity",
+            direction = "mid", pad = TRUE, linewidth = 0.3) +
+  scale_colour_manual(values = colour_map) +
+  scale_fill_manual(values = colour_map) +
+  theme_bw(8) +
+  scale_y_continuous(name = "Number of cells", breaks = c(0, 1000, 2000)) +
+  scale_x_log10(name = "Nuclear intensity") +
+  coord_cartesian(xlim = c(0.5, 2)) +
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text=element_text(size=8))
+
+p
+ggsave(file.path(PLOTS_DIR, "pSer2_and_D8L4Y_single_cell_distribution.pdf"),
+       plot = p, width = 3, height = 3.5, units = "cm")
+  
+```
+
+## Summary and caveats
+
+- pSer2 scales sub-proportionally with total Pol II in unperturbed cells:
+$\hat\beta \approx `r sprintf("%.2f", res["beta_FP"])`$
+(CI `r sprintf("%.2f", ci[1])`–`r sprintf("%.2f", ci[2])`), consistent across all wells.
+
+- The genetic mClover or mCherry readout is essential: about
+`r sprintf("%.0f%%", 100*res["excess"]/res["covPT"])` of the D8L4Y antibody's covariance with
+pSer2 is technical artifact shared between the two antibodies, so any analysis resting on the
+two antibodies alone (a naive straight-line fit, or treating total Pol II as a hidden quantity
+measured only by the two antibodies) is confounded and would over- or under-state buffering.
+- $\beta$ is a variance-weighted mix of an intrinsic and an extrinsic response,
+$\beta = w\,\beta_{\text{int}} + (1-w)\,\beta_{\text{ext}}$. Conditioning on
+measured cell-size and cell-cycle proxies only lowered $\beta$ slightly,
+so the sub-proportionality is not entirely a
+size/cycle artefact. The intrinsic slope is not identified from unperturbed data: the value
+should be read as an upper bound on intrinsic buffering.
+
+- The estimate is conservative: the shared-imaging factor and the extrinsic mixing both bias
+$\beta$ toward 1, and the scale is validated by the near slope-1 mClover–D8L4Y
+relationship. The reported interval is sampling precision from the well bootstrap on one
+cell line and channel configuration; it does not include these one-sided systematic biases,
+which all imply the true buffering is at least this strong.
+
