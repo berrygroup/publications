@@ -224,6 +224,30 @@ ggsave("pSer2_with_1mMEU.pdf",width=3,height=4,units="cm")
 
 ```
 
+### mCherry and GFP levels over time
+
+```{r mCherry_and_GFP}
+
+dat %>%
+  filter(CELL=="HCT116 OsTIRF74G mAC-/mChPOLR2A Clone 1") %>%
+  group_by(imaging_date,well_name,DRUG,DRUG_CONCENTRATION,DRUG_TIME_MINUTES) %>%
+  summarise(mean_mCherry=mean(Nuclei_intensity_mean_561_minus_bkgrd),
+            mean_mClover=mean(Nuclei_intensity_mean_488_minus_bkgrd)) %>%
+  group_by(imaging_date,DRUG,DRUG_CONCENTRATION,DRUG_TIME_MINUTES) %>%
+  summarise(expt_mean_mCherry=mean(mean_mCherry),
+            expt_sd_mCherry=sd(mean_mCherry),
+            expt_mean_mClover=mean(mean_mClover),
+            expt_sd_mClover=sd(mean_mClover)) %>%
+  ggplot(aes(x=DRUG_TIME_MINUTES,y=expt_mean_mCherry,colour = DRUG)) +
+  geom_point() +
+  geom_line() +
+  geom_errorbar(aes(ymin=expt_mean_mCherry-expt_sd_mCherry,ymax=expt_mean_mCherry+expt_sd_mCherry)) +
+  facet_wrap(~imaging_date)
+    
+
+```
+
+
 ### QC
 
 We see pronounced row effects which are correlated with imaging time for the 405 and 647 lasers. Likely a reduction in power during sample acquisition. Present in both replicates to different degrees.
@@ -579,7 +603,7 @@ zero_point <- dat_corrected_well_summary %>%
   filter(DRUG=="Vehicle") %>%
   mutate(DRUG_TIME_MINUTES=0) %>%
   select(-DRUG_CONCENTRATION,-DRUG) %>%
-  expand_grid(distinct(dat_corrected_plate_summary,DRUG,DRUG_CONCENTRATION))
+  expand_grid(distinct(dat_corrected_well_summary,DRUG,DRUG_CONCENTRATION))
 
 dat_corrected_plate_summary <- dat_corrected_well_summary %>%
   group_by(plating_date,imaging_date,CELL,DRUG,DRUG_CONCENTRATION,DRUG_TIME_MINUTES,PRIMARY) %>%
