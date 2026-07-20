@@ -153,9 +153,12 @@ dat_subset %>%
   theme(panel.grid=element_blank(),
         aspect.ratio=1,
         legend.key.width = unit(3,"mm"),
-        legend.key.height = unit(2,"mm"))
+        legend.key.height = unit(2,"mm"),
+        axis.text=element_text(size=8),
+        axis.title=element_text(size=8),
+        panel.border = element_rect(linewidth = 1))
 
-ggsave("Nucleoplasm_vs_Nucleus_EU.pdf",width=6,height = 4,units="cm")
+ggsave("Nucleoplasm_vs_Nucleus_EU.pdf",width=7,height = 5,units="cm")
 
 ```
 ```{r}
@@ -195,8 +198,10 @@ ggplot(aes(x=mean_nucleus_POLR2A_mean,y=mean_nucleoplasm_EU_mean,colour=LOG_DRUG
   theme(panel.grid=element_blank(),
         aspect.ratio=1,
         legend.key.width = unit(3,"mm"),
-        legend.key.height = unit(2,"mm"))
-ggsave("Nucleoplasm_EU_vs_Nucleus_POLR2A.pdf",width=6,height = 4,units="cm")
+        legend.key.height = unit(2,"mm"),
+        axis.text=element_text(size=8),
+        axis.title=element_text(size=8),
+        panel.border = element_rect(linewidth = 1))
+ggsave("Nucleoplasm_EU_vs_Nucleus_POLR2A.pdf",width=7,height = 5,units="cm")
 ```
-
 

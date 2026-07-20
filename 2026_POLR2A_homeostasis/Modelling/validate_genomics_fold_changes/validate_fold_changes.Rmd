@@ -151,11 +151,159 @@ genomics_bar_plot_drug +
   IF_bar_plot_drug +
   degron_genomics_barplot + 
   IF_bar_plot_degron +
-  plot_layout(design = "AB#CD") & 
+  plot_layout(design = "AB#CD", widths = c(1,1,0.25,1,1)) & 
   theme(legend.position = "none",
         axis.text.x = element_text(angle = 90,hjust=1,vjust=0.5,size=8),
         panel.grid = element_blank())
 
-ggsave("TSS_vs_Ser5p_combined.pdf",width=10,height=6.5,units="cm")
+ggsave("TSS_vs_Ser5p_combined.pdf",width=9.5,height=6.5,units="cm")
+
+```
+```{r}
+gene_body_genomics_bar_plot_drug <- ARMC5_ChIP_summary %>%
+  pivot_wider(names_from = c(condition,treatment),values_from = sum_coverage) %>%
+  mutate(`ARMC5 K.O.` = `ARMC5.KO_UNT`/WT_UNT,
+         Triptolide = WT_TPL / WT_UNT,
+         Parental = WT_UNT / WT_UNT) %>%
+  dplyr::select(Region=dataset,Parental,`ARMC5 K.O.`, Triptolide) %>%
+  pivot_longer(c(Parental,`ARMC5 K.O.`,Triptolide)) %>%
+  filter(Region=="Gene Body") %>%
+  ggplot(aes(x=name,y=value,fill=name)) +
+  geom_col() +
+  ylim(c(0,1.65)) +
+  ylab("dxChIP-seq (Gene Body)\nTotal POLR2A (D8L4Y)") +
+  theme_bw(base_size = 8) +
+  theme(axis.title.x = element_blank()) +
+  scale_fill_manual(values = c("#7c2c91","#939591","red"))
+gene_body_genomics_bar_plot_drug
+
+pSer2_IF_bar_plot_drug <- ARMC5_HEK_DRUG %>%
+      filter(Drug %in% c("Vehicle","Triptolide 300 nM")) %>%
+      filter(Cell!="HEK293 ARMC5 KO 2B6") %>%
+      filter(Primary=="pSer2 Pol II 3E10") %>%
+      left_join(normalisers_drug,by = join_by(Primary)) %>%
+  mutate(cell_labels = case_when(Cell=="HEK293 parental" ~ "Parental", Cell=="HEK293 ARMC5 KO 1A3" ~ "ARMC5 K.O."),
+         cell_labels = factor(cell_labels,levels = c("Parental","ARMC5 K.O.")),
+         normalised_intensity = mean_Nuclei_intensity_mean_488_plate_normalised/normaliser,
+         normalised_intensity_min = (mean_Nuclei_intensity_mean_488_plate_normalised - sd_Nuclei_intensity_mean_488_plate_normalised)/normaliser,
+         normalised_intensity_max = (mean_Nuclei_intensity_mean_488_plate_normalised + sd_Nuclei_intensity_mean_488_plate_normalised)/normaliser,
+         ) %>%
+  filter(!(cell_labels=="ARMC5 K.O." & Drug=="Triptolide 300 nM")) %>%
+  mutate(cell_labels = if_else(Drug=="Triptolide 300 nM","Triptolide",cell_labels)) %>%
+  dplyr::select(cell_labels,normalised_intensity,normalised_intensity_min,normalised_intensity_max) %>%
+  ggplot(aes(x=cell_labels,y=normalised_intensity,fill=cell_labels)) +
+  geom_col() +
+  geom_errorbar(
+    aes(
+      ymin=normalised_intensity_min,
+      ymax=normalised_intensity_max),
+    width=0.2,
+    position = position_dodge()) +
+  ylab("Mean nuclear intensity\nPOLR2A pSer2 IF (3E10)") +
+  ylim(c(0,1.65)) +
+  theme_bw(base_size = 8) +
+  theme(axis.title.x = element_blank()) +
+  scale_fill_manual(values = c("#7c2c91","#939591","red"))
+
+pSer2_IF_bar_plot_drug
+
+```
+
+```{r}
+
+degron_IF_pSer2 <- read_csv('../data/mACmChPOLR2A_90min_IF_ByExperiment.csv') %>%
+  group_by(CELL,DRUG,`DRUG TIME MINUTES`,PRIMARY,SECONDARY) %>%
+  summarise(mean_intensity = mean(IF_647_Intensity_FC),
+            sd_intensity = sd(IF_647_Intensity_FC)) %>%
+  filter(PRIMARY=="pSer2 3E10") %>%
+  select(DRUG,mean_intensity,sd_intensity) %>%
+  mutate(condition=case_when(DRUG=="Vehicle" ~ "Vehicle",
+                             DRUG=="10 µM 5PhIAA" ~ "5-Ph-IAA (90 min)"),
+         condition=factor(condition,levels = c("Vehicle","5-Ph-IAA (90 min)"))) 
+
+pSer2_IF_bar_plot_degron <- degron_IF_pSer2 %>%
+  ggplot(aes(x=condition,y=mean_intensity,fill=condition)) +
+  geom_col() +
+  geom_errorbar(
+    aes(
+      ymin=mean_intensity-sd_intensity,
+      ymax=mean_intensity+sd_intensity),
+    width=0.2) +
+  scale_y_continuous(limits = c(0,1.05),
+                     name="Mean nuclear intensity\nPOLR2A pSer2 IF (3E10)",
+                     breaks=c(0,0.5,1.0)) +
+  theme_bw(base_size = 8) +
+  theme(axis.title.x = element_blank()) +
+  scale_fill_manual(values = c("#939591","#5a90cc"))
+
+gene_body_degron_ChIP_summary <- read_csv("../../ChIPseq/data/Degron_PolII_merged_cov_boxplot.csv") %>%
+  filter(dataset == "Gene Body",
+         condition %in% c("D8L4Y_0h", "D8L4Y_90min", "D8L4Y_8h")) %>%
+  group_by(condition) %>%
+  summarise(total_cov = sum(coverage.fold), .groups = "drop") %>%
+  pivot_wider(names_from = condition, values_from = total_cov) %>%
+  mutate(
+    region  = "Gene Body",
+    Vehicle = D8L4Y_0h / D8L4Y_0h,
+    `5-Ph-IAA (90 min)` = D8L4Y_90min / D8L4Y_0h,
+  )
+
+gene_body_degron_genomics_barplot <- gene_body_degron_ChIP_summary %>%
+  pivot_longer(c(Vehicle,`5-Ph-IAA (90 min)`)) %>%
+  mutate(name=factor(name,levels=c("Vehicle","5-Ph-IAA (90 min)"))) %>%
+  ggplot(aes(x=name,y=value,fill=name)) +
+  geom_col() +
+  scale_y_continuous(limits = c(0,1.05),
+                     name="dxChIP-seq (Gene Body)\nTotal POLR2A (D8L4Y)",
+                     breaks=c(0,0.5,1.0)) +
+  theme_bw(base_size = 8) +
+  theme(axis.title.x = element_blank()) +
+  scale_fill_manual(values = c("#939591","#5a90cc"))
+  
+
+gene_body_degron_genomics_barplot + 
+  pSer2_IF_bar_plot_degron +
+  plot_layout(guides ="collect") & 
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90,hjust=1,vjust=0.5),
+        panel.grid = element_blank())
+
+
+
+```
+```{r combined_plot}
+gene_body_genomics_bar_plot_drug + 
+  pSer2_IF_bar_plot_drug +
+  gene_body_degron_genomics_barplot + 
+  pSer2_IF_bar_plot_degron +
+  plot_layout(design = "AB#CD", widths=c(1,1,0.25,1,1)) & 
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90,hjust=1,vjust=0.5,size=8),
+        panel.grid = element_blank())
+
+ggsave("Gene_Body_vs_Ser2p_combined.pdf",width=9.5,height=6.5,units="cm")
+
+```
+
+```{r all_combined_plot}
+genomics_bar_plot_drug + 
+  IF_bar_plot_drug +
+  degron_genomics_barplot + 
+  IF_bar_plot_degron +
+  gene_body_genomics_bar_plot_drug + 
+  pSer2_IF_bar_plot_drug +
+  gene_body_degron_genomics_barplot + 
+  pSer2_IF_bar_plot_degron +
+  plot_layout(design =
+  "
+  AB#CD
+  EF#GH
+  ",
+  widths = c(1,1,0.5,1,1)) & 
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle=90,hjust=1,vjust=0.5,size=8),
+        panel.grid = element_blank())
+
+ggsave("all_combined.pdf",width=10,height=10,units="cm")
 
 ```

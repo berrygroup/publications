@@ -59,7 +59,7 @@ wb_data_long %>%
 
 wb_data %>%
   ggplot(aes(x=total_D8L4Y_normalised,pSer2_3E10_normalised,col=log10(concentration_numeric))) +
-  geom_point() +
+  geom_point(size=1.5) +
   geom_abline() +
   scale_x_continuous("POLR2A western\nblot (D8L4Y )",
                      breaks=c(0,0.5,1)) +
@@ -75,8 +75,13 @@ wb_data %>%
     labels=c("Vehicle","10 nM","100 nM","1 µM","10 µM")) +
   theme(panel.grid = element_blank(),
         aspect.ratio = 1,
-        legend.key.size = unit(0.2,"cm"))
-ggsave(filename = "activity_abundance_plot_WB_Ben.pdf",units="cm",width=6,height=4)
+        legend.key.size = unit(0.3,"cm"),
+        axis.text=element_text(size=8),
+        axis.title=element_text(size=8),
+        legend.title=element_text(size=8),
+        legend.text=element_text(size=8),
+        panel.border = element_rect(linewidth = 1))
+ggsave(filename = "activity_abundance_plot_WB_Ben.pdf",units="cm",width=7,height=5)
 
 ```
 
@@ -263,10 +268,10 @@ make_cor_label <- function(cor_test) {
 
 f12_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
   ggplot(aes(x=mean_GFP,y=mean_total_F12,col=log10(DRUG_CONCENTRATION))) +
-  geom_smooth(aes(x=mean_GFP,y=mean_total_F12),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T,  linetype="dashed") +
+  geom_smooth(aes(x=mean_GFP,y=mean_total_F12),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T,  linetype="21") +
   geom_errorbar(aes(ymin=mean_total_F12-sd_total_F12,ymax=mean_total_F12+sd_total_F12)) +
   geom_errorbarh(aes(xmin=mean_GFP-sd_GFP,xmax=mean_GFP+sd_GFP)) +
-  geom_point() +
+  geom_point(size=1.2) +
   coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
   geom_hline(yintercept = bkgrd_primary_1/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_F12) +
   geom_vline(xintercept = bkgrd_gfp/f12_vs_gfp_vs_d8l4y_norm$normaliser_GFP) +
@@ -285,10 +290,10 @@ f12_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
 
 d8l4y_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
   ggplot(aes(x=mean_GFP,y=mean_total_D8L4Y,col=log10(DRUG_CONCENTRATION))) +
-  geom_smooth(aes(x=mean_GFP,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T,  linetype="dashed") +
+  geom_smooth(aes(x=mean_GFP,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T,  linetype="21") +
   geom_errorbar(aes(ymin=mean_total_D8L4Y-sd_total_D8L4Y,ymax=mean_total_D8L4Y+sd_total_D8L4Y)) +
   geom_errorbarh(aes(xmin=mean_GFP-sd_GFP,xmax=mean_GFP+sd_GFP)) +
-  geom_point() +
+  geom_point(size=1.2) +
   coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
   geom_hline(yintercept = bkgrd_primary_2/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_D8L4Y) +
   geom_vline(xintercept = bkgrd_gfp/f12_vs_gfp_vs_d8l4y_norm$normaliser_GFP) +
@@ -306,10 +311,10 @@ d8l4y_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
 
 d8l4y_vs_f12_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
   ggplot(aes(x=mean_total_F12,y=mean_total_D8L4Y,col=log10(DRUG_CONCENTRATION))) +
-  geom_smooth( aes(x=mean_total_F12,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T, linetype="dashed") +
+  geom_smooth( aes(x=mean_total_F12,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T, linetype="21") +
   geom_errorbar(aes(ymin=mean_total_D8L4Y-sd_total_D8L4Y,ymax=mean_total_D8L4Y+sd_total_D8L4Y)) +
   geom_errorbarh(aes(xmin=mean_total_F12-sd_total_F12,xmax=mean_total_F12+sd_total_F12)) +
-  geom_point() +
+  geom_point(size=1.2) +
   coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
   geom_hline(yintercept = bkgrd_primary_2/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_D8L4Y) +
   geom_vline(xintercept = bkgrd_primary_1/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_F12) +
@@ -336,11 +341,17 @@ BC
 f12_vs_gfp_plot + d8l4y_vs_gfp_plot + d8l4y_vs_f12_plot + plot_layout(design = design) & 
   theme_bw(base_size = 8) & 
   theme(legend.position = "none",
-        panel.grid = element_blank())
+        panel.grid = element_blank(),
+        axis.text=element_text(size=8),
+        axis.title=element_text(size=8),
+        legend.title=element_text(size=8),
+        legend.text=element_text(size=8),
+        panel.border = element_rect(linewidth = 1))
 
 ggsave("f12_vs_gfp_vs_d8l4y.pdf",width=10,height=8,units="cm")
 
-l <- cowplot::get_legend(f12_vs_gfp_plot + theme(legend.key.size = unit(0.4,"cm")))
+l <- cowplot::get_legend(f12_vs_gfp_plot + theme(legend.key.size = unit(0.4,"cm"),legend.title=element_text(size=8),
+        legend.text=element_text(size=8)))
 ggsave("f12_vs_gfp_vs_d8l4y_legend.pdf", plot=l, width = 5, height = 5,units="cm")
 
 ```
@@ -404,11 +415,11 @@ cor_labels <- plot_data %>%
 plot_data %>%
   ggplot(aes(x = IF_mean, y = D8L4Y_WB_mean, colour = antibody)) +
   geom_smooth(aes(x = IF_mean, y = D8L4Y_WB_mean, group = antibody, colour = antibody),
-              method = "lm", se = F, inherit.aes = F, linewidth = 0.5,
-              fullrange = T, linetype = "dashed", show.legend = FALSE) +
-  geom_errorbarh(aes(xmin = IF_mean - IF_sd, xmax = IF_mean + IF_sd),show.legend = FALSE) +
-  geom_errorbar(aes(ymin = D8L4Y_WB_mean - D8L4Y_WB_sd, ymax = D8L4Y_WB_mean + D8L4Y_WB_sd),show.legend = FALSE) +
-    geom_point() +
+              method = "lm", se = F, inherit.aes = F, linewidth = 0.75,
+              fullrange = T, linetype = "21", show.legend = FALSE) +
+  geom_errorbarh(aes(xmin = IF_mean - IF_sd, xmax = IF_mean + IF_sd),show.legend = FALSE,linewidth = 0.4,width=0.05) +
+  geom_errorbar(aes(ymin = D8L4Y_WB_mean - D8L4Y_WB_sd, ymax = D8L4Y_WB_mean + D8L4Y_WB_sd),show.legend = FALSE,linewidth = 0.4,width=0.05) +
+    geom_point(size=1.5) +
   geom_text(data = cor_labels,
           aes(x = x, y = y, label = label, colour = antibody),
           hjust = 0, size = 2.5, inherit.aes = F, parse = TRUE, show.legend = FALSE) +
@@ -420,9 +431,13 @@ plot_data %>%
   theme(legend.position = "right",
         legend.title = element_blank(),
         panel.grid = element_blank(),
-        aspect.ratio = 1) +
+        aspect.ratio = 1,
+        axis.text=element_text(size=8),
+        axis.title=element_text(size=8),
+        legend.text=element_text(size=8),
+        panel.border = element_rect(linewidth = 1)) +
   scale_colour_manual(values = c("#0072B2", "#D55E00"))
-ggsave("if_vs_wb_d8l4y.pdf",width=6,height=4,units="cm")
+ggsave("if_vs_wb_d8l4y.pdf",width=7,height=5,units="cm")
 
 ```
 
