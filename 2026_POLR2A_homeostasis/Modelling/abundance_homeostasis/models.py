@@ -142,7 +142,7 @@ def competition_steady_state(params, delta_f_B, delta_n_A, delta_n_B):
     return np.clip(np.array([A_f, B_f, A_n, B_n]), EPS, None)
 
 
-def max_system_rate(params, ss, delta_f_B, delta_n_B):
+def max_system_rate(params, ss, delta_f_B, delta_n_B, delta_n_A=0.0):
     """
     Fastest rate constant in the system at a given steady state.
 
@@ -150,10 +150,13 @@ def max_system_rate(params, ss, delta_f_B, delta_n_B):
     pathologically stiff: when K_M and the free pools are both small, the effective
     import rate constant V/(K_M + A_f + B_f) can reach many orders of magnitude above
     the degradation rates, and the integration becomes extremely slow without failing.
+
+    `delta_n_A` is optional only for backwards compatibility with existing callers;
+    pass it so that every rate in the system is actually covered.
     """
     V = params['k_import'] * params['F_total']
     D = max(params['K_M'] + ss[0] + ss[1], EPS)
-    return max(V / D, params['delta_f_A'], delta_f_B, delta_n_B)
+    return max(V / D, params['delta_f_A'], delta_f_B, delta_n_A, delta_n_B)
 
 
 def simulate_competition_trajectory(params, delta_f_B, delta_n_A, delta_n_B, 
@@ -190,7 +193,13 @@ def simulate_competition_trajectory(params, delta_f_B, delta_n_A, delta_n_B,
     rhs = lambda t, y: competition_model_odes(t, y, params, delta_f_B, delta_n_A, delta_n_B)
     sol = solve_ivp(rhs, (0.0, t_end), y0, t_eval=dense_times, method='LSODA', 
                     atol=atol, rtol=rtol)
-    return np.clip(sol.y, EPS, None), dense_times
+    # Return the solver's own time grid, not the requested one: if the integration
+    # terminates early, sol.y has fewer columns than dense_times and the two would
+    # be misaligned. Failures are raised so the caller's objective rejects the
+    # parameter set explicitly rather than silently fitting a truncated trajectory.
+    if not sol.success:
+        raise RuntimeError(f"competition integration failed: {sol.message}")
+    return np.clip(sol.y, EPS, None), sol.t
 
 
 # =============================================================================
