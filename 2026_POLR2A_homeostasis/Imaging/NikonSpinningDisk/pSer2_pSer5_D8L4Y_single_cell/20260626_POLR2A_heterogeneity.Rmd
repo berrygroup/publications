@@ -18,6 +18,7 @@ library(tidyverse)
 library(patchwork)
 library(caret)
 library(ranger)
+library(boot)
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
@@ -1149,6 +1150,91 @@ cell_counts %>%
 
 ```
 
+Compute Pearson's r and slopes for total POLR2A before doing a more complex correction.
+
+```{r pearsons}
+
+analyse_df <- function(data, R = 100) {
+  d <- data %>%
+    filter(
+      complete.cases(lFP, lD8L4Y, well),
+      is.finite(lFP),
+      is.finite(lD8L4Y)
+    ) %>%
+    droplevels()
+
+  partial_r <- function(x) {
+    cor(
+      resid(lm(lFP ~ well, data = x)),
+      resid(lm(lD8L4Y ~ well, data = x))
+    )
+  }
+
+  boot_slope <- function(data, i) {
+    x <- droplevels(data[i, , drop = FALSE])
+
+    tryCatch(
+      unname(coef(MASS::rlm(
+        lD8L4Y ~ lFP + well,
+        data = x,
+        method = "M",
+        psi = MASS::psi.bisquare,
+        init = "ls",
+        maxit = 200
+      ))["lFP"]),
+      error = function(e) NA_real_
+    )
+  }
+
+  boot_r <- function(data, i) {
+    x <- droplevels(data[i, , drop = FALSE])
+    tryCatch(partial_r(x), error = function(e) NA_real_)
+  }
+
+  fit <- MASS::rlm(
+    lD8L4Y ~ lFP + well,
+    data = d,
+    method = "M",
+    psi = MASS::psi.bisquare,
+    init = "ls",
+    maxit = 200
+  )
+
+  slope_boot <- boot::boot(d, boot_slope, R = R, strata = d$well)
+  r_boot <- boot::boot(d, boot_r, R = R, strata = d$well)
+
+  slope_ci <- quantile(
+    slope_boot$t[is.finite(slope_boot$t)],
+    c(0.025, 0.975),
+    names = FALSE
+  )
+
+  r_ci <- quantile(
+    r_boot$t[is.finite(r_boot$t)],
+    c(0.025, 0.975),
+    names = FALSE
+  )
+
+  c(
+    slope = unname(coef(fit)["lFP"]),
+    slope_low = slope_ci[1],
+    slope_high = slope_ci[2],
+    pearson_r = partial_r(d),
+    r_low = r_ci[1],
+    r_high = r_ci[2]
+  )
+}
+
+set.seed(123)
+
+results <- cbind(
+  mAC = analyse_df(dat_mAC_pSer2_561_total_647),
+  mCh = analyse_df(dat_mCh_pSer2_488_total_647)
+)
+
+round(results, 3)
+
+```
 
 ## Estimating the pSer2-POLR2A vs POLR2A slope from single-cell data
 
