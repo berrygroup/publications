@@ -218,119 +218,278 @@ dat %>%
   facet_wrap(~interaction(DRUG,DRUG_CONCENTRATION))
 ```
 
-Make comparisons
+# Quantitative agreement between mClover, F12 and D8L4Y
 
-```{r}
+Each channel is an affine function of true abundance $T$:
 
-f12_vs_gfp_vs_d8l4y <- dat %>%
-  filter(well_row %in% c("D","E","F","G","H")) %>% 
-  filter(CELL=="HCT116 OsTIRF74G mAC-POLR2A Clone 5" & PRIMARY_1=="Total Pol II (F12)") %>%
-  group_by(well_name,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
-  summarise(mean_total_F12 = mean(Nuclei_intensity_mean_561),
-            mean_total_D8L4Y = mean(Nuclei_intensity_mean_647),
-            mean_GFP = mean(Nuclei_intensity_mean_488),
-            .groups = 'drop') %>%
-  group_by(CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
-  summarise(sd_total_F12 = sd(mean_total_F12),
-            sd_total_D8L4Y = sd(mean_total_D8L4Y),
-            sd_GFP = sd(mean_GFP),
-            mean_total_F12 = mean(mean_total_F12),
-            mean_total_D8L4Y = mean(mean_total_D8L4Y),
-            mean_GFP = mean(mean_GFP),
-            .groups = 'drop') %>%
-  mutate(DRUG_CONCENTRATION = if_else(DRUG_CONCENTRATION == 0, 1, DRUG_CONCENTRATION))
+$$\text{signal}_c = \text{bg}_c + a_c T + n_c$$
 
-f12_vs_gfp_vs_d8l4y_norm <- f12_vs_gfp_vs_d8l4y %>%
-  filter(DRUG=="Vehicle") %>%
-  summarise(normaliser_total_F12 = mean(mean_total_F12),
-            normaliser_total_D8L4Y = mean(mean_total_D8L4Y),
-            normaliser_GFP = mean(mean_GFP)) %>%
-  bind_cols(f12_vs_gfp_vs_d8l4y) %>%
-  mutate(mean_total_F12 = mean_total_F12 / normaliser_total_F12,
-         sd_total_F12 = sd_total_F12 / normaliser_total_F12,
-         mean_total_D8L4Y = mean_total_D8L4Y / normaliser_total_D8L4Y,
-         sd_total_D8L4Y = sd_total_D8L4Y / normaliser_total_D8L4Y,
-         mean_GFP = mean_GFP / normaliser_GFP,
-         sd_GFP = sd_GFP / normaliser_GFP)
+`bg_c` is what the no-primary (561, 647) and parental-untagged (488) controls
+measure and what we subtract. `n_c` is any signal the antibody still produces at
+zero POLR2A, e.g. non-specific binding of the primary, which a no-primary control
+does not remove. After subtracting `bg_c` and normalising to the vehicle
+mean, writing $\nu_c = n_c / a_c$ as a fraction of the vehicle-specific signal:
 
-# Calculate correlations for all three plot combinations
-cor_gfp_f12 <- cor.test(f12_vs_gfp_vs_d8l4y_norm$mean_GFP, 
-                         f12_vs_gfp_vs_d8l4y_norm$mean_total_F12)
-cor_gfp_d8l4y <- cor.test(f12_vs_gfp_vs_d8l4y_norm$mean_GFP, 
-                            f12_vs_gfp_vs_d8l4y_norm$mean_total_D8L4Y)
-cor_f12_d8l4y <- cor.test(f12_vs_gfp_vs_d8l4y_norm$mean_total_F12, 
-                            f12_vs_gfp_vs_d8l4y_norm$mean_total_D8L4Y)
+$$y_c = \frac{T + \nu_c}{1 + \nu_c} = \underbrace{\frac{1}{1+\nu_c}}_{\text{slope}} T + \underbrace{\frac{\nu_c}{1+\nu_c}}_{\text{intercept}}$$
 
-make_cor_label <- function(cor_test) {
-  r_str <- sprintf("%.3f", cor_test$estimate)
-  paste0("italic(r)=='", r_str, "'")
+so slope + intercept = 1, and normalisation forces the line through (1,1).
+Fitting one channel against another, the slope $\beta$ is then exactly the
+conversion factor between reported percentage reductions:
+
+$$R_y = \beta \, R_x$$
+
+## Well-level table, background subtracted *before* normalisation
+
+Subtract the plate-wide background first, then normalise. 
+
+```{r agreement_welltable}
+CH <- c("mC", "F12", "D8L4Y")
+
+wt <- dat %>%
+  filter(well_row %in% c("D","E","F","G","H"),
+         CELL == "HCT116 OsTIRF74G mAC-POLR2A Clone 5",
+         PRIMARY_1 == "Total Pol II (F12)") %>%
+  group_by(well_name, well_row, DRUG, DRUG_CONCENTRATION, TIME_MINUTES) %>%
+  summarise(F12     = mean(Nuclei_intensity_mean_561) - bkgrd_primary_1,
+            D8L4Y   = mean(Nuclei_intensity_mean_647) - bkgrd_primary_2,
+            mC      = mean(Nuclei_intensity_mean_488) - bkgrd_gfp,
+            n_cells = n(), .groups = "drop")
+
+# normalise each channel by its own vehicle mean
+normalisers <- wt %>% filter(DRUG == "Vehicle") %>%
+  summarise(across(all_of(CH), mean))
+
+wt <- wt %>%
+  mutate(across(all_of(CH), ~ .x / normalisers[[cur_column()]])) %>%
+  mutate(cond = interaction(DRUG, DRUG_CONCENTRATION, TIME_MINUTES, drop = TRUE)) %>%
+  as.data.frame()
+
+cat("wells:", nrow(wt), " conditions:", nlevels(wt$cond),
+    " wells/condition:", paste(range(table(wt$cond)), collapse = "-"), "\n")
+cat("normalisers (raw units, bg-subtracted):\n"); print(round(unlist(normalisers), 1))
+cat("\nrange of normalised signal per channel:\n")
+print(round(sapply(wt[CH], range), 3))
+```
+
+## Estimators
+
+Both channels equal 1 in vehicle by construction, so the calibration line is
+anchored at (1,1). The conversion factor is therefore estimated directly as the
+least-squares slope of the fractional reduction in one channel on the fractional
+reduction in the other, forced through the origin. The intercept it implies is
+exactly $1-\beta$ — which is what makes $R_y = \beta R_x$ hold.
+
+Measurement error is estimated from replicate wells, but only as a
+sensitivity check (the correction is Warton *et al.*, 2006, *Biol. Rev.* **81**,
+259–291, eqn 6). The unconstrained two-parameter fit is also reported, as the
+test of whether the (1,1) anchor is justified: slope + intercept should be 1.
+
+```{r agreement_helpers}
+err_cov_wells <- function(wt, chs, cond) {
+  cond <- as.factor(cond)
+  resid <- do.call(cbind, lapply(chs, function(ch) wt[[ch]] - ave(wt[[ch]], cond)))
+  colnames(resid) <- chs
+  df <- nrow(wt) - nlevels(droplevels(cond))
+  if (df < 1) return(matrix(0, length(chs), length(chs), dimnames = list(chs, chs)))
+  crossprod(resid) / df
 }
 
-f12_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
-  ggplot(aes(x=mean_GFP,y=mean_total_F12,col=log10(DRUG_CONCENTRATION))) +
-  geom_smooth(aes(x=mean_GFP,y=mean_total_F12),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T,  linetype="21") +
-  geom_errorbar(aes(ymin=mean_total_F12-sd_total_F12,ymax=mean_total_F12+sd_total_F12)) +
-  geom_errorbarh(aes(xmin=mean_GFP-sd_GFP,xmax=mean_GFP+sd_GFP)) +
-  geom_point(size=1.2) +
-  coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
-  geom_hline(yintercept = bkgrd_primary_1/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_F12) +
-  geom_vline(xintercept = bkgrd_gfp/f12_vs_gfp_vs_d8l4y_norm$normaliser_GFP) +
-  annotate("label", x=0.01, y=1.05, label=make_cor_label(cor_gfp_f12),
-         parse=TRUE, hjust=0, size=2.5,
-         fill="white", colour="black", label.size=0.3) +
-  scale_color_viridis_c(
-    name="5-Ph-IAA\nconcentration",
-    begin=0,
-    end=0.8,
-    breaks=c(0,1,2,3,4),
-    labels=c("Vehicle","10 nM","100 nM","1 µM","10 µM")) +
-  scale_x_continuous(limits = c(0,1.25),breaks=c(0,0.5,1.0)) +
-  scale_x_continuous(name="POLR2A (mClover)",limits = c(0,1.1),breaks=c(0,0.5,1.0)) +
-  scale_y_continuous(name="POLR2A IF (F12)",limits = c(0,1.1),breaks=c(0,0.5,1.0))
+# free 2-parameter fit, corrected for measurement error
+slope_free <- function(wt, xch, ych, Sig) {
+  b <- (cov(wt[[xch]], wt[[ych]]) - Sig[xch, ych]) /
+       (var(wt[[xch]])            - Sig[xch, xch])
+  c(slope = b, intercept = mean(wt[[ych]]) - b * mean(wt[[xch]]))
+}
 
-d8l4y_vs_gfp_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
-  ggplot(aes(x=mean_GFP,y=mean_total_D8L4Y,col=log10(DRUG_CONCENTRATION))) +
-  geom_smooth(aes(x=mean_GFP,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T,  linetype="21") +
-  geom_errorbar(aes(ymin=mean_total_D8L4Y-sd_total_D8L4Y,ymax=mean_total_D8L4Y+sd_total_D8L4Y)) +
-  geom_errorbarh(aes(xmin=mean_GFP-sd_GFP,xmax=mean_GFP+sd_GFP)) +
-  geom_point(size=1.2) +
-  coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
-  geom_hline(yintercept = bkgrd_primary_2/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_D8L4Y) +
-  geom_vline(xintercept = bkgrd_gfp/f12_vs_gfp_vs_d8l4y_norm$normaliser_GFP) +
-  annotate("label", x=0.01, y=1.05, label=make_cor_label(cor_gfp_d8l4y),
-         parse=TRUE, hjust=0, size=2.5,
-         fill="white", colour="black", label.size=0.3) +
-  scale_color_viridis_c(
-    name="5-Ph-IAA\nconcentration",
-    begin=0,
-    end=0.8,
-    breaks=c(0,1,2,3,4),
-    labels=c("Vehicle","10 nM","100 nM","1 µM","10 µM")) +
-  scale_x_continuous(name="POLR2A (mClover)",limits = c(0,1.1),breaks=c(0,0.5,1.0)) +
-  scale_y_continuous(name="POLR2A IF (D8L4Y)",limits = c(0,1.1),breaks=c(0,0.5,1.0))
+# HEADLINE ESTIMATOR. beta = least-squares slope of fractional reduction on
+# fractional reduction, through the origin. Equivalent to fitting
+# y = beta*x + (1 - beta), so that R_y = beta * R_x exactly.
+beta_reduction <- function(wt, xch, ych) {
+  u <- 1 - wt[[xch]]; v <- 1 - wt[[ych]]
+  unname(sum(u * v) / sum(u * u))
+}
 
-d8l4y_vs_f12_plot <- f12_vs_gfp_vs_d8l4y_norm %>%
-  ggplot(aes(x=mean_total_F12,y=mean_total_D8L4Y,col=log10(DRUG_CONCENTRATION))) +
-  geom_smooth( aes(x=mean_total_F12,y=mean_total_D8L4Y),method = "lm",se=F, inherit.aes = F,col="black",linewidth = 0.5,fullrange = T, linetype="21") +
-  geom_errorbar(aes(ymin=mean_total_D8L4Y-sd_total_D8L4Y,ymax=mean_total_D8L4Y+sd_total_D8L4Y)) +
-  geom_errorbarh(aes(xmin=mean_total_F12-sd_total_F12,xmax=mean_total_F12+sd_total_F12)) +
-  geom_point(size=1.2) +
-  coord_cartesian(xlim=c(0,NA),ylim=c(0,NA)) +
-  geom_hline(yintercept = bkgrd_primary_2/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_D8L4Y) +
-  geom_vline(xintercept = bkgrd_primary_1/f12_vs_gfp_vs_d8l4y_norm$normaliser_total_F12) +
-  annotate("label", x=0.01, y=1.05, label=make_cor_label(cor_f12_d8l4y),
-         parse=TRUE, hjust=0, size=2.5,
-         fill="white", colour="black", label.size=0.3) +
-  scale_color_viridis_c(
-    name="5-Ph-IAA\nconcentration",
-    begin=0,
-    end=0.8,
-    breaks=c(0,1,2,3,4),
-    labels=c("Vehicle","10 nM","100 nM","1 µM","10 µM")) +
-  scale_x_continuous(name="POLR2A IF (F12)",limits = c(0,1.1),breaks=c(0,0.5,1.0)) +
-  scale_y_continuous(name="POLR2A IF (D8L4Y)",limits = c(0,1.1),breaks=c(0,0.5,1.0))
+# the same estimator with a measurement-error correction from replicate wells.
+# Sensitivity check only; not the reported value.
+beta_reduction_mom <- function(wt, xch, ych, Sig) {
+  u <- 1 - wt[[xch]]; v <- 1 - wt[[ych]]; n <- nrow(wt)
+  unname((sum(u * v) - n * Sig[xch, ych]) / (sum(u * u) - n * Sig[xch, xch]))
+}
 
-d8l4y_vs_f12_plot
+slope_ols <- function(wt, xch, ych) unname(coef(lm(wt[[ych]] ~ wt[[xch]]))[2])
+
+slope_deming <- function(wt, xch, ych, Sig) {
+  x <- wt[[xch]]; y <- wt[[ych]]
+  lambda <- Sig[ych, ych] / Sig[xch, xch]
+  Sxx <- var(x); Syy <- var(y); Sxy <- cov(x, y)
+  unname(((Syy - lambda * Sxx) +
+          sqrt((Syy - lambda * Sxx)^2 + 4 * lambda * Sxy^2)) / (2 * Sxy))
+}
+
+# bootstrap wells, stratified by condition, re-estimating the error covariance
+boot_pair <- function(wt, xch, ych, chs, cond, B = 4000) {
+  cond <- as.factor(cond); idx <- split(seq_len(nrow(wt)), cond)
+  out <- matrix(NA_real_, B, 3,
+                dimnames = list(NULL, c("free_slope", "free_int", "beta11")))
+  for (b in seq_len(B)) {
+    s <- unlist(lapply(idx, function(i) sample(i, length(i), TRUE)))
+    wb <- wt[s, , drop = FALSE]; cb <- cond[s]
+    Sb <- err_cov_wells(wb, chs, cb)
+    if (var(wb[[xch]]) - Sb[xch, xch] <= 0) next
+    f <- slope_free(wb, xch, ych, Sb)
+    out[b, ] <- c(f[["slope"]], f[["intercept"]], beta_reduction(wb, xch, ych))
+  }
+  out[complete.cases(out), , drop = FALSE]
+}
+
+bland_altman <- function(wt, xch, ych) {
+  m <- (wt[[xch]] + wt[[ych]]) / 2; d <- wt[[ych]] - wt[[xch]]
+  list(avg = m, diff = d, bias = mean(d),
+       loa = mean(d) + c(-1.96, 1.96) * sd(d),
+       prop_p = summary(lm(d ~ m))$coefficients[2, 4])
+}
+```
+
+## Slopes and conversion factors
+
+```{r agreement_slopes}
+Sigma <- err_cov_wells(wt, CH, wt$cond)
+
+cat("within-condition error CV per channel:\n")
+print(round(100 * sqrt(diag(Sigma)) / 1, 1))
+cat("\nerror correlation between channels (shared well-level nuisance):\n")
+print(round(cov2cor(Sigma), 2))
+
+PAIRS <- list(c("mC","F12"), c("mC","D8L4Y"), c("F12","D8L4Y"))
+res <- lapply(PAIRS, function(p) {
+  bs <- boot_pair(wt, p[1], p[2], CH, wt$cond)
+  f  <- slope_free(wt, p[1], p[2], Sigma)
+  list(pair = p, boot = bs,
+       ols = slope_ols(wt, p[1], p[2]),
+       deming = slope_deming(wt, p[1], p[2], Sigma),
+       free = f,
+       beta11 = beta_reduction(wt, p[1], p[2]),
+       ci11 = quantile(bs[, "beta11"], c(.025, .975)),
+       ci_int = quantile(bs[, "free_int"], c(.025, .975)))
+})
+names(res) <- sapply(PAIRS, paste, collapse = "_vs_")
+
+for (r in res) {
+  cat(sprintf("\n%s (x) vs %s (y)\n", r$pair[1], r$pair[2]))
+  cat(sprintf("  naive OLS slope        %.3f   (what geom_smooth draws)\n", r$ols))
+  cat(sprintf("  Deming slope           %.3f\n", r$deming))
+  cat(sprintf("  moment-corrected       slope %.3f  intercept %+.3f [%+.3f, %+.3f]\n",
+              r$free[["slope"]], r$free[["intercept"]], r$ci_int[1], r$ci_int[2]))
+  cat(sprintf("  slope + intercept      %.3f   (1.00 if the affine model holds)\n",
+              r$free[["slope"]] + r$free[["intercept"]]))
+  b_mom <- beta_reduction_mom(wt, r$pair[1], r$pair[2], Sigma)
+  cat(sprintf("  CONVERSION FACTOR beta %.3f [%.3f, %.3f]  (reduction on reduction, through origin)\n",
+              r$beta11, r$ci11[1], r$ci11[2]))
+  cat(sprintf("    sensitivity: measurement-error corrected %.3f (%+.2f%%)\n",
+              b_mom, 100 * (b_mom / r$beta11 - 1)))
+  if (r$pair[1] == "mC") {
+    nu <- 1 / r$beta11 - 1
+    cat(sprintf("  implied nu (residual non-specific, fraction of vehicle) %.3f\n", nu))
+  }
+}
+```
+
+## Does it matter which measurement you use?
+
+`beta` converts directly: a reduction of `R` by channel x reads as `beta * R` by
+channel y. Pre-specify a tolerance and check whether the interval sits inside it,
+rather than reading a non-significant difference as agreement.
+
+```{r agreement_answer}
+
+for (r in res) {
+  cat(sprintf("A 50%% reduction measured by %s reads as %.1f%% [%.1f, %.1f] by %s.\n",
+              r$pair[1], 50 * r$beta11, 50 * r$ci11[1], 50 * r$ci11[2], r$pair[2]))
+}
+cat(sprintf("\nBased on %d wells across %d dose x time conditions.\n",
+            nrow(wt), nlevels(wt$cond)))
+```
+
+## Bland-Altman
+
+Standard method-comparison view: mean of the two measurements against their
+difference, with 95% limits of agreement. A slope in this plot is proportional
+bias, which is what a non-specific offset produces.
+
+```{r agreement_bland_altman, fig.height=3, fig.width=9}
+ba_df <- do.call(rbind, lapply(PAIRS, function(p) {
+  ba <- bland_altman(wt, p[1], p[2])
+  data.frame(pair = paste(p[2], "-", p[1]), avg = ba$avg, diff = ba$diff,
+             bias = ba$bias, lo = ba$loa[1], hi = ba$loa[2], prop_p = ba$prop_p)
+}))
+
+for (p in PAIRS) {
+  ba <- bland_altman(wt, p[1], p[2])
+  cat(sprintf("%6s - %-6s : bias %+.3f  LoA [%+.3f, %+.3f]  proportional-bias p = %.3g\n",
+              p[2], p[1], ba$bias, ba$loa[1], ba$loa[2], ba$prop_p))
+}
+
+ggplot(ba_df, aes(avg, diff)) +
+  geom_hline(yintercept = 0, colour = "grey70") +
+  geom_hline(aes(yintercept = bias), linetype = "solid", linewidth = 0.3) +
+  geom_hline(aes(yintercept = lo), linetype = "21", linewidth = 0.3) +
+  geom_hline(aes(yintercept = hi), linetype = "21", linewidth = 0.3) +
+  geom_point(size = 1.2) +
+  facet_wrap(~pair) +
+  labs(x = "mean of the two measurements", y = "difference") +
+  theme_bw(base_size = 8) + theme(panel.grid = element_blank())
+```
+
+## Corrected panels
+
+
+```{r agreement_panels, fig.height=8, fig.width=10}
+cond_summary <- wt %>%
+  group_by(DRUG, DRUG_CONCENTRATION, TIME_MINUTES) %>%
+  summarise(across(all_of(CH), list(mean = mean, sd = sd)), .groups = "drop") %>%
+  mutate(conc_plot = if_else(DRUG_CONCENTRATION == 0, 1, DRUG_CONCENTRATION))
+
+panel_df <- function(xv, yv) {
+  data.frame(x    = cond_summary[[paste0(xv, "_mean")]],
+             x_sd = cond_summary[[paste0(xv, "_sd")]],
+             y    = cond_summary[[paste0(yv, "_mean")]],
+             y_sd = cond_summary[[paste0(yv, "_sd")]],
+             conc = cond_summary$conc_plot)
+}
+
+mk_panel <- function(xv, yv, xlab, ylab, r) {
+  d <- panel_df(xv, yv)
+  # normalisation puts both channels at 1 in vehicle, so the line is anchored
+  # at (1,1): y = beta*x + (1 - beta). Drawn line and quoted values are the same
+  # fit, and alpha = 1 - beta by construction rather than fitted freely 
+  # The unconstrained fit and its intercept CI are in the agreement_slopes output.
+  b <- r$beta11
+  a <- 1 - b
+  lab <- sprintf("beta==%.3f*','~alpha==%.3f", b, a)
+  ggplot(d, aes(x = x, y = y, col = log10(conc))) +
+    geom_abline(slope = b, intercept = a,
+                col = "black", linewidth = 0.5, linetype = "21") +
+    geom_errorbar(aes(ymin = y - y_sd, ymax = y + y_sd)) +
+    geom_errorbarh(aes(xmin = x - x_sd, xmax = x + x_sd)) +
+    geom_point(size = 1.2) +
+    coord_cartesian(xlim = c(0, NA), ylim = c(0, NA)) +
+    annotate("label", x = 0.01, y = 1.05, label = lab, parse = TRUE, hjust = 0,
+             size = 2.5, fill = "white", colour = "black", label.size = 0.3) +
+    scale_color_viridis_c(
+      name = "5-Ph-IAA\nconcentration",
+      begin = 0, end = 0.8,
+      breaks = c(0, 1, 2, 3, 4),
+      labels = c("Vehicle", "10 nM", "100 nM", "1 \u00b5M", "10 \u00b5M")) +
+    scale_x_continuous(name = xlab, limits = c(0, 1.1), breaks = c(0, 0.5, 1.0)) +
+    scale_y_continuous(name = ylab, limits = c(0, 1.1), breaks = c(0, 0.5, 1.0))
+}
+
+f12_vs_gfp_plot   <- mk_panel("mC",  "F12",   "POLR2A (mClover)", "POLR2A IF (F12)",
+                              res$mC_vs_F12)
+d8l4y_vs_gfp_plot <- mk_panel("mC",  "D8L4Y", "POLR2A (mClover)", "POLR2A IF (D8L4Y)",
+                              res$mC_vs_D8L4Y)
+d8l4y_vs_f12_plot <- mk_panel("F12", "D8L4Y", "POLR2A IF (F12)",  "POLR2A IF (D8L4Y)",
+                              res$F12_vs_D8L4Y)
 
 design <-
 "
@@ -338,8 +497,8 @@ A#
 BC
 "
 
-f12_vs_gfp_plot + d8l4y_vs_gfp_plot + d8l4y_vs_f12_plot + plot_layout(design = design) & 
-  theme_bw(base_size = 8) & 
+f12_vs_gfp_plot + d8l4y_vs_gfp_plot + d8l4y_vs_f12_plot + plot_layout(design = design) &
+  theme_bw(base_size = 8) &
   theme(legend.position = "none",
         panel.grid = element_blank(),
         axis.text=element_text(size=8),
@@ -353,76 +512,176 @@ ggsave("f12_vs_gfp_vs_d8l4y.pdf",width=10,height=8,units="cm")
 l <- cowplot::get_legend(f12_vs_gfp_plot + theme(legend.key.size = unit(0.4,"cm"),legend.title=element_text(size=8),
         legend.text=element_text(size=8)))
 ggsave("f12_vs_gfp_vs_d8l4y_legend.pdf", plot=l, width = 5, height = 5,units="cm")
-
 ```
 
-## Compare WB and IF
+# F12 as the working readout
 
-We can now also match the 4 h data with the western blots performed at this timepoint to see how they compare
+Most experiments use F12, so another useful direction is F12 &rarr; the others. 
+
+```{r f12_anchored}
+res_f12 <- lapply(list(c("F12","mC"), c("F12","D8L4Y")), function(p) {
+  bs <- boot_pair(wt, p[1], p[2], CH, wt$cond)
+  f  <- slope_free(wt, p[1], p[2], Sigma)
+  list(pair = p, boot = bs, free = f,
+       beta11 = beta_reduction(wt, p[1], p[2]),
+       ci11 = quantile(bs[, "beta11"], c(.025, .975)))
+})
+names(res_f12) <- c("F12_to_mC", "F12_to_D8L4Y")
+
+cat("A reduction measured by F12 corresponds to:\n\n")
+cat(sprintf("%-12s %-22s %s\n", "R_F12", "by mClover", "by D8L4Y"))
+for (R in c(10, 20, 30, 40, 50, 60, 75, 90)) {
+  a <- res_f12$F12_to_mC; b <- res_f12$F12_to_D8L4Y
+  cat(sprintf("%-12s %5.1f%% [%.1f, %.1f]     %5.1f%% [%.1f, %.1f]\n",
+              paste0(R, "%"),
+              R * a$beta11, R * a$ci11[1], R * a$ci11[2],
+              R * b$beta11, R * b$ci11[1], R * b$ci11[2]))
+}
+for (r in res_f12)
+  cat(sprintf("\nF12 -> %-6s : beta = %.3f [%.3f, %.3f]", r$pair[2],
+              r$beta11, r$ci11[1], r$ci11[2]))
+cat("\n")
+```
+
+## Panels with F12 on the x-axis
+
+Same data and fits, reoriented so the working readout is the predictor.
+
+```{r agreement_panels_f12x, fig.height=8, fig.width=10}
+f12_vs_gfp_plot_f12x   <- mk_panel("F12", "mC",    "POLR2A IF (F12)", "POLR2A (mClover)",
+                                   res_f12$F12_to_mC)
+d8l4y_vs_f12_plot_f12x <- mk_panel("F12", "D8L4Y", "POLR2A IF (F12)", "POLR2A IF (D8L4Y)",
+                                   res_f12$F12_to_D8L4Y)
+d8l4y_vs_gfp_plot_f12x <- mk_panel("mC",  "D8L4Y", "POLR2A (mClover)", "POLR2A IF (D8L4Y)",
+                                   res$mC_vs_D8L4Y)
+
+f12_vs_gfp_plot_f12x + d8l4y_vs_f12_plot_f12x + d8l4y_vs_gfp_plot_f12x +
+  plot_layout(design = design) &
+  theme_bw(base_size = 8) &
+  theme(legend.position = "none",
+        panel.grid = element_blank(),
+        axis.text=element_text(size=8),
+        axis.title=element_text(size=8),
+        legend.title=element_text(size=8),
+        legend.text=element_text(size=8),
+        panel.border = element_rect(linewidth = 1))
+
+ggsave("f12_vs_gfp_vs_d8l4y_F12x.pdf",width=10,height=8,units="cm")
+```
+
+# Compare WB and IF
+
+Matching the 4 h data with the western blots performed at this timepoint. The IF
+side reuses `cond_summary` from the agreement analysis, so it is already
+background-subtracted; it is re-normalised within the 4 h subset to match the WB
+normalisation to its own DMSO control.
 
 ```{r wb_to_IF}
-
 wb_data_summary <- wb_data %>%
-  group_by(concentration,concentration_numeric) %>%
-  summarise(across(c(total_D8L4Y_normalised,pSer2_3E10_normalised),c(mean=~mean(.),sd=~sd(.))),.groups = 'drop') %>%
-  mutate(DRUG=if_else(concentration=="DMSO","Vehicle","5PhIAA"),
-         DRUG_CONCENTRATION=concentration_numeric*10^9) %>%
-  select(DRUG,
-         DRUG_CONCENTRATION,
-         D8L4Y_WB_mean=total_D8L4Y_normalised_mean,
-         D8L4Y_WB_sd=total_D8L4Y_normalised_sd)
+  group_by(concentration, concentration_numeric) %>%
+  summarise(across(c(total_D8L4Y_normalised, pSer2_3E10_normalised),
+                   c(mean = ~mean(.), sd = ~sd(.))),
+            WB_n = n(), .groups = 'drop') %>%
+  mutate(DRUG = if_else(concentration == "DMSO", "Vehicle", "5PhIAA"),
+         # DMSO is coded 1e-9 so it plots on a log axis; the IF side keeps the
+         # true zero, so force both to 0 or the vehicle row will not join
+         DRUG_CONCENTRATION = if_else(DRUG == "Vehicle", 0,
+                                      concentration_numeric * 10^9)) %>%
+  select(DRUG, DRUG_CONCENTRATION, WB_n,
+         D8L4Y_WB_mean = total_D8L4Y_normalised_mean,
+         D8L4Y_WB_sd   = total_D8L4Y_normalised_sd)
 
-if_data_summary <- f12_vs_gfp_vs_d8l4y %>%
-  filter(TIME_MINUTES==240) %>%
-  mutate(mean_total_D8L4Y = mean_total_D8L4Y - bkgrd_primary_2) %>%
-  mutate(mean_total_F12 = mean_total_F12 - bkgrd_primary_1) %>%
-  select(DRUG,DRUG_CONCENTRATION,
-         D8L4Y_IF_mean=mean_total_D8L4Y,
-         D8L4Y_IF_sd=sd_total_D8L4Y,
-         F12_IF_mean=mean_total_F12,
-         F12_IF_sd=sd_total_F12)
+if_n <- wt %>%
+  filter(TIME_MINUTES == 240) %>%
+  count(DRUG, DRUG_CONCENTRATION, name = "IF_n")
+
+if_data_summary <- cond_summary %>%
+  filter(TIME_MINUTES == 240) %>%
+  select(DRUG, DRUG_CONCENTRATION,
+         D8L4Y_IF_mean = D8L4Y_mean, D8L4Y_IF_sd = D8L4Y_sd,
+         F12_IF_mean   = F12_mean,   F12_IF_sd   = F12_sd)
 
 if_norm <- if_data_summary %>%
-  filter(DRUG=="Vehicle") %>%
+  filter(DRUG == "Vehicle") %>%
   summarise(D8L4Y_IF_mean_normaliser = mean(D8L4Y_IF_mean),
-            F12_IF_mean_normaliser = mean(F12_IF_mean)) %>%
+            F12_IF_mean_normaliser   = mean(F12_IF_mean)) %>%
   bind_cols(if_data_summary) %>%
-    mutate(
-      D8L4Y_IF_mean = D8L4Y_IF_mean / D8L4Y_IF_mean_normaliser,
-      D8L4Y_IF_sd = D8L4Y_IF_sd / D8L4Y_IF_mean_normaliser,
-      F12_IF_mean = F12_IF_mean / F12_IF_mean_normaliser,
-      F12_IF_sd = F12_IF_sd / F12_IF_mean_normaliser) %>%
-  pivot_longer(
-    cols = c(D8L4Y_IF_mean, D8L4Y_IF_sd, F12_IF_mean, F12_IF_sd,
-             D8L4Y_IF_mean_normaliser, F12_IF_mean_normaliser),
-    names_to = c("antibody", ".value"),
-    names_pattern = "^(D8L4Y|F12)_(.+)$"
-  )
+  mutate(D8L4Y_IF_mean = D8L4Y_IF_mean / D8L4Y_IF_mean_normaliser,
+         D8L4Y_IF_sd   = D8L4Y_IF_sd   / D8L4Y_IF_mean_normaliser,
+         F12_IF_mean   = F12_IF_mean   / F12_IF_mean_normaliser,
+         F12_IF_sd     = F12_IF_sd     / F12_IF_mean_normaliser) %>%
+  select(-D8L4Y_IF_mean_normaliser, -F12_IF_mean_normaliser) %>%
+  pivot_longer(cols = c(D8L4Y_IF_mean, D8L4Y_IF_sd, F12_IF_mean, F12_IF_sd),
+               names_to = c("antibody", ".value"),
+               names_pattern = "^(D8L4Y|F12)_(.+)$")
 
-plot_data <- left_join(if_norm, wb_data_summary)
+plot_data <- left_join(if_norm, wb_data_summary,
+                       by = c("DRUG", "DRUG_CONCENTRATION")) %>%
+  left_join(if_n, by = c("DRUG", "DRUG_CONCENTRATION"))
 
-# Calculate correlation per antibody
-cor_labels <- plot_data %>%
+# join check: every IF condition should have found a WB partner
+cat("rows:", nrow(plot_data),
+    " unmatched WB:", sum(is.na(plot_data$D8L4Y_WB_mean)), "\n")
+print(plot_data %>%
+        select(antibody, DRUG, DRUG_CONCENTRATION, IF_mean, D8L4Y_WB_mean) %>%
+        arrange(antibody, DRUG_CONCENTRATION))
+```
+
+Both axes are normalised to their own vehicle, so the same anchored estimator
+applies: `beta_reduction` on the IF and WB fractional reductions. The
+unconstrained fit is reported alongside it, using a diagonal error covariance
+built from the standard error of each condition mean — here the two sets of
+errors really are independent, since IF and WB are separate assays.
+
+```{r wb_slopes}
+fit_wb <- function(d) {
+  d <- d[complete.cases(d[c("IF_mean", "D8L4Y_WB_mean")]), ]
+  Sig <- diag(c(mean(d$IF_sd^2 / d$IF_n, na.rm = TRUE),
+                mean(d$D8L4Y_WB_sd^2 / d$WB_n, na.rm = TRUE)))
+  dimnames(Sig) <- list(c("IF", "WB"), c("IF", "WB"))
+  dd <- data.frame(IF = d$IF_mean, WB = d$D8L4Y_WB_mean)
+  f <- slope_free(dd, "IF", "WB", Sig)
+  data.frame(n = nrow(dd),
+             ols       = slope_ols(dd, "IF", "WB"),
+             slope     = f[["slope"]],
+             intercept = f[["intercept"]],
+             beta11    = beta_reduction(dd, "IF", "WB"))
+}
+
+wb_slopes <- plot_data %>%
   group_by(antibody) %>%
-  summarise(
-    r = cor(IF_mean, D8L4Y_WB_mean, use = "complete.obs"),
-    p = cor.test(IF_mean, D8L4Y_WB_mean)$p.value,
-    label = paste0("italic(r)==", round(r, 3)),
-    x = 0.05,
-    y = ifelse(antibody == "D8L4Y", 1.05, 0.95)
-  )
+  group_modify(~ fit_wb(.x)) %>%
+  ungroup()
+
+print(as.data.frame(wb_slopes), digits = 3)
+cat("\nbeta11 is the conversion factor: a reduction of R by IF reads as beta*R by WB.\n")
+for (i in seq_len(nrow(wb_slopes)))
+  cat(sprintf("  50%% reduction by %-6s IF -> %.1f%% by western blot\n",
+              wb_slopes$antibody[i], 50 * wb_slopes$beta11[i]))
+```
+```{r wb_plot, fig.height=3, fig.width=4}
+# both axes are normalised to their own vehicle, so the line is anchored at
+# (1,1): y = beta*x + (1 - beta). This is the line beta refers to.
+slope_labels <- wb_slopes %>%
+  mutate(intercept11 = 1 - beta11,
+         label = sprintf("beta==%.3f*','~alpha==%.3f", beta11, intercept11),
+         x = 0.05,
+         y = ifelse(antibody == "D8L4Y", 1.05, 0.95))
 
 plot_data %>%
   ggplot(aes(x = IF_mean, y = D8L4Y_WB_mean, colour = antibody)) +
-  geom_smooth(aes(x = IF_mean, y = D8L4Y_WB_mean, group = antibody, colour = antibody),
-              method = "lm", se = F, inherit.aes = F, linewidth = 0.75,
-              fullrange = T, linetype = "21", show.legend = FALSE) +
-  geom_errorbarh(aes(xmin = IF_mean - IF_sd, xmax = IF_mean + IF_sd),show.legend = FALSE,linewidth = 0.4,width=0.05) +
-  geom_errorbar(aes(ymin = D8L4Y_WB_mean - D8L4Y_WB_sd, ymax = D8L4Y_WB_mean + D8L4Y_WB_sd),show.legend = FALSE,linewidth = 0.4,width=0.05) +
-    geom_point(size=1.5) +
-  geom_text(data = cor_labels,
-          aes(x = x, y = y, label = label, colour = antibody),
-          hjust = 0, size = 2.5, inherit.aes = F, parse = TRUE, show.legend = FALSE) +
+  geom_abline(data = slope_labels,
+              aes(slope = beta11, intercept = intercept11, colour = antibody),
+              linewidth = 0.75, linetype = "21", show.legend = FALSE) +
+  geom_errorbarh(aes(xmin = IF_mean - IF_sd, xmax = IF_mean + IF_sd),
+                 show.legend = FALSE, linewidth = 0.4, width = 0.05) +
+  geom_errorbar(aes(ymin = D8L4Y_WB_mean - D8L4Y_WB_sd,
+                    ymax = D8L4Y_WB_mean + D8L4Y_WB_sd),
+                show.legend = FALSE, linewidth = 0.4, width = 0.05) +
+  geom_point(size = 1.5) +
+  geom_text(data = slope_labels,
+            aes(x = x, y = y, label = label, colour = antibody),
+            hjust = 0, size = 2.5, inherit.aes = F, parse = TRUE, show.legend = FALSE) +
   scale_x_continuous(name = "POLR2A immunofluorescence",
                      limits = c(0, 1.1), breaks = c(0, 0.5, 1.0)) +
   scale_y_continuous(name = "POLR2A western\nblot (D8L4Y)",
@@ -438,43 +697,80 @@ plot_data %>%
         panel.border = element_rect(linewidth = 1)) +
   scale_colour_manual(values = c("#0072B2", "#D55E00"))
 ggsave("if_vs_wb_d8l4y.pdf",width=7,height=5,units="cm")
-
 ```
 
 
-# Single-cell
 
-## Write pSer2 vs D84LY data in mAC-POLR2A cells
+# Consistency check
 
-```{r, single_cell}
-dat_costain_D8L4Y_pSer2 <- filter(dat,DRUG=="Vehicle") %>%
-  filter(well_row %in% c("I","D")) %>%
-  filter(PRIMARY_1 %in% c("pSer2 Pol II (3E10)") & PRIMARY_2 %in% c("Total Pol II (D8L4Y)"))
 
-dat_costain_D8L4Y_pSer2 %>%
-  group_by(well_name,well_row,CELL,DRUG,DRUG_CONCENTRATION,TIME_MINUTES,PRIMARY_1,SECONDARY_1,PRIMARY_2,SECONDARY_2) %>%
-  summarise(across(Nuclei_intensity_mean_488,mean)) %>%
-  ggplot(aes(x=CELL,y=Nuclei_intensity_mean_488,col=interaction(CELL,DRUG,DRUG_CONCENTRATION,well_row))) +
-  geom_boxplot() +
-  geom_jitter(position = position_jitterdodge()) +
-  theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
+```{r consistency_check}
+# ---- 1. does each plotted line reproduce its own quoted beta? -------------
+# every panel draws y = beta*x + (1 - beta), so at x = 0.5 the implied
+# reduction must be exactly beta * 50%.
+chk <- function(tag, b) {
+  a <- 1 - b
+  data.frame(panel = tag, beta = b, alpha = a,
+             slope_plus_intercept = b + a,
+             pct_from_drawn_line = 100 * (1 - (b * 0.5 + a)),
+             pct_from_quoted_beta = 50 * b)
+}
+panel_chk <- rbind(
+  chk("mC -> F12          (fig 1, A)", res$mC_vs_F12$beta11),
+  chk("mC -> D8L4Y        (fig 1, B)", res$mC_vs_D8L4Y$beta11),
+  chk("F12 -> D8L4Y       (fig 1, C)", res$F12_vs_D8L4Y$beta11),
+  chk("F12 -> mC          (fig 2, A)", res_f12$F12_to_mC$beta11),
+  chk("F12 -> D8L4Y       (fig 2, B)", res_f12$F12_to_D8L4Y$beta11))
+print(format(panel_chk, digits = 4), row.names = FALSE)
+stopifnot(all(abs(panel_chk$slope_plus_intercept - 1) < 1e-10),
+          all(abs(panel_chk$pct_from_drawn_line -
+                  panel_chk$pct_from_quoted_beta) < 1e-8))
+cat("OK: every plotted line reproduces its quoted beta exactly.\n")
 
-# compute GFP background on a well_row-specific basis
-gfp_background <- dat_costain_D8L4Y_pSer2 %>%
-  filter(CELL=="HCT116 OsTIRF74G") %>%
-  group_by(well_row,well_name) %>%
-  summarise(value = mean(Nuclei_intensity_mean_488)) %>%
-  group_by(well_row) %>%
-  summarise(gfp_background_value = mean(value),.groups = 'drop')
+# ---- 2. what would the other estimators have said? ------------------------
+# a general (slope, intercept) pair implies R_y = 100*(1 - a - b) + b*R_x,
+# which collapses to b*R_x only when a + b = 1.
+red_at   <- function(b, a, Rx = 50) 100 * (1 - a - b) + b * Rx
+int_from <- function(b, xch, ych) mean(wt[[ych]]) - b * mean(wt[[xch]])
 
-dat_costain_D8L4Y_pSer2_bkgrd_sub <- dat_costain_D8L4Y_pSer2 %>%
-  filter(CELL!="HCT116 OsTIRF74G") %>%
-  left_join(gfp_background,by = join_by(well_row)) %>%
-  mutate(pSer2_mean_minus_bkgrd = Nuclei_intensity_mean_561 - bkgrd_primary_1,
-         D8L4Y_mean_minus_bkgrd = Nuclei_intensity_mean_647 - bkgrd_primary_2,
-         GFP_mean_minus_bkgrd = Nuclei_intensity_mean_488 - gfp_background_value,
-         DAPI_mean_minus_bkgrd = Nuclei_intensity_mean_405 - 170)
-write_csv(dat_costain_D8L4Y_pSer2_bkgrd_sub,"gfp_pSer2_D84LY_costain_data.csv")
+cat("\n--- reduction implied when channel x shows a 50% reduction ---\n")
+for (r in res) {
+  x <- r$pair[1]; y <- r$pair[2]
+  b_mom <- beta_reduction_mom(wt, x, y, Sigma)
+  rows <- c(
+    "reduction-OLS (reported)" = red_at(r$beta11, 1 - r$beta11),
+    "+ measurement-error corr" = red_at(b_mom, 1 - b_mom),
+    "unconstrained affine fit" = red_at(r$free[["slope"]], r$free[["intercept"]]),
+    "raw OLS"                  = red_at(r$ols, int_from(r$ols, x, y)),
+    "Deming"                   = red_at(r$deming, int_from(r$deming, x, y)))
+  cat(sprintf("\n%s -> %s\n", x, y))
+  for (nm in names(rows)) cat(sprintf("  %-26s %5.1f%%\n", nm, rows[[nm]]))
+  cat(sprintf("  spread across estimators: %.1f pp   (bootstrap CI half-width: %.1f pp)\n",
+              diff(range(rows)), 50 * (r$ci11[2] - r$ci11[1]) / 2))
+}
+cat("\nIf the spread across estimators is small relative to the bootstrap interval,\n",
+    "the choice of estimator is not what limits the conclusion.\n")
 
+# ---- 3. internal consistency of the three pairwise betas ------------------
+cat("\n--- internal consistency ---\n")
+cat(sprintf("multiplicative closure : beta(mC->F12) x beta(F12->D8L4Y) = %.4f  vs  beta(mC->D8L4Y) = %.4f\n",
+            res$mC_vs_F12$beta11 * res$F12_vs_D8L4Y$beta11,
+            res$mC_vs_D8L4Y$beta11))
+cat(sprintf("reciprocity            : beta(F12->mC) = %.4f  vs  1/beta(mC->F12) = %.4f\n",
+            res_f12$F12_to_mC$beta11, 1 / res$mC_vs_F12$beta11))
+cat("  (these two are NOT expected to match exactly: for least-squares through the\n",
+    "  origin, beta(x->y) * beta(y->x) equals the squared correlation, so the\n",
+    "  reciprocal is the larger of the two by a factor of about 1/r^2.)\n")
+cat(sprintf("  implied r^2 = %.4f\n",
+            res_f12$F12_to_mC$beta11 * res$mC_vs_F12$beta11))
+
+# ---- 4. the same check for the western blot panel -------------------------
+cat("\n--- western blot panel ---\n")
+for (i in seq_len(nrow(wb_slopes))) {
+  b <- wb_slopes$beta11[i]; a <- 1 - b
+  cat(sprintf("%-6s IF -> WB : drawn line at x=0.5 gives %.1f%%, quoted beta gives %.1f%%",
+              wb_slopes$antibody[i], 100 * (1 - (b * 0.5 + a)), 50 * b))
+  cat(sprintf("   | unconstrained fit would give %.1f%%\n",
+              red_at(wb_slopes$slope[i], wb_slopes$intercept[i])))
+}
 ```
-
