@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.integrate import solve_ivp
+from scipy.optimize import brentq
 
 # Numerical stability epsilon
 EPS = 1e-9
@@ -29,7 +30,7 @@ def competition_model_odes(t, y, params, delta_f_B, delta_n_A, delta_n_B):
         - k_s: synthesis rate
         - k_import: import rate constant
         - F_total: total factor concentration
-        - K_D: dissociation constant
+        - K_M: Michaelis constant, (k_off + k_import) / k_on
         - delta_f_A: cytoplasmic degradation rate for A
     delta_f_B : float
         Cytoplasmic degradation rate for B
@@ -48,7 +49,7 @@ def competition_model_odes(t, y, params, delta_f_B, delta_n_A, delta_n_B):
     B_f = max(B_f, EPS)
     
     # Denominator for import flux (from conservation of F)
-    denom = max(params['K_D'] + A_f + B_f, EPS)
+    denom = max(params['K_M'] + A_f + B_f, EPS)
     
     # Import fluxes (Michaelis-Menten-like competition)
     flux_A = params['k_import'] * params['F_total'] * A_f / denom
@@ -90,6 +91,74 @@ def integrate_competition_to_steady_state(params, delta_f_B, delta_n_A, delta_n_
     return np.clip(sol.y[:, -1], EPS, None)
 
 
+def competition_steady_state(params, delta_f_B, delta_n_A, delta_n_B):
+    """
+    Steady state of the competition model, solved algebraically.
+
+    Setting the derivatives to zero, each free pool satisfies
+
+        A_f = k_s D / (V + delta_f_A D),    B_f = k_s D / (V + delta_f_B D)
+
+    where V = k_import * F_total is the maximal import flux and D = K_M + A_f + B_f.
+    Substituting these back into the definition of D leaves a single scalar equation
+    in D, solved here by bisection. The nuclear pools then follow directly from the
+    balance between import flux and nuclear removal.
+
+    This is a drop-in replacement for `integrate_competition_to_steady_state` that
+    avoids integrating to t = 200 h. Besides being much faster, it is robust in the
+    small-K_M regime, where the flux coefficient V/(K_M + A_f + B_f) becomes large and
+    the ODE system very stiff.
+
+    Parameters
+    ----------
+    params : dict
+        Competition model parameters (k_s, k_import, F_total, K_M, delta_f_A)
+    delta_f_B, delta_n_A, delta_n_B : float
+        Degradation rates
+
+    Returns
+    -------
+    ndarray
+        Steady-state concentrations [A_f, B_f, A_n, B_n]
+    """
+    k_s = params['k_s']
+    V = params['k_import'] * params['F_total']
+    K_M = params['K_M']
+    d_fA = params['delta_f_A']
+    d_fB = delta_f_B
+
+    def g(D):
+        return K_M + k_s * D / (V + d_fA * D) + k_s * D / (V + d_fB * D) - D
+
+    # g(K_M) > 0, and g(D_hi) < 0 because A_f < k_s/delta_f_A, so the root is bracketed
+    D_hi = K_M + k_s / d_fA + k_s / d_fB
+    D = brentq(g, K_M, D_hi, xtol=1e-14, rtol=1e-12)
+
+    A_f = k_s * D / (V + d_fA * D)
+    B_f = k_s * D / (V + d_fB * D)
+    A_n = V * A_f / (D * delta_n_A)
+    B_n = V * B_f / (D * delta_n_B)
+
+    return np.clip(np.array([A_f, B_f, A_n, B_n]), EPS, None)
+
+
+def max_system_rate(params, ss, delta_f_B, delta_n_B, delta_n_A=0.0):
+    """
+    Fastest rate constant in the system at a given steady state.
+
+    Used to reject parameter sets that would make `simulate_competition_trajectory`
+    pathologically stiff: when K_M and the free pools are both small, the effective
+    import rate constant V/(K_M + A_f + B_f) can reach many orders of magnitude above
+    the degradation rates, and the integration becomes extremely slow without failing.
+
+    `delta_n_A` is optional only for backwards compatibility with existing callers;
+    pass it so that every rate in the system is actually covered.
+    """
+    V = params['k_import'] * params['F_total']
+    D = max(params['K_M'] + ss[0] + ss[1], EPS)
+    return max(V / D, params['delta_f_A'], delta_f_B, delta_n_A, delta_n_B)
+
+
 def simulate_competition_trajectory(params, delta_f_B, delta_n_A, delta_n_B, 
                                    t_end, y0, n_points=200, atol=1e-8, rtol=1e-6):
     """
@@ -124,7 +193,13 @@ def simulate_competition_trajectory(params, delta_f_B, delta_n_A, delta_n_B,
     rhs = lambda t, y: competition_model_odes(t, y, params, delta_f_B, delta_n_A, delta_n_B)
     sol = solve_ivp(rhs, (0.0, t_end), y0, t_eval=dense_times, method='LSODA', 
                     atol=atol, rtol=rtol)
-    return np.clip(sol.y, EPS, None), dense_times
+    # Return the solver's own time grid, not the requested one: if the integration
+    # terminates early, sol.y has fewer columns than dense_times and the two would
+    # be misaligned. Failures are raised so the caller's objective rejects the
+    # parameter set explicitly rather than silently fitting a truncated trajectory.
+    if not sol.success:
+        raise RuntimeError(f"competition integration failed: {sol.message}")
+    return np.clip(sol.y, EPS, None), sol.t
 
 
 # =============================================================================
