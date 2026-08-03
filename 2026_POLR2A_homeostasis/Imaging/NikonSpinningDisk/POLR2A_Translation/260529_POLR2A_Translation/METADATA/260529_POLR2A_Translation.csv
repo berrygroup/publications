@@ -1,0 +1,19 @@
+﻿WELL,CELL,ATTO565_PROBE,ATTO633_PROBE,TREATMENT,PRIMARY,SECONDARY
+Well01,OsTIRF74G,No probe,POLR2A,Vehicle,No primary,Goat anti-rabbit Alexa568
+Well02,OsTIRF74G,No probe,POLR2A,Vehicle,mCherry (abcam),Goat anti-rabbit Alexa568
+Well03,mChPOLR2A,No probe,POLR2A,Vehicle,mCherry (abcam),Goat anti-rabbit Alexa568
+Well04,mAC/mChPOLR2A,No probe,POLR2A,Vehicle,mCherry (abcam),Goat anti-rabbit Alexa568
+Well05,mAC/mChPOLR2A,No probe,POLR2A,5PhIAA,mCherry (abcam),Goat anti-rabbit Alexa568
+Well06,OsTIRF74G,No probe,POLR2A,Vehicle,No primary,No secondary
+Well07,mChPOLR2A,No probe,POLR2A,Puromycin,mCherry (abcam),Goat anti-rabbit Alexa568
+Well08,mChPOLR2A,No probe,POLR2A,Cycloheximide,mCherry (abcam),Goat anti-rabbit Alexa568
+Well09,mChPOLR2A,No probe,POLR2B odd,Vehicle,mCherry (abcam),Goat anti-rabbit Alexa568
+Well10,mChPOLR2A,No probe,POLR2A,Vehicle,mCherry (abcam),Goat anti-rabbit Alexa568
+Well11,mAC/mChPOLR2A,No probe,POLR2A,Vehicle,mCherry (abcam),Goat anti-rabbit Alexa568
+Well12,mAC/mChPOLR2A,No probe,POLR2A,5PhIAA,mCherry (abcam),Goat anti-rabbit Alexa568
+Well13,mChPOLR2A,No probe,CTCF,Vehicle,mCherry (abcam),Goat anti-rabbit Alexa568
+Well14,mChPOLR2A,No probe,POLR2B odd,Vehicle,mCherry (abcam),Goat anti-rabbit Alexa568
+Well15,mChPOLR2A,No probe,POLR2A,Puromycin,mCherry (abcam),Goat anti-rabbit Alexa568
+Well16,mChPOLR2A,No probe,CTCF,Vehicle,mCherry (abcam),Goat anti-rabbit Alexa568
+Well17,mChPOLR2A,No probe,POLR2A,Cycloheximide,mCherry (abcam),Goat anti-rabbit Alexa568
+Well18,OsTIRF74G,POLR2B even,POLR2B odd,Vehicle,No primary,No secondary

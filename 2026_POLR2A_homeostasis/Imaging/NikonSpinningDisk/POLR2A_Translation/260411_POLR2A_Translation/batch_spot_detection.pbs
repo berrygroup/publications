@@ -1,0 +1,31 @@
+
+#!/bin/bash
+
+### spot detection in batch
+
+#PBS -N batch_run_filter
+#PBS -l select=1:ncpus=1:mem=64gb
+#PBS -l walltime=8:00:00
+#PBS -o /home/z3536241/src/blana/Alex/PBS/log/
+#PBS -e /home/z3536241/src/blana/Alex/PBS/log/
+
+### The following parameter is modulated at runtime to specify the
+### batch number on each node. Batches should run from zero to N_BATCHES-1
+### to process all files
+
+#PBS -J 0-449
+
+###---------------------------------------------------------------------------
+
+source /home/z3536241/.bashrc
+conda activate berrylab-py310
+
+cd $PBS_O_WORKDIR
+
+python /home/z3536241/src/blana/Alex/260411_POLR2A_Translation/run_spot_detection.py \
+ --id ${PBS_ARRAY_INDEX} \
+ --input_dir /srv/scratch/berrylab/z3536241/NikonSpinningDisk/260411_POLR2A_Translation/20260415_185526_435/OME-TIFF  \
+ --output_dir_565 /srv/scratch/berrylab/z3536241/NikonSpinningDisk/260411_POLR2A_Translation/20260415_185526_435/SPOTS_565 \
+ --output_dir_633 /srv/scratch/berrylab/z3536241/NikonSpinningDisk/260411_POLR2A_Translation/20260415_185526_435/SPOTS_633
+
+conda deactivate
