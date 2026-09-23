@@ -1,0 +1,1074 @@
+---
+title: "Stats on Pol II log~2~ fold-changes"
+subtitle: "Deleted-effect contrasts with multivariate-*t* adjustment"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+params:
+  csv_path: "data/metadata_boxplot_data_all_figureS7_ptype_Sep2026.csv"
+  out_dir: "results"
+  seed: 20260914
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    df_print: paged
+    fig_width: 11
+    fig_height: 3.6
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE,
+  dpi = 150, fig.align = "center"
+)
+```
+
+```{r libraries}
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(purrr)
+  library(emmeans)
+  library(ggplot2)
+  library(RColorBrewer)
+  library(knitr)
+})
+
+set.seed(params$seed)   # mvt p-values are simulation-based 
+dir.create(params$out_dir, showWarnings = FALSE, recursive = TRUE)
+```
+
+# Definitions
+
+We are interested in whether the stratified groups result in statistically
+different log2 fold-changes in Pol II ChIP-seq from the other groups.
+
+We want to highlight each group against the unweighted mean of the
+remaining groups of the same variable. In `emmeans` this is called a 
+deleted-effect contrast (`method = "del.eff"`).
+
+Four response columns are tested (TSS + Gene body) x (90min + 8h):
+
+| response column | figure sub-panel |
+|---|---|
+| `TSS_log2FC_90min_0h` | TSS 1.5 h / 0 h |
+| `TSS_log2FC_8h_0h` | TSS 8 h / 0 h |
+| `GeneBody_log2FC_90min_0h` | Gene Body 1.5 h / 0 h |
+| `GeneBody_log2FC_8h_0h` | Gene Body 8 h / 0 h |
+
+Note that the column ``promoter`` (promoter class) is not categorical because
+each promoter can be in multiple classes.
+
+```{r config}
+responses <- c(
+  "TSS_log2FC_90min_0h",
+  "TSS_log2FC_8h_0h",
+  "GeneBody_log2FC_90min_0h",
+  "GeneBody_log2FC_8h_0h"
+)
+
+# Pretty facet labels, in figure order
+resp_labels <- c(
+  TSS_log2FC_90min_0h      = "TSS\n1.5 h / 0 h",
+  TSS_log2FC_8h_0h         = "TSS\n8 h / 0 h",
+  GeneBody_log2FC_90min_0h = "Gene Body\n1.5 h / 0 h",
+  GeneBody_log2FC_8h_0h    = "Gene Body\n8 h / 0 h"
+)
+
+id_cols <- c("gene_id", "gene_name", "transcript_id", "symbol")
+
+special_cols <- c("promoter")
+
+# Axis order for the known bins
+level_orders <- list(
+  length_category = c("1\u20135 kb", "5\u201310 kb", "10\u201325 kb",
+                      "25\u201350 kb", "50\u201375 kb", ">75 kb"),
+  baseMean_bin    = paste0("Q", 1:8),
+  pausing_bin     = c("<-2", "-2 to -1", "-1 to 0", "0 to 1",
+                      "1 to 2", "2 to 3", "3 to 4", "> 4"),
+  promoter_type   = c("CCAAT", "GC box", "Initiator", "TATA", "no information")
+)
+
+# Which figure row each grouping column corresponds to
+panel_meta <- tibble::tribble(
+  ~variable,         ~panel, ~title,             ~xlab,                          ~palette,
+  "pausing_bin",     "S7B",  "Pausing index",    "log2 pausing index (0 h)",     "pausing",
+  "baseMean_bin",    "S7C",  "Pol II occupancy", "log2(baseMean) quantile (n=8)", "occupancy",
+  "length_category", "S7D",  "Gene length",      "Gene length category (kb)",    "length"
+)
+
+group_vars <- c("length_category","baseMean_bin","pausing_bin")
+
+```
+
+# Input data
+
+```{r read-data}
+stopifnot(file.exists(params$csv_path))
+dat <- read_csv(params$csv_path, show_col_types = FALSE, progress = FALSE)
+
+missing_resp <- setdiff(responses, names(dat))
+if (length(missing_resp)) {
+  stop("missing response column(s): ", paste(missing_resp, collapse = ", "))
+}
+```
+
+```{r level-order}
+order_levels <- function(x, var) {
+  obs  <- sort(unique(as.character(x[!is.na(x)])))
+  want <- level_orders[[var]]
+  if (is.null(want)) return(obs)
+  extra <- setdiff(obs, want)
+  if (length(extra)) {
+    warning("levels of '", var, "' not in the configured order, appended: ",
+            paste(extra, collapse = ", "), call. = FALSE)
+  }
+  c(intersect(want, obs), extra)
+}
+```
+
+Group sizes differ substantially for non-quartile binning. Counts below are the `n` used by
+each test, after dropping genes with a missing response value.
+
+```{r group-sizes}
+size_tbl <- map_dfr(group_vars, function(gv) {
+  map_dfr(responses, function(rsp) {
+    dat |>
+      transmute(level = as.character(.data[[gv]]), y = .data[[rsp]]) |>
+      filter(!is.na(y), !is.na(level)) |>
+      count(level, name = "n") |>
+      mutate(variable = gv, response = rsp)
+  })
+})
+
+size_tbl |>
+  mutate(level = factor(level, levels = unlist(map(group_vars, ~ order_levels(dat[[.x]], .x))))) |>
+  select(variable, level, response, n) |>
+  pivot_wider(names_from = response, values_from = n, values_fill = 0) |>
+  arrange(variable, level) |>
+  kable(caption = "Genes contributing to each test")
+```
+
+Important to note that TSS responses are defined for 9,849 genes, while 
+gene-body responses are defined for 8,983 genes (short genes excluded). The
+1–5 kb class is absent from the gene-body panels, so gene length is tested over
+six levels for TSS and five for gene body.
+
+# Statistical approach
+
+Each family is a one-way linear model on the gene-level log~2~ fold-changes:
+
+```r
+mod <- lm(response ~ group)
+em  <- emmeans(mod, ~ group)
+contrast(em, method = "del.eff", adjust = "mvt")
+```
+
+**`lm(response ~ group)`** — a one-way model whose fitted values are the group
+means.
+
+**`emmeans(mod, ~ group)`** — the estimated marginal means. With a single categorical
+predictor these are the plain group means, reported with a standard error pooled
+across groups.
+
+**`method = "del.eff"`** — deleted-effect contrasts. For level *i* of a variable with
+*k* levels, the contrast is
+
+$$\hat\delta_i \;=\; \bar{y}_i \;-\; \frac{1}{k-1}\sum_{j \neq i} \bar{y}_j$$
+
+i.e. that level minus the **unweighted** mean of the others.
+
+**`adjust = "mvt"`** — the multivariate-*t* adjustment. The *k* deleted-effect
+contrasts within one family are strongly correlated. `mvt` integrates the
+exact multivariate-*t* distribution of
+the whole set rather than assuming independence. It controls the family-wise error
+rate across the *k* contrasts of that family. It is computed by quasi-Monte-Carlo
+integration, which is why we fix the seed.
+
+**One-way ANOVA** — alongside each family, `anova(mod)` gives the overall test that
+all group means are equal, i.e. that the grouping variable explains nothing.
+
+**Which multiplicity correction is primary** — `mvt` operates within one family, but 
+we later apply a Benjamini–Hochberg correction across all
+106 class-vs-rest contrasts (`p_BH_fig`).
+
+## Fitting
+
+```{r fit-function}
+fit_family <- function(resp, gv) {
+  d <- dat |>
+    transmute(y = .data[[resp]], group = as.character(.data[[gv]])) |>
+    filter(!is.na(y), !is.na(group)) |>
+    mutate(group = factor(group, levels = order_levels(group, gv))) |>
+    droplevels()
+  if (nlevels(d$group) < 2) return(NULL)
+
+  mod <- lm(y ~ group, data = d)
+  em  <- emmeans(mod, ~ group)
+  ct  <- contrast(em, method = "del.eff", adjust = "mvt")
+
+  omnibus <- anova(mod)
+
+  p_unadj <- as.data.frame(summary(contrast(em, method = "del.eff", adjust = "none")))$p.value
+  ct_df <- as.data.frame(summary(ct, infer = c(TRUE, TRUE)))
+  # del.eff returns exactly one contrast per level, in level order. Take names
+  # from the factor rather than parsing emmeans' labels, which parenthesise
+  # levels containing special characters (e.g. "<-2" becomes "(<-2)").
+  stopifnot(nrow(ct_df) == nlevels(d$group))
+
+  means <- as.data.frame(summary(em)) |>
+    mutate(response = resp, variable = gv, .before = 1) |>
+    left_join(count(d, group, name = "n"), by = "group")
+
+  contrasts <- ct_df |>
+    mutate(response       = resp,
+           variable       = gv,
+           level          = levels(d$group),
+           contrast_label = as.character(contrast),
+           .before        = 1) |>
+    left_join(count(d, group, name = "n_level"), by = c("level" = "group")) |>
+    mutate(p_raw       = p_unadj,
+           n_total     = nrow(d),
+           omnibus_F   = omnibus[["F value"]][1],
+           omnibus_df1 = omnibus[["Df"]][1],
+           omnibus_df2 = omnibus[["Df"]][2],
+           omnibus_p   = omnibus[["Pr(>F)"]][1])
+
+  list(means = means, contrasts = contrasts)
+}
+```
+
+```{r fit-all}
+grid <- expand_grid(response = responses, variable = group_vars)
+res  <- compact(pmap(grid, function(response, variable) fit_family(response, variable)))
+
+emm_tbl <- bind_rows(map(res, "means"))
+
+con_tbl <- bind_rows(map(res, "contrasts")) |>
+  mutate(p_BH_BD_panels_only = p.adjust(p.value, method = "BH")) |>
+  rename(estimate_vs_rest = estimate, p_mvt = p.value) |>
+  select(response, variable, level, contrast_label, n_level, n_total,
+         estimate_vs_rest, SE, df, lower.CL, upper.CL, t.ratio,
+         p_raw, p_mvt, p_BH_BD_panels_only,
+         omnibus_F, omnibus_df1, omnibus_df2, omnibus_p)
+
+write_csv(con_tbl, file.path(params$out_dir, "del_eff_contrasts.csv"))
+write_csv(emm_tbl, file.path(params$out_dir, "group_emmeans.csv"))
+```
+
+# One-way ANOVA
+
+```{r omnibus}
+omni <- con_tbl |>
+  distinct(response, variable, omnibus_F, omnibus_df1, omnibus_df2, omnibus_p, n_total) |>
+  mutate(response = factor(response, levels = responses)) |>
+  arrange(variable, response) |>
+  transmute(variable, response,
+            n = n_total,
+            `F` = sprintf("%.2f", omnibus_F),
+            df = sprintf("%d, %d", omnibus_df1, omnibus_df2),
+            p = format.pval(omnibus_p, digits = 3, eps = 1e-16))
+
+kable(omni, caption = "Overall test that all group means are equal")
+```
+
+
+- Only ``length_category`` is not-significant for TSS at 90 min. For all others, the grouping is significant.
+- ``baseMean_bin`` is borderline for gene body at 8 h.
+
+```{r stars-helper}
+stars <- function(p) {
+  cut(p,
+      breaks = c(-Inf, 0.001, 0.01, 0.05, Inf),
+      labels = c("***", "**", "*", ""))
+}
+```
+
+# Promoter class
+
+The `promoter` column stores motif *combinations*: `GC_box`, `CCAAT; GC_box`,
+`CCAAT; GC_box; Initiator; TATA`, etc.
+
+```{r promoter-classes}
+motifs        <- c("CCAAT", "GC_box", "Initiator", "TATA")
+motif_labels  <- c(CCAAT = "CCAAT", GC_box = "GC box", Initiator = "Initiator",
+                   TATA = "TATA", none = "no information")
+no_info_level <- "no promoter information"
+
+has_promoter <- "promoter" %in% names(dat)
+
+if (has_promoter) {
+  memb <- dat |>
+    select(gene_id, promoter, all_of(responses)) |>
+    filter(!is.na(promoter))
+  for (m in motifs) memb[[m]] <- grepl(m, memb$promoter, fixed = TRUE)
+  memb$none <- memb$promoter == no_info_level
+
+  tibble(class = unname(motif_labels[c(motifs, "none")]),
+         genes = vapply(c(motifs, "none"), function(m) sum(memb[[m]]), integer(1))) |>
+    mutate(`% of genes` = sprintf("%.1f%%", 100 * genes / nrow(memb))) |>
+    kable(caption = paste0("Class sizes (total genes = ", nrow(memb), ")"))
+}
+```
+
+```{r promoter-overlap}
+if (has_promoter) {
+  n_motif <- rowSums(memb[motifs])
+  tibble(`motifs per gene` = c("0 (no information)", "1", "2", "3", "4"),
+         genes = as.integer(table(factor(n_motif, levels = 0:4)))) |>
+    kable()
+}
+```
+
+We code the 16 observed combinations as levels of a single factor
+factor and calculate the gene-weighted contrast. The estimate is then the 
+marginal difference in mean log~2~ fold-change between genes carrying that 
+motif and genes not carrying it. Because all five contrasts come from one model, `mvt`
+still applies.
+
+## Class vs rest, and class vs zero
+
+```{r promoter-contrasts}
+# Which of the 16 motif combinations belong to a given promoter class?
+# "none" is the single "no promoter information" combination; the others are any
+# combination whose label contains that motif.
+combos_in_class <- function(cls, combos) {
+  if (cls == "none") combos == no_info_level else grepl(cls, combos, fixed = TRUE)
+}
+
+# Weights over the 16 combination means.
+#   vs_rest = FALSE -> gene-weighted average of the class's own combinations.
+#                      Weights sum to 1, so the contrast estimates the class mean
+#                      and emmeans tests it against zero.
+#   vs_rest = TRUE  -> that average minus the gene-weighted average of every
+#                      combination outside the class. Weights sum to 0, giving the
+#                      exact marginal difference (motif present - motif absent).
+# Weighting each combination by its gene count is what makes these averages equal
+# the mean over genes, rather than the mean over combinations.
+class_weights <- function(in_class, n_genes, vs_rest) {
+  stopifnot(any(in_class), !all(in_class))
+  w <- ifelse(in_class, n_genes / sum(n_genes[in_class]), 0)
+  if (vs_rest) w <- w - ifelse(in_class, 0, n_genes / sum(n_genes[!in_class]))
+  w
+}
+
+# Summarise one set of weights, keeping both the unadjusted p-value (which the
+# figure-wide BH correction later uses) and the within-panel mvt value.
+contrast_summary <- function(em, weights) {
+  unadjusted <- as.data.frame(summary(contrast(em, weights, adjust = "none")))
+  adjusted   <- as.data.frame(summary(contrast(em, weights, adjust = "mvt"),
+                                      infer = c(TRUE, TRUE)))
+  adjusted$p_raw <- unadjusted$p.value
+  adjusted$class <- as.character(adjusted$contrast)
+  adjusted
+}
+
+promoter_fit <- function(resp) {
+  genes <- memb |> filter(!is.na(.data[[resp]]))
+  model_data <- genes |>
+    transmute(y = .data[[resp]], combo = factor(promoter)) |>
+    droplevels()
+
+  em      <- emmeans(lm(y ~ combo, data = model_data), ~ combo)
+  combos  <- levels(model_data$combo)
+  n_genes <- as.numeric(table(model_data$combo)[combos])
+
+  # one row per promoter class, carrying its display name and its gene count
+  # (these sum to more than the number of genes, because the classes overlap)
+  classes <- tibble(key = c(motifs, "none")) |>
+    mutate(class   = unname(motif_labels[key]),
+           n_class = vapply(key, function(k) sum(genes[[k]]), integer(1)))
+
+  membership <- lapply(classes$key, combos_in_class, combos = combos)
+  named <- function(x) setNames(x, classes$class)
+
+  vs_rest <- contrast_summary(em, named(lapply(membership, class_weights,
+                                               n_genes = n_genes, vs_rest = TRUE))) |>
+    transmute(class, estimate_vs_rest = estimate, lower.CL, upper.CL, t.ratio,
+              p_raw, p_mvt = p.value)
+
+  vs_zero <- contrast_summary(em, named(lapply(membership, class_weights,
+                                               n_genes = n_genes, vs_rest = FALSE))) |>
+    transmute(class, mean_log2FC = estimate, mean_lower = lower.CL,
+              mean_upper = upper.CL, p_vs_zero = p.value)
+
+  classes |>
+    select(class, n_class) |>
+    left_join(vs_rest, by = "class") |>
+    left_join(vs_zero, by = "class") |>
+    mutate(response = resp, n_total = nrow(model_data)) |>
+    select(response, class, estimate_vs_rest, lower.CL, upper.CL, t.ratio,
+           p_raw, p_mvt, mean_log2FC, mean_lower, mean_upper, p_vs_zero,
+           n_class, n_total)
+}
+
+if (has_promoter) {
+  promoter_tbl <- map_dfr(responses, promoter_fit) |>
+    mutate(class = factor(class, levels = unname(motif_labels[c(motifs, "none")])))
+}
+```
+
+Results shown after the multiplicity correction
+
+## Does promoter class matter at all?
+
+The equivalent of the one-way ANOVA above is a 
+joint Wald test of the five class-vs-rest contrasts.
+
+```{r promoter-joint}
+promoter_joint <- purrr::map_dfr(responses, function(resp) {
+  d <- memb |>
+    filter(!is.na(.data[[resp]])) |>
+    transmute(y = .data[[resp]], combo = factor(promoter)) |>
+    droplevels()
+  em      <- emmeans(lm(y ~ combo, data = d), ~ combo)
+  combos  <- levels(d$combo)
+  n_genes <- as.numeric(table(d$combo)[combos])
+
+  weights <- setNames(
+    lapply(lapply(c(motifs, "none"), combos_in_class, combos = combos),
+           class_weights, n_genes = n_genes, vs_rest = TRUE),
+    unname(motif_labels[c(motifs, "none")]))
+
+  joint <- test(contrast(em, weights), joint = TRUE)
+  tibble(response = resp, df1 = joint$df1, df2 = joint$df2,
+         F = joint$F.ratio, p = joint$p.value)
+})
+write_csv(promoter_joint, file.path(params$out_dir, "promoter_omnibus.csv"))
+
+promoter_joint |>
+  mutate(response = factor(response, levels = responses)) |>
+  arrange(response) |>
+  transmute(response,
+            test = sprintf("F(%d, %d) = %.2f", df1, df2, F),
+            p = format.pval(p, digits = 3, eps = 1e-16)) |>
+  kable(caption = "Joint Wald test of the five promoter classes")
+```
+
+At 1.5 h the test is significant but only just, and no individual class survives
+correction, so there is quite weak evidence that promoter class influences response.
+
+## FDR control
+
+```{r figure-wide-bh}
+all_contrasts <- bind_rows(
+  con_tbl      |> transmute(panel = variable, response, item = level, p_raw),
+  promoter_tbl |> transmute(panel = "promoter", response, item = as.character(class), p_raw)
+) |>
+  mutate(p_BH_fig = p.adjust(p_raw, method = "BH"))
+
+con_tbl <- con_tbl |>
+  left_join(all_contrasts |> filter(panel != "promoter") |>
+              select(panel, response, item, p_BH_fig),
+            by = c("variable" = "panel", "response", "level" = "item"))
+promoter_tbl <- promoter_tbl |>
+  mutate(item = as.character(class)) |>
+  left_join(all_contrasts |> filter(panel == "promoter") |>
+              select(response, item, p_BH_fig), by = c("response", "item")) |>
+  select(-item)
+
+write_csv(con_tbl, file.path(params$out_dir, "del_eff_contrasts.csv"))
+write_csv(promoter_tbl, file.path(params$out_dir, "promoter_contrasts.csv"))
+
+tibble(
+  family = c("all contrasts in Figure S7",
+             "B-D only (mvt, within panel)",
+             "B-D only (BH, within panel)",
+             "A only (mvt, within panel)"),
+  n = c(nrow(all_contrasts), nrow(con_tbl), nrow(con_tbl), nrow(promoter_tbl)),
+  significant = c(sum(all_contrasts$p_BH_fig < 0.05),
+                  sum(con_tbl$p_mvt < 0.05),
+                  sum(p.adjust(con_tbl$p_raw, "BH") < 0.05),
+                  sum(promoter_tbl$p_mvt < 0.05))
+) |>
+  kable(caption = "Significant contrasts at 0.05 under each choice of family and method")
+```
+
+```{r bh-changes}
+bind_rows(
+  con_tbl |> transmute(panel = variable, response, item = level,
+                       p_within = p_mvt, p_BH_fig),
+  promoter_tbl |> transmute(panel = "promoter (A)", response,
+                            item = as.character(class), p_within = p_mvt, p_BH_fig)
+) |>
+  filter((p_within < 0.05) != (p_BH_fig < 0.05)) |>
+  mutate(response = factor(response, levels = responses)) |>
+  arrange(panel, response) |>
+  transmute(panel, response, item,
+            `p (mvt, within panel)` = format.pval(p_within, digits = 3, eps = 1e-16),
+            `p (BH, whole figure)`  = format.pval(p_BH_fig, digits = 3, eps = 1e-16),
+            change = ifelse(p_BH_fig < 0.05, "becomes significant", "loses significance")) |>
+  kable(caption = "Annotations that move when the figure becomes one BH family")
+```
+
+```{r promoter-table}
+if (has_promoter) {
+  write_csv(promoter_tbl, file.path(params$out_dir, "figureS7A_promoter_contrasts.csv"))
+  promoter_tbl |>
+    mutate(response = factor(response, levels = responses)) |>
+    arrange(response, class) |>
+    transmute(response, class, n = n_class,
+              `mean log2FC` = sprintf("%+.4f", mean_log2FC),
+              `p vs 0` = format.pval(p_vs_zero, digits = 3, eps = 1e-16),
+              `vs rest` = sprintf("%+.4f", estimate_vs_rest),
+              `95% CI` = sprintf("[%+.3f, %+.3f]", lower.CL, upper.CL),
+              `p vs rest (BH, figure)` = format.pval(p_BH_fig, digits = 3, eps = 1e-16),
+              sig = as.character(stars(p_BH_fig)),
+              `p vs rest (mvt, panel)` = format.pval(p_mvt, digits = 3, eps = 1e-16)) |>
+    kable(caption = "Promoter classes: mean change, and class vs all genes outside the class")
+}
+```
+
+## Adjusting for co-occurrence
+
+Nearly two thirds of TATA-containing promoters also carry a GC box, so a marginal TATA
+effect may be carried by its partners. The model below estimates each motif's effect
+with the others held constant; the reference is a promoter carrying none of the four.
+
+```{r promoter-adjusted}
+if (has_promoter) {
+  adj <- map_dfr(responses, function(resp) {
+    d <- memb |> filter(!is.na(.data[[resp]]))
+    mod <- lm(reformulate(motifs, response = resp), data = d)
+    ci  <- confint(mod)
+    tibble(response = resp,
+           motif    = rownames(coef(summary(mod))),
+           estimate = coef(summary(mod))[, "Estimate"],
+           lower    = ci[, 1], upper = ci[, 2],
+           t        = coef(summary(mod))[, "t value"],
+           p        = coef(summary(mod))[, "Pr(>|t|)"]) |>
+      filter(motif != "(Intercept)")
+  }) |>
+    mutate(motif = sub("TRUE$", "", motif))
+  write_csv(adj, file.path(params$out_dir, "figureS7A_promoter_adjusted.csv"))
+
+  adj |>
+    mutate(response = factor(response, levels = responses)) |>
+    arrange(response, motif) |>
+    transmute(response, motif,
+              `adjusted effect` = sprintf("%+.4f", estimate),
+              `95% CI` = sprintf("[%+.3f, %+.3f]", lower, upper),
+              t = sprintf("%.2f", t),
+              p = format.pval(p, digits = 3, eps = 1e-16)) |>
+    kable(caption = "Each motif adjusted for the other three (reference: none of the four)")
+}
+```
+
+
+## Figure
+
+```{r fig-s7a, fig.height = 3.6, fig.width = 11}
+if (has_promoter) {
+  pal_A <- c("CCAAT" = "#FBB4AE", "GC box" = "#B3CDE3", "Initiator" = "#DECBE4",
+             "TATA" = "#FB8072", "no information" = "#CCEBC5")
+
+  # genes are duplicated into every class they belong to — class sizes sum to more
+  # than the number of genes, by construction
+  d_long <- map_dfr(c(motifs, "none"), function(m) {
+    memb |> filter(.data[[m]]) |>
+      select(all_of(responses)) |>
+      mutate(class = unname(motif_labels[m]))
+  }) |>
+    pivot_longer(all_of(responses), names_to = "response", values_to = "y") |>
+    filter(!is.na(y)) |>
+    mutate(class    = factor(class, levels = names(pal_A)),
+           response = factor(response, levels = responses))
+
+  yr    <- range(d_long$y, na.rm = TRUE)
+  ann_A <- promoter_tbl |>
+    mutate(class    = factor(as.character(class), levels = names(pal_A)),
+           response = factor(response, levels = responses),
+           label    = as.character(stars(p_BH_fig)),
+           y        = yr[2] + 0.13 * diff(yr))
+
+  p_A <- ggplot(d_long, aes(x = class, y = y, fill = class)) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "red", linewidth = 0.4) +
+    geom_boxplot(outlier.size = 0.35, outlier.alpha = 0.45, outlier.stroke = 0,
+                 linewidth = 0.3, colour = "grey20") +
+    geom_text(data = ann_A, aes(x = class, y = y, label = label),
+              inherit.aes = FALSE, size = 2.5) +
+    facet_wrap(~ response, nrow = 1, labeller = labeller(response = resp_labels)) +
+    scale_fill_manual(values = pal_A, guide = "none") +
+    coord_cartesian(ylim = c(yr[1] - 0.02 * diff(yr), yr[2] + 0.22 * diff(yr))) +
+    labs(title = "S7A  Promoter type", x = "Promoter type",
+         y = expression(log[2]~"fold-change")) +
+    theme_bw(base_size = 9) +
+    theme(plot.title = element_text(face = "bold", size = 10),
+          panel.grid = element_blank(),
+          strip.background = element_blank(),
+          strip.text = element_text(size = 8, lineheight = 1.05),
+          axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+          panel.spacing = unit(0.35, "lines"))
+  print(p_A)
+  ggsave(file.path(params$out_dir, "promoter_type.png"),
+         plot = p_A, width = 11, height = 3.6, dpi = 300)
+}
+```
+
+# Deleted-effects contrast results
+
+Estimates are on the log~2~ scale: the difference between that bin's mean and the
+unweighted mean of the other bins. `sig` and `p (BH, figure)` are the primary
+inference (the false-discovery rate across all contrasts).
+
+```{r contrast-tables, results = "asis"}
+for (gv in panel_meta$variable) {
+  pm <- panel_meta |> filter(variable == gv)
+  cat("\n\n## ", pm$panel, " — ", pm$title, " (`", gv, "`)\n\n", sep = "")
+  con_tbl |>
+    filter(variable == gv) |>
+    mutate(response = factor(response, levels = responses),
+           sig      = as.character(stars(p_BH_fig))) |>
+    arrange(response, level) |>
+    transmute(response,
+              level,
+              n = n_level,
+              estimate = sprintf("%+.4f", estimate_vs_rest),
+              `95% CI` = sprintf("[%+.3f, %+.3f]", lower.CL, upper.CL),
+              t = sprintf("%.2f", t.ratio),
+              `p (BH, figure)` = format.pval(p_BH_fig, digits = 3, eps = 1e-16),
+              sig,
+              `p (mvt, panel)` = format.pval(p_mvt, digits = 3, eps = 1e-16)) |>
+    kable(caption = paste0("Deleted-effect contrasts — ", pm$title)) |>
+    print()
+  cat("\n\n")
+}
+```
+
+# Figures
+
+```{r palettes}
+palettes <- list(
+  pausing   = rev(brewer.pal(8, "RdYlBu")),
+  occupancy = colorRampPalette(c("#F7FBFF", "#08519C"))(8),
+  length    = colorRampPalette(c("#FFF5EB", "#D94801"))(6)
+)
+```
+
+```{r plot-function}
+make_panel <- function(gv) {
+  pm   <- panel_meta |> filter(variable == gv)
+  levs <- order_levels(dat[[gv]], gv)
+  pal  <- palettes[[pm$palette]]
+  names(pal) <- levs[seq_along(pal)]
+
+  d <- dat |>
+    select(level = all_of(gv), all_of(responses)) |>
+    pivot_longer(all_of(responses), names_to = "response", values_to = "y") |>
+    filter(!is.na(y), !is.na(level)) |>
+    mutate(level    = factor(level, levels = levs),
+           response = factor(response, levels = responses))
+
+  # Common y range across the four sub-panels
+  yr    <- range(d$y, na.rm = TRUE)
+  y_ann <- yr[2] + 0.13 * diff(yr)
+  ylim  <- c(yr[1] - 0.02 * diff(yr), yr[2] + 0.22 * diff(yr))
+
+  ann <- con_tbl |>
+    filter(variable == gv) |>
+    mutate(level    = factor(level, levels = levs),
+           response = factor(response, levels = responses),
+           label    = as.character(stars(p_BH_fig)),
+           y        = y_ann)
+
+  ggplot(d, aes(x = level, y = y, fill = level)) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "red", linewidth = 0.4) +
+    geom_boxplot(outlier.size = 0.35, outlier.alpha = 0.45, outlier.stroke = 0,
+                 linewidth = 0.3, colour = "grey20") +
+    geom_text(data = ann, aes(x = level, y = y, label = label),
+              inherit.aes = FALSE, size = 2.5, vjust = 0.5) +
+    facet_wrap(~ response, nrow = 1,
+               labeller = labeller(response = resp_labels)) +
+    scale_fill_manual(values = pal, guide = "none") +
+    coord_cartesian(ylim = ylim) +
+    labs(title = paste0(pm$panel, "  ", pm$title),
+         x = pm$xlab,
+         y = expression(log[2]~"fold-change")) +
+    theme_bw(base_size = 9) +
+    theme(
+      plot.title      = element_text(face = "bold", size = 10),
+      panel.grid      = element_blank(),
+      strip.background = element_blank(),
+      strip.text      = element_text(size = 8, lineheight = 1.05),
+      axis.text.x     = element_text(angle = 45, hjust = 1, size = 7),
+      panel.spacing   = unit(0.35, "lines")
+    )
+}
+```
+
+## Pausing index
+
+Genes are binned by their log~2~ pausing index at 0 h. The bins run from
+de-paused (`<-2`) to strongly paused (`> 4`).
+
+```{r fig-pausing-bin, fig.height = 3.6, fig.width = 11}
+p_B <- make_panel("pausing_bin")
+p_B
+ggsave(file.path(params$out_dir, "pausing_index.png"),
+       plot = p_B, width = 11, height = 3.6, dpi = 300)
+```
+
+## Baseline Pol II occupancy
+
+Genes are binned into eight equal-count quantiles of log~2~ baseMean Pol II signal,
+Q1 (lowest) to Q8 (highest).
+
+```{r fig-s7c, fig.height = 3.6, fig.width = 11}
+p_C <- make_panel("baseMean_bin")
+p_C
+ggsave(file.path(params$out_dir, "polII_occupancy.png"),
+       plot = p_C, width = 11, height = 3.6, dpi = 300)
+```
+
+## Gene length
+
+The 1–5 kb class has no gene-body measurements, so that x position is empty in the
+two gene-body facets and carries no annotation.
+
+```{r fig-s7d, fig.height = 3.6, fig.width = 11}
+p_D <- make_panel("length_category")
+p_D
+ggsave(file.path(params$out_dir, "gene_length.png"),
+       plot = p_D, width = 11, height = 3.6, dpi = 300)
+```
+
+# Continuous predictors — gene-level regression
+
+Pausing index and gene length are continuous, and given that we can observe trends across 
+ordered bins, we consider an analysis without binning to see if 
+results hold up. We regress each log~2~ fold-change on the underlying continuous 
+variable across all genes. We use heteroskedasticity-consistent standard error (HC3),
+because the varaince is not constant along either predictor.
+
+```{r continuous-fit}
+dat <- dat |> mutate(log10_length = log10(length))
+
+cont_preds <- tibble::tribble(
+  ~var,                 ~label,                             ~axis,
+  "log2_pausing_ratio", "Baseline pausing index (log2)",    "log2 pausing index (0 h)",
+  "log10_length",       "Gene length (log10 bp)",           "Gene length (bp, log10 scale)"
+)
+
+continuous_fit <- function(resp, pred) {
+  d2 <- dat |>
+    transmute(y = .data[[resp]], x = .data[[pred]]) |>
+    filter(!is.na(y), !is.na(x))
+  m  <- lm(y ~ x, data = d2)
+  V  <- sandwich::vcovHC(m, type = "HC3")
+  b  <- unname(coef(m)[2]); se <- sqrt(V[2, 2]); df <- m$df.residual
+  tstat <- b / se
+  tibble(response = resp, predictor = pred, n = nrow(d2),
+         slope = b, lower.CL = b - qt(0.975, df) * se, upper.CL = b + qt(0.975, df) * se,
+         t.ratio = tstat, p_value = 2 * pt(-abs(tstat), df),
+         spearman_rho = cor(d2$x, d2$y, method = "spearman"),
+         r_squared = summary(m)$r.squared)
+}
+
+cont_tbl <- tidyr::expand_grid(response = responses, predictor = cont_preds$var) |>
+  purrr::pmap_dfr(function(response, predictor) continuous_fit(response, predictor)) |>
+  left_join(cont_preds, by = c("predictor" = "var"))
+write_csv(cont_tbl, file.path(params$out_dir, "continuous_regression.csv"))
+
+cont_tbl |>
+  mutate(response = factor(response, levels = responses)) |>
+  arrange(predictor, response) |>
+  transmute(predictor = label, response, n,
+            slope = sprintf("%+.4f", slope),
+            `95% CI` = sprintf("[%+.4f, %+.4f]", lower.CL, upper.CL),
+            t = sprintf("%.2f", t.ratio),
+            p = format.pval(p_value, digits = 3, eps = 1e-16),
+            `Spearman rho` = sprintf("%+.3f", spearman_rho),
+            `R^2` = sprintf("%.4f", r_squared)) |>
+  kable(caption = "Gene-level regression of each log2 fold-change on the continuous predictor (HC3 standard errors)")
+```
+
+```{r continuous-panel-fn}
+make_cont_panel <- function(pred, title, xlab, log_x = FALSE) {
+  d_long <- dat |>
+    select(x = all_of(pred), all_of(responses)) |>
+    pivot_longer(all_of(responses), names_to = "response", values_to = "y") |>
+    filter(!is.na(x), !is.na(y)) |>
+    mutate(response = factor(response, levels = responses))
+
+  ann <- cont_tbl |>
+    filter(predictor == pred) |>
+    mutate(response = factor(response, levels = responses),
+           label = sprintf("slope %+.3f\n%s\nrho %+.2f",
+                           slope,
+                           ifelse(p_value < 2e-16, "p < 2e-16",
+                                  paste0("p = ", sprintf("%.3g", p_value))),
+                           spearman_rho))
+
+  yr <- quantile(d_long$y, c(0.001, 0.999), na.rm = TRUE)
+  xr <- range(d_long$x, na.rm = TRUE)
+
+  p <- ggplot(d_long, aes(x = x, y = y)) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "red", linewidth = 0.4) +
+    geom_hex(bins = 55) +
+    scale_fill_gradient(low = "grey88", high = "grey15", trans = "log10",
+                        name = "genes", guide = guide_colourbar(barwidth = 0.4,
+                                                                barheight = 4)) +
+    geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs"), se = FALSE,
+                colour = "#1f78b4", linetype = "dashed", linewidth = 0.6) +
+    geom_smooth(method = "lm", formula = y ~ x, se = FALSE,
+                colour = "black", linewidth = 0.6) +
+    geom_text(data = ann, aes(x = xr[1], y = yr[2], label = label), inherit.aes = FALSE,
+              hjust = 0, vjust = 1, size = 2.1, lineheight = 1.05) +
+    facet_wrap(~ response, nrow = 1, labeller = labeller(response = resp_labels)) +
+    coord_cartesian(ylim = yr) +
+    labs(title = title, x = xlab, y = expression(log[2]~"fold-change")) +
+    theme_bw(base_size = 9) +
+    theme(plot.title = element_text(face = "bold", size = 10),
+          panel.grid = element_blank(),
+          strip.background = element_blank(),
+          strip.text = element_text(size = 8, lineheight = 1.05),
+          panel.spacing = unit(0.35, "lines"))
+  if (log_x) p <- p + scale_x_continuous(labels = function(v) scales::comma(10^v))
+  p
+}
+```
+
+## Pausing index as a continuous variable
+
+```{r fig-s7e, fig.height = 3.6, fig.width = 11}
+p_E <- make_cont_panel("log2_pausing_ratio",
+                       "Baseline pausing index (continuous)",
+                       expression(log[2]~"pausing index (0 h)"))
+p_E
+ggsave(file.path(params$out_dir, "pausing_continuous.png"),
+       plot = p_E, width = 11, height = 3.6, dpi = 300)
+```
+
+## Gene length as a continuous variable
+
+```{r fig-s7f, fig.height = 3.6, fig.width = 11}
+p_F <- make_cont_panel("log10_length",
+                       "Gene length (continuous)",
+                       "Gene length (bp)", log_x = TRUE)
+p_F
+ggsave(file.path(params$out_dir, "length_continuous.png"),
+       plot = p_F, width = 11, height = 3.6, dpi = 300)
+```
+
+
+```{r continuous-vs-binned}
+bind_rows(
+  cont_tbl |> transmute(response, predictor = label,
+                        analysis = "continuous (gene-level)",
+                        direction = ifelse(slope > 0, "positive", "negative"),
+                        p = p_value),
+  tidyr::expand_grid(response = responses,
+                     variable = c("pausing_bin", "length_category")) |>
+    purrr::pmap_dfr(function(response, variable) {
+      d2 <- dat |>
+        transmute(y = .data[[response]], group = as.character(.data[[variable]])) |>
+        filter(!is.na(y), !is.na(group)) |>
+        mutate(group = factor(group, levels = order_levels(group, variable))) |>
+        droplevels()
+      ct <- contrast(emmeans(lm(y ~ group, data = d2), ~ group), "poly", max.degree = 1)
+      as.data.frame(summary(ct)) |>
+        filter(contrast == "linear") |>
+        transmute(response,
+                  predictor = ifelse(variable == "pausing_bin",
+                                     "Baseline pausing index (log2)", "Gene length (log10 bp)"),
+                  analysis  = "linear trend across bins",
+                  direction = ifelse(estimate > 0, "positive", "negative"),
+                  p = p.value)
+    })
+) |>
+  mutate(response = factor(response, levels = responses)) |>
+  arrange(predictor, response, analysis) |>
+  transmute(predictor, response, analysis, direction,
+            p = format.pval(p, digits = 3, eps = 1e-16)) |>
+  kable(caption = "Continuous gene-level slope against the binned linear trend, for the same data")
+```
+
+# Statistics for the Results text
+
+The deleted-effect contrasts answer "does this bin differ from the other bins", 
+which is appropriate for determining which levels of the stratification are 
+especially effected, if any.
+
+Several sentences in the Results make different claims, which need different tests:
+
+| sentence in the Results | what it claims | test needed |
+|---|---|---|
+| "Pol II reduction at proximal promoters was observed across all gene lengths, expression levels…" | every bin is *below zero* | each bin mean vs 0 |
+| "genes with a log~2~ pausing index > 2 lost more TSS-bound Pol II than genes with lower pausing indices" | one *set of bins* vs the complementary set, at a threshold read off the figure | pooled two-set contrast, corrected for the threshold search |
+| "shorter genes tended to show reduced gene-body Pol II" | a *gradient* across the ordered bins | linear trend |
+
+We now compute all three are computed below on the same models.
+
+## Is each bin's mean different from zero?
+
+```{r vs-zero}
+vs_zero <- expand_grid(response = responses, variable = group_vars) |>
+  pmap_dfr(function(response, variable) {
+    d  <- dat |>
+      transmute(y = .data[[response]], group = as.character(.data[[variable]])) |>
+      filter(!is.na(y), !is.na(group)) |>
+      mutate(group = factor(group, levels = order_levels(group, variable))) |>
+      droplevels()
+    em <- emmeans(lm(y ~ group, data = d), ~ group)
+    as.data.frame(summary(em, infer = c(TRUE, TRUE), null = 0, adjust = "mvt")) |>
+      transmute(response, variable, level = as.character(group),
+                n = as.integer(table(d$group)[as.character(group)]),
+                mean_log2FC = emmean, lower.CL, upper.CL, t.ratio, p_mvt = p.value)
+  })
+write_csv(vs_zero, file.path(params$out_dir, "level_vs_zero.csv"))
+
+vs_zero |>
+  mutate(response = factor(response, levels = responses)) |>
+  group_by(response, variable) |>
+  summarise(bins = n(),
+            `below 0 (p < 0.05)` = sum(mean_log2FC < 0 & p_mvt < 0.05),
+            `above 0 (p < 0.05)` = sum(mean_log2FC > 0 & p_mvt < 0.05),
+            `not distinguishable from 0` = sum(p_mvt >= 0.05),
+            .groups = "drop") |>
+  arrange(response, variable) |>
+  kable(caption = "How many bins differ from zero, per family (mvt-adjusted within family)")
+```
+
+All groups individually are below zero for TSS at 90 min, which is the statement in results.
+
+## Pooled two-set contrasts
+
+Coefficients are weighted by the number of genes in each bin, so the estimate
+is the difference in mean log~2~ fold-change between the two gene sets.
+
+```{r pooled-contrasts}
+pooled_one <- function(resp, gv, set_a, label) {
+  d <- dat |>
+    transmute(y = .data[[resp]], group = as.character(.data[[gv]])) |>
+    filter(!is.na(y), !is.na(group)) |>
+    mutate(group = factor(group, levels = order_levels(group, gv))) |>
+    droplevels()
+  lv <- levels(d$group); a <- lv %in% set_a
+  if (!any(a) || all(a)) return(NULL)
+  n <- as.numeric(table(d$group)[lv])
+  w <- ifelse(a, n / sum(n[a]), -n / sum(n[!a]))
+  ct <- contrast(emmeans(lm(y ~ group, data = d), ~ group), setNames(list(w), label))
+  as.data.frame(summary(ct, infer = c(TRUE, TRUE))) |>
+    transmute(response = resp, variable = gv, comparison = label,
+              levels_in_set = paste(lv[a], collapse = " + "),
+              n_set = sum(n[a]), n_rest = sum(n[!a]),
+              difference = estimate, lower.CL, upper.CL, df, t.ratio, p_value = p.value)
+}
+
+specs <- list(
+  list(gv = "pausing_bin",     set = c("2 to 3", "3 to 4", "> 4"),
+       lab = "pausing index > 2 vs <= 2"),
+  list(gv = "pausing_bin",     set = "> 4",
+       lab = "pausing index > 4 vs <= 4"),
+  list(gv = "length_category", set = c("1\u20135 kb", "5\u201310 kb"),
+       lab = "genes < 10 kb vs >= 10 kb"),
+  list(gv = "baseMean_bin",    set = c("Q1", "Q2"),
+       lab = "lowest-expressed quartiles (Q1-Q2) vs rest")
+)
+pooled_tbl <- map_dfr(responses, function(r) map_dfr(specs, ~ pooled_one(r, .x$gv, .x$set, .x$lab)))
+write_csv(pooled_tbl, file.path(params$out_dir, "pooled_contrasts.csv"))
+
+pooled_tbl |>
+  mutate(response = factor(response, levels = responses)) |>
+  arrange(comparison, response) |>
+  transmute(comparison, response,
+            `set / rest` = sprintf("%d / %d", n_set, n_rest),
+            difference = sprintf("%+.4f", difference),
+            `95% CI` = sprintf("[%+.3f, %+.3f]", lower.CL, upper.CL),
+            t = sprintf("%.2f", t.ratio),
+            p = format.pval(p_value, digits = 3, eps = 1e-16)) |>
+  kable(caption = "Pooled, gene-weighted contrasts matching the Results sentences")
+```
+
+
+## Correcting for multiple possible thresholds
+
+These thresholds are post-hoc (decided after examining the boxplots), not 
+pre-specified, so we need to correct the p-values for many possible choices of
+threshold.
+
+An ordered factor with *k* levels admits *k*−1 splits into a low and a high set,
+and all of them are contrasts on the same model — so `mvt` across those *k*−1 splits
+corrects for having searched all thresholds, and is appropriate when there is
+a strong correlation between nested splits.
+
+```{r threshold-search}
+split_search <- expand_grid(response = responses, variable = group_vars) |>
+  pmap_dfr(function(response, variable) {
+    d <- dat |>
+      transmute(y = .data[[response]], group = as.character(.data[[variable]])) |>
+      filter(!is.na(y), !is.na(group)) |>
+      mutate(group = factor(group, levels = order_levels(group, variable))) |>
+      droplevels()
+    mod <- lm(y ~ group, data = d)
+    lv <- levels(d$group); k <- length(lv); n <- as.numeric(table(d$group)[lv])
+    W <- lapply(seq_len(k - 1), function(i) {
+      a <- seq_along(lv) > i; ifelse(a, n / sum(n[a]), -n / sum(n[!a]))
+    })
+    names(W) <- paste0("above ", lv[seq_len(k - 1)])
+    em <- emmeans(mod, ~ group)
+    raw <- as.data.frame(summary(contrast(em, W, adjust = "none"), infer = c(TRUE, TRUE)))
+    adj <- as.data.frame(summary(contrast(em, W, adjust = "mvt")))
+    tibble(response, variable, split = names(W), n_high = vapply(W, function(w) sum(n[w > 0]), numeric(1)),
+           difference = raw$estimate, lower.CL = raw$lower.CL, upper.CL = raw$upper.CL,
+           p_raw = raw$p.value, p_splits_corrected = adj$p.value)
+  })
+write_csv(split_search, file.path(params$out_dir, "threshold_search_corrected.csv"))
+
+# the splits the Results text names
+used_splits <- tibble::tribble(
+  ~response,                  ~variable,         ~split,
+  "TSS_log2FC_90min_0h",      "pausing_bin",     "above 1 to 2",
+  "TSS_log2FC_8h_0h",         "pausing_bin",     "above 3 to 4",
+  "GeneBody_log2FC_90min_0h", "pausing_bin",     "above 1 to 2",
+  "GeneBody_log2FC_8h_0h",    "pausing_bin",     "above 1 to 2",
+  "GeneBody_log2FC_90min_0h", "length_category", "above 5\u201310 kb",
+  "GeneBody_log2FC_8h_0h",    "length_category", "above 5\u201310 kb"
+)
+
+used_splits |>
+  left_join(split_search, by = c("response", "variable", "split")) |>
+  transmute(response, variable, split,
+            difference = sprintf("%+.4f", difference),
+            `p (raw)` = format.pval(p_raw, digits = 3, eps = 1e-16),
+            `p (corrected)` =
+              format.pval(p_splits_corrected, digits = 3, eps = 1e-16)) |>
+  kable()
+```
+
+## Linear trend across the ordered bins
+
+```{r trends}
+trend <- expand_grid(response = responses, variable = group_vars) |>
+  pmap_dfr(function(response, variable) {
+    d <- dat |>
+      transmute(y = .data[[response]], group = as.character(.data[[variable]])) |>
+      filter(!is.na(y), !is.na(group)) |>
+      mutate(group = factor(group, levels = order_levels(group, variable))) |>
+      droplevels()
+    ct <- contrast(emmeans(lm(y ~ group, data = d), ~ group), "poly", max.degree = 1)
+    as.data.frame(summary(ct, infer = c(TRUE, TRUE))) |>
+      filter(contrast == "linear") |>
+      transmute(response, variable, k_levels = nlevels(d$group),
+                linear_estimate = estimate, lower.CL, upper.CL, t.ratio, p_value = p.value)
+  })
+write_csv(trend, file.path(params$out_dir, "linear_trends.csv"))
+
+trend |>
+  mutate(response = factor(response, levels = responses)) |>
+  arrange(variable, response) |>
+  transmute(variable, response, k = k_levels,
+            `linear contrast` = sprintf("%+.3f", linear_estimate),
+            `95% CI` = sprintf("[%+.3f, %+.3f]", lower.CL, upper.CL),
+            t = sprintf("%.2f", t.ratio),
+            p = format.pval(p_value, digits = 3, eps = 1e-16)) |>
+  kable(caption = "Linear component across the ordered bins")
+```
+
+
+```{r session}
+sessionInfo()
+```
