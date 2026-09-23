@@ -170,3 +170,4 @@ cython_debug/
 
 # Summary data CSVs
 SUMMARY/
+results/
