@@ -6,6 +6,7 @@ params:
   csv_path: "data/metadata_boxplot_data_all_figureS7_ptype_Sep2026.csv"
   out_dir: "results"
   seed: 20260914
+  min_tss_fold: 1.4142136   # Pol II occupancy cutoff: log2(TSS / mean upstream) > 0.5
 output:
   html_document:
     toc: true
@@ -116,6 +117,41 @@ if (length(missing_resp)) {
 }
 ```
 
+## Pol II occupancy filter
+
+Pol II occupancy is only interpretable at genes that carry Pol II to begin with, so genes
+without a detectable promoter peak in untreated cells are excluded before any model is fitted.
+
+The cutoff is applied to the TSS region only and propagated to the gene-body panels, rather
+than being applied region by region (TSS is where Pol II is likely to be measured above
+background, even in highly paused genes).
+
+`TSS_cov_D8L4Y_0h` is coverage in the TSS window divided by the mean upstream signal for that
+condition, so the cutoff is read directly as a fold over local background.
+
+```{r occupancy-filter}
+stopifnot("TSS_cov_D8L4Y_0h" %in% names(dat))
+
+min_tss_fold <- params$min_tss_fold
+
+n_before  <- nrow(dat)
+n_missing <- sum(is.na(dat$TSS_cov_D8L4Y_0h))
+
+dat <- dat |>
+  filter(!is.na(TSS_cov_D8L4Y_0h), TSS_cov_D8L4Y_0h > min_tss_fold)
+
+tibble(
+  step = c("genes in table",
+           "no TSS coverage value",
+           sprintf("TSS coverage <= %.3gx background", min_tss_fold),
+           "retained"),
+  n = c(n_before, n_missing, n_before - n_missing - nrow(dat), nrow(dat))
+) |>
+  kable(caption = sprintf(
+    "Pol II occupancy filter (TSS coverage > %.3gx upstream background)",
+    min_tss_fold))
+```
+
 ```{r level-order}
 order_levels <- function(x, var) {
   obs  <- sort(unique(as.character(x[!is.na(x)])))
@@ -152,10 +188,8 @@ size_tbl |>
   kable(caption = "Genes contributing to each test")
 ```
 
-Important to note that TSS responses are defined for 9,849 genes, while 
-gene-body responses are defined for 8,983 genes (short genes excluded). The
-1–5 kb class is absent from the gene-body panels, so gene length is tested over
-six levels for TSS and five for gene body.
+Important to note that TSS responses are defined for 9,307 genes, while 
+gene-body responses are defined for 8,516 genes (short genes excluded).
 
 # Statistical approach
 
@@ -285,6 +319,10 @@ stars <- function(p) {
       breaks = c(-Inf, 0.001, 0.01, 0.05, Inf),
       labels = c("***", "**", "*", ""))
 }
+
+n_label_pt  <- 5        # gene-count label size, in POINTS (see note below)
+n_label_col <- "grey35"
+n_pad_frac  <- 0.05     # bottom strip reserved for the counts, as a fraction of the y span
 ```
 
 # Promoter class
@@ -560,10 +598,10 @@ if (has_promoter) {
 
 ## Figure
 
-```{r fig-s7a, fig.height = 3.6, fig.width = 11}
+```{r fig-s7a, fig.height = 2.5, fig.width = 6}
 if (has_promoter) {
-  pal_A <- c("CCAAT" = "#FBB4AE", "GC box" = "#B3CDE3", "Initiator" = "#DECBE4",
-             "TATA" = "#FB8072", "no information" = "#CCEBC5")
+  pal_A <- c("CCAAT" = "#efeabf", "GC box" = "#d7d8ed", "Initiator" = "#cbb3d6",
+             "TATA" = "#d6a19d", "no information" = "#d2e9d1")
 
   # genes are duplicated into every class they belong to — class sizes sum to more
   # than the number of genes, by construction
@@ -578,33 +616,42 @@ if (has_promoter) {
            response = factor(response, levels = responses))
 
   yr    <- range(d_long$y, na.rm = TRUE)
+  pad     <- n_pad_frac * (-yr[1] - yr[1])
+  n_lab_A <- d_long |>
+    count(response, class, name = "n") |>
+    mutate(y = yr[1] - pad / 2)
   ann_A <- promoter_tbl |>
     mutate(class    = factor(as.character(class), levels = names(pal_A)),
            response = factor(response, levels = responses),
            label    = as.character(stars(p_BH_fig)),
-           y        = yr[2] + 0.13 * diff(yr))
+           y        = -yr[1] - 0.1)
 
   p_A <- ggplot(d_long, aes(x = class, y = y, fill = class)) +
-    geom_hline(yintercept = 0, linetype = "dashed", colour = "red", linewidth = 0.4) +
     geom_boxplot(outlier.size = 0.35, outlier.alpha = 0.45, outlier.stroke = 0,
                  linewidth = 0.3, colour = "grey20") +
     geom_text(data = ann_A, aes(x = class, y = y, label = label),
               inherit.aes = FALSE, size = 2.5) +
+    geom_text(data = n_lab_A, aes(x = class, y = y, label = n),
+              inherit.aes = FALSE, size = n_label_pt / .pt,
+              colour = n_label_col, vjust = 0.5) +
     facet_wrap(~ response, nrow = 1, labeller = labeller(response = resp_labels)) +
     scale_fill_manual(values = pal_A, guide = "none") +
-    coord_cartesian(ylim = c(yr[1] - 0.02 * diff(yr), yr[2] + 0.22 * diff(yr))) +
-    labs(title = "S7A  Promoter type", x = "Promoter type",
+    coord_cartesian(ylim = c(yr[1] - pad, -yr[1])) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "red", linewidth = 0.4) +
+    labs(#title = "S7A  Promoter type",
+         x = "Promoter type",
          y = expression(log[2]~"fold-change")) +
-    theme_bw(base_size = 9) +
+    theme_bw(base_size = 8) +
     theme(plot.title = element_text(face = "bold", size = 10),
           panel.grid = element_blank(),
           strip.background = element_blank(),
           strip.text = element_text(size = 8, lineheight = 1.05),
           axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+          axis.title.x = element_blank(),
           panel.spacing = unit(0.35, "lines"))
   print(p_A)
-  ggsave(file.path(params$out_dir, "promoter_type.png"),
-         plot = p_A, width = 11, height = 3.6, dpi = 300)
+  ggsave(file.path(params$out_dir, "promoter_type.pdf"),
+         plot = p_A, width = 14, height = 6, dpi = 300, units="cm")
 }
 ```
 
@@ -642,7 +689,7 @@ for (gv in panel_meta$variable) {
 
 ```{r palettes}
 palettes <- list(
-  pausing   = rev(brewer.pal(8, "RdYlBu")),
+  pausing   = c("#8ed8f8","#8ed8f8","#8ed8f8","#ffe2a9","#ffe2a9","#f8aba2","#f8aba2","#f8aba2"),
   occupancy = colorRampPalette(c("#F7FBFF", "#08519C"))(8),
   length    = colorRampPalette(c("#FFF5EB", "#D94801"))(6)
 )
@@ -662,10 +709,17 @@ make_panel <- function(gv) {
     mutate(level    = factor(level, levels = levs),
            response = factor(response, levels = responses))
 
-  # Common y range across the four sub-panels
+  # Common y range across the four sub-panels, plus a strip at the bottom for counts
   yr    <- range(d$y, na.rm = TRUE)
-  y_ann <- yr[2] + 0.13 * diff(yr)
-  ylim  <- c(yr[1] - 0.02 * diff(yr), yr[2] + 0.22 * diff(yr))
+  pad   <- n_pad_frac * (-yr[1] - yr[1])
+  y_ann <- -yr[1] - 0.1
+  ylim  <- c(yr[1] - pad, -yr[1])
+
+  # counted per facet, so the gene-body panels get their own n and the absent
+  # 1-5 kb class simply produces no row
+  n_lab <- d |>
+    count(response, level, name = "n") |>
+    mutate(y = yr[1])
 
   ann <- con_tbl |>
     filter(variable == gv) |>
@@ -675,25 +729,29 @@ make_panel <- function(gv) {
            y        = y_ann)
 
   ggplot(d, aes(x = level, y = y, fill = level)) +
-    geom_hline(yintercept = 0, linetype = "dashed", colour = "red", linewidth = 0.4) +
     geom_boxplot(outlier.size = 0.35, outlier.alpha = 0.45, outlier.stroke = 0,
                  linewidth = 0.3, colour = "grey20") +
     geom_text(data = ann, aes(x = level, y = y, label = label),
               inherit.aes = FALSE, size = 2.5, vjust = 0.5) +
+    geom_text(data = n_lab, aes(x = level, y = y, label = n),
+              inherit.aes = FALSE, size = n_label_pt / .pt,
+              colour = n_label_col, vjust = 0.5, angle=90) +
     facet_wrap(~ response, nrow = 1,
                labeller = labeller(response = resp_labels)) +
     scale_fill_manual(values = pal, guide = "none") +
     coord_cartesian(ylim = ylim) +
-    labs(title = paste0(pm$panel, "  ", pm$title),
-         x = pm$xlab,
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "red", linewidth = 0.4) +
+    labs(x = pm$xlab,
          y = expression(log[2]~"fold-change")) +
-    theme_bw(base_size = 9) +
+    scale_y_continuous(breaks=c(-1,0,1)) + 
+    theme_bw(base_size = 8) +
     theme(
-      plot.title      = element_text(face = "bold", size = 10),
+      plot.title      = element_text(face = "bold", size = 8),
       panel.grid      = element_blank(),
       strip.background = element_blank(),
       strip.text      = element_text(size = 8, lineheight = 1.05),
       axis.text.x     = element_text(angle = 45, hjust = 1, size = 7),
+      axis.text.y     = element_text(size = 7),
       panel.spacing   = unit(0.35, "lines")
     )
 }
@@ -704,11 +762,11 @@ make_panel <- function(gv) {
 Genes are binned by their log~2~ pausing index at 0 h. The bins run from
 de-paused (`<-2`) to strongly paused (`> 4`).
 
-```{r fig-pausing-bin, fig.height = 3.6, fig.width = 11}
+```{r fig-pausing-bin, fig.height = 2.5, fig.width = 6}
 p_B <- make_panel("pausing_bin")
 p_B
-ggsave(file.path(params$out_dir, "pausing_index.png"),
-       plot = p_B, width = 11, height = 3.6, dpi = 300)
+ggsave(file.path(params$out_dir, "pausing_index.pdf"),
+       plot = p_B, width = 14, height = 6, units="cm")
 ```
 
 ## Baseline Pol II occupancy
@@ -716,11 +774,11 @@ ggsave(file.path(params$out_dir, "pausing_index.png"),
 Genes are binned into eight equal-count quantiles of log~2~ baseMean Pol II signal,
 Q1 (lowest) to Q8 (highest).
 
-```{r fig-s7c, fig.height = 3.6, fig.width = 11}
+```{r fig-s7c, fig.height = 2.5, fig.width = 6}
 p_C <- make_panel("baseMean_bin")
 p_C
-ggsave(file.path(params$out_dir, "polII_occupancy.png"),
-       plot = p_C, width = 11, height = 3.6, dpi = 300)
+ggsave(file.path(params$out_dir, "polII_occupancy.pdf"),
+       plot = p_C, width = 14, height = 5.5, units="cm")
 ```
 
 ## Gene length
@@ -728,11 +786,11 @@ ggsave(file.path(params$out_dir, "polII_occupancy.png"),
 The 1–5 kb class has no gene-body measurements, so that x position is empty in the
 two gene-body facets and carries no annotation.
 
-```{r fig-s7d, fig.height = 3.6, fig.width = 11}
+```{r fig-s7d, fig.height = 2.5, fig.width = 6}
 p_D <- make_panel("length_category")
 p_D
-ggsave(file.path(params$out_dir, "gene_length.png"),
-       plot = p_D, width = 11, height = 3.6, dpi = 300)
+ggsave(file.path(params$out_dir, "gene_length.pdf"),
+       plot = p_D, width = 14, height = 6, units="cm")
 ```
 
 # Continuous predictors — gene-level regression
@@ -833,7 +891,7 @@ make_cont_panel <- function(pred, title, xlab, log_x = FALSE) {
 
 ## Pausing index as a continuous variable
 
-```{r fig-s7e, fig.height = 3.6, fig.width = 11}
+```{r fig-s7e, fig.height = 2.5, fig.width = 6}
 p_E <- make_cont_panel("log2_pausing_ratio",
                        "Baseline pausing index (continuous)",
                        expression(log[2]~"pausing index (0 h)"))
