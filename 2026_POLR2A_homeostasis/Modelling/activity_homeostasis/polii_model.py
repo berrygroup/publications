@@ -4,7 +4,8 @@ used in Gillis et al., refactored to expose the following parameters as explicit
 arguments
 
     w_P          relative weight of the genomic (TSS ChIP) data points
-    w_armc5      relative weight of the ARMC5 imaging points
+    w_armc5      flat multiplier on the ARMC5 imaging points (1 = no reweighting,
+                 as used for the reported fit; varied by the sensitivity analysis)
     pt_fraction  fraction of promoter-proximal Pol II that terminates prematurely
                  at T = 1 (the "80%" external constraint)
 
@@ -125,45 +126,58 @@ def load_data(data_dir=None):
         b4["BOUND_FRACTION"].values,
     ]
 
+    T_E = np.concatenate([T1, T2, T3])
+    E = np.concatenate([E1, E2, E3])
+    E_block = np.concatenate(
+        [np.full(len(T1), 0), np.full(len(T2), 1), np.full(len(T3), 2)]
+    )
+    E_sd = np.concatenate([np.full(len(T1), np.nan), np.full(len(T2), np.nan), E3_sd])
+
+    T_P = np.array([0.738, 1.0, 1.51])
+    P = np.array([0.909, 1.0, 1.45])
+
+    # Flag the self-normalisation points.  Where a series is normalised to its
+    # own vehicle / t = 0 control, that control is exactly 1 at T = 1 by
+    # construction, and the model predicts E*(1)/E*(1) = 1 identically, so the
+    # residual is zero for every parameter set.  Such points cannot constrain
+    # the fit, but counting them would inflate the number of observations used
+    # to estimate the error scale.  They are EXCLUDED FROM FITTING and from all
+    # quantitative analysis via these masks, and RETAINED IN THE RETURNED DATA
+    # so that plots still show them.
+    E_fit = ~((T_E == 1.0) & (E == 1.0))
+    P_fit = ~((T_P == 1.0) & (P == 1.0))
+
     return dict(
-        T_E=np.concatenate([T1, T2, T3]),
-        E=np.concatenate([E1, E2, E3]),
-        E_block=np.concatenate(
-            [np.full(len(T1), 0), np.full(len(T2), 1), np.full(len(T3), 2)]
-        ),
+        T_E=T_E,
+        E=E,
+        E_block=E_block,
         E3_sd=E3_sd,
         # per-row SD for the E block (NaN where not applicable); follows rows
         # through bootstrap resampling
-        E_sd=np.concatenate(
-            [np.full(len(T1), np.nan), np.full(len(T2), np.nan), E3_sd]
-        ),
+        E_sd=E_sd,
+        # False for self-normalisation controls: shown on plots, not fitted
+        E_fit=E_fit,
         T_B=np.concatenate(Tb),
         B=np.concatenate(Bb),
         B_block=np.concatenate([np.full(len(t), i) for i, t in enumerate(Tb)]),
-        # genomic TSS Pol II (dxChIP-seq half-degron 90 min; control; ARMC5 KO)
-        T_P=np.array([0.738, 1.0, 1.51]),
-        P=np.array([0.909, 1.0, 1.45]),
+        # TSS Pol II by dxChIP-seq (half-degron 90 min; ARMC5 KO), each the
+        # ratio of mean spike-in-normalised TSS coverage to its own control
+        T_P=T_P,
+        P=P,
+        P_fit=P_fit,
     )
 
 
-def e_weights(data, w_armc5=3.0, inv_var=True):
+def e_weights(data, w_armc5=1.0):
     """Per-point weights for the E block.
 
-    w_armc5 = None  -> every imaging point weight 1 (no ARMC5 upweighting)
-    inv_var = True  -> ARMC5 points inverse-variance weighted across replicates,
-                       renormalised so their MEAN weight is `w_armc5`
-                       (the published scheme)
-    inv_var = False -> every ARMC5 point gets weight `w_armc5` (flat)
+    Every imaging point carries weight 1, which is the scheme used for the
+    reported fit.  `w_armc5` applies a flat multiplier to the five ARMC5 points
+    and exists only so that the weighting-sensitivity analysis can vary it.
     """
     w = np.ones(len(data["T_E"]))
-    if w_armc5 is None:
-        return w
-    m = ~np.isnan(data["E_sd"])
-    if inv_var:
-        iv = 1.0 / (data["E_sd"][m] ** 2 + 1e-6)
-        w[m] = iv / iv.mean() * w_armc5
-    else:
-        w[m] = w_armc5
+    if w_armc5 != 1.0:
+        w[~np.isnan(data["E_sd"])] = w_armc5
     return w
 
 
@@ -174,8 +188,7 @@ def cost(
     params,
     data,
     w_P=3.0,
-    w_armc5=3.0,
-    inv_var=True,
+    w_armc5=1.0,
     w_E=1.0,
     pt_fraction=0.8,
     constraint_weight=100.0,
@@ -196,10 +209,12 @@ def cost(
         return 1e6
     N0, P0, E0 = base
 
-    wE = w_E * e_weights(data, w_armc5, inv_var)
-    ssE = np.array([steady_state(T, params)[2] for T in data["T_E"]]) / E0
+    mE = data.get("E_fit", np.ones(len(data["T_E"]), bool))
+    mP = data.get("P_fit", np.ones(len(data["T_P"]), bool))
+    wE = (w_E * e_weights(data, w_armc5))[mE]
+    ssE = np.array([steady_state(T, params)[2] for T in data["T_E"][mE]]) / E0
     ssB = np.array([np.sum(steady_state(T, params)[1:]) / T for T in data["T_B"]])
-    ssP = np.array([steady_state(T, params)[1] for T in data["T_P"]]) / P0
+    ssP = np.array([steady_state(T, params)[1] for T in data["T_P"][mP]]) / P0
     if not (
         np.all(np.isfinite(ssE))
         and np.all(np.isfinite(ssB))
@@ -207,9 +222,9 @@ def cost(
     ):
         return 1e6
 
-    rE = np.sum(wE * (ssE - data["E"]) ** 2)
+    rE = np.sum(wE * (ssE - data["E"][mE]) ** 2)
     rB = np.sum((ssB - data["B"]) ** 2)
-    rP = w_P * np.sum((ssP - data["P"]) ** 2)
+    rP = w_P * np.sum((ssP - data["P"][mP]) ** 2)
     sse = rE + rB + rP
     n = wE.sum() + len(ssB) + w_P * len(ssP)
 
@@ -224,9 +239,9 @@ def cost(
             sse=sse,
             n_eff=n,
             penalty=pen,
-            resid_E=ssE - data["E"],
+            resid_E=ssE - data["E"][mE],
             resid_B=ssB - data["B"],
-            resid_P=ssP - data["P"],
+            resid_P=ssP - data["P"][mP],
             w_E=wE,
             pt_achieved=flux_pn / (flux_pn + flux_pe),
         )
