@@ -238,6 +238,9 @@ def cost(
             cost=(sse + pen) / n,
             sse=sse,
             n_eff=n,
+            # number of measurements actually fitted; the denominator for the
+            # residual-variance estimate is n_obs - p, not the weight sum
+            n_obs=int(mE.sum()) + len(ssB) + int(mP.sum()),
             penalty=pen,
             resid_E=ssE - data["E"][mE],
             resid_B=ssB - data["B"],
@@ -278,8 +281,12 @@ def fit(data, n_starts=100, seed=42, x0=None, fixed=None, **kw):
                 ]
             )
         )
-    best, allres = None, []
+    best, allres, n_failed = None, [], 0
     for s in starts:
+        # A start can fail only through the numerical solvers (a sign-check
+        # failure in brentq, a non-finite objective).  Such a start is dropped,
+        # but the count is returned so that it can never pass silently into a
+        # convergence statistic; anything else propagates.
         try:
             r = minimize(
                 obj,
@@ -288,14 +295,22 @@ def fit(data, n_starts=100, seed=42, x0=None, fixed=None, **kw):
                 bounds=[BOUNDS[i] for i in free],
                 options={"maxiter": 2000},
             )
-        except Exception:
+        except (ValueError, FloatingPointError, RuntimeError):
+            n_failed += 1
             continue
-        if np.isfinite(r.fun):
-            allres.append((r.fun, expand(r.x)))
-            if best is None or r.fun < best[0]:
-                best = (r.fun, expand(r.x))
+        if not np.isfinite(r.fun):
+            n_failed += 1
+            continue
+        allres.append((r.fun, expand(r.x)))
+        if best is None or r.fun < best[0]:
+            best = (r.fun, expand(r.x))
+    if best is None:
+        raise RuntimeError(
+            f"all {len(starts)} starts failed; the model could not be solved "
+            "anywhere in the parameter bounds for this dataset"
+        )
     allres.sort(key=lambda t: t[0])
-    return dict(cost=best[0], params=best[1], all=allres)
+    return dict(cost=best[0], params=best[1], all=allres, n_failed=n_failed)
 
 
 def summarise(params, data, **kw):
